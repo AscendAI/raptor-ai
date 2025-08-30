@@ -2,9 +2,8 @@
 
 import { motion, type Variants } from 'framer-motion';
 import { Pacifico } from 'next/font/google';
-import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
+import { AuthenticatedButton } from '@/components/auth/authenticated-button';
 
 const pacifico = Pacifico({
   subsets: ['latin'],
@@ -205,13 +204,7 @@ export default function HeroGeometric({
               ease: [0.25, 0.4, 0.25, 1],
             }}
           >
-            <Button
-              asChild
-              size="lg"
-              className="bg-gradient-to-r from-indigo-500 to-rose-500 hover:from-indigo-600 hover:to-rose-600 text-white font-medium px-8 py-3 rounded-full shadow-lg shadow-indigo-500/25 transition-all duration-300 hover:shadow-xl hover:shadow-indigo-500/30 border-0"
-            >
-              <Link href="/auth">Get Started</Link>
-            </Button>
+            <AuthenticatedButton />
           </motion.div>
         </div>
       </div>
