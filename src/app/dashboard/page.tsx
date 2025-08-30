@@ -89,6 +89,11 @@ export default async function DashboardPage() {
               <Button className="w-full justify-start" variant="outline">
                 📸 Upload Photos
               </Button>
+              <Link href="/roofr" className="block w-full">
+                <Button className="w-full justify-start" variant="outline">
+                  🔍 Analyze Roofr PDF
+                </Button>
+              </Link>
               <Button className="w-full justify-start" variant="outline">
                 📊 View Analytics
               </Button>
