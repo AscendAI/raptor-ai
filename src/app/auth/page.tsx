@@ -1,17 +1,14 @@
 import { Metadata } from 'next';
 import Image from 'next/image';
-import Link from 'next/link';
 
-import { cn } from '@/lib/utils';
-import { buttonVariants } from '@/components/ui/button';
 import { UserAuthForm } from '@/components/auth/user-auth-form';
 
 export const metadata: Metadata = {
-  title: 'Login',
-  description: 'Login to your account.',
+  title: 'Authentication',
+  description: 'Sign in to your account with Google.',
 };
 
-export default function LoginPage() {
+export default function AuthPage() {
   return (
     <>
       <div className="md:hidden">
@@ -33,15 +30,6 @@ export default function LoginPage() {
         />
       </div>
       <div className="relative container hidden flex-1 shrink-0 items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0">
-        <Link
-          href="/signup"
-          className={cn(
-            buttonVariants({ variant: 'ghost' }),
-            'absolute top-4 right-4 md:top-8 md:right-8'
-          )}
-        >
-          Sign up
-        </Link>
         <div className="text-primary relative hidden h-full flex-col p-10 lg:flex dark:border-r">
           <div className="bg-primary/5 absolute inset-0" />
           <div className="relative z-20 flex items-center text-lg font-medium">
@@ -71,28 +59,28 @@ export default function LoginPage() {
           <div className="mx-auto flex w-full flex-col justify-center gap-6 sm:w-[350px]">
             <div className="flex flex-col gap-2 text-center">
               <h1 className="text-2xl font-semibold tracking-tight">
-                Welcome back
+                Welcome to Raptor AI
               </h1>
               <p className="text-muted-foreground text-sm">
-                Sign in to your account with Google
+                Sign in with your Google account to get started
               </p>
             </div>
             <UserAuthForm />
             <p className="text-muted-foreground px-8 text-center text-sm">
               By clicking continue, you agree to our{' '}
-              <Link
+              <a
                 href="/terms"
                 className="hover:text-primary underline underline-offset-4"
               >
                 Terms of Service
-              </Link>{' '}
+              </a>{' '}
               and{' '}
-              <Link
+              <a
                 href="/privacy"
                 className="hover:text-primary underline underline-offset-4"
               >
                 Privacy Policy
-              </Link>
+              </a>
               .
             </p>
           </div>
