@@ -74,7 +74,7 @@ export default function AuthenticationPage() {
                 Create an account
               </h1>
               <p className="text-muted-foreground text-sm">
-                Enter your email below to create your account
+                Sign up with your Google account to get started
               </p>
             </div>
             <UserAuthForm />
