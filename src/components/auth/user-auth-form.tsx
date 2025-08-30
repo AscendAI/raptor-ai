@@ -6,6 +6,7 @@ import { FcGoogle } from 'react-icons/fc';
 import { cn } from '@/lib/utils';
 import { Icons } from '@/components/common/icons';
 import { Button } from '@/components/ui/button';
+import { authClient } from '@/lib/auth-client';
 
 export function UserAuthForm({
   className,
@@ -15,10 +16,11 @@ export function UserAuthForm({
 
   async function onGoogleSignIn() {
     setIsLoading(true);
-    // Add your Google sign-in logic here
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 3000);
+    const data = await authClient.signIn.social({
+      provider: "google",
+      callbackURL: "/dashboard"
+    });
+    setIsLoading(false);
   }
 
   return (

@@ -1,7 +1,11 @@
 import { pgTable, text, timestamp, boolean } from "drizzle-orm/pg-core";
+import { user } from "./auth";
 
 export const project = pgTable("project", {
   id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade", onUpdate: "cascade" }),
   name: text("name").notNull(),
   image: text("image"),
   createdAt: timestamp("created_at")
