@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Raptor AI',
-  description: 'Elevate Your Digital Vision',
+  title: 'Raptor AI – Roofing Supplementor',
+  description: 'Automating insurance claim supplements with precision.',
 };
 
 export default function RootLayout({

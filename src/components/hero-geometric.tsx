@@ -79,13 +79,11 @@ function ElegantShape({
 }
 
 export default function HeroGeometric({
-  badge = 'Raptor AI',
-  title1 = 'Elevate Your',
-  title2 = 'Digital Vision',
+  badge = 'Raptor AI – Roofing Supplementor',
+  title1 = 'Claim Supplement assistant',
 }: {
   badge?: string;
   title1?: string;
-  title2?: string;
 }) {
   const fadeUpVariants: Variants = {
     hidden: { opacity: 0, y: 30 },
@@ -147,7 +145,7 @@ export default function HeroGeometric({
       </div>
 
       <div className="relative z-10 container mx-auto px-4 md:px-6">
-        <div className="max-w-3xl mx-auto text-center">
+        <div className="max-w-5xl mx-auto text-center">
           <motion.div
             custom={0}
             variants={fadeUpVariants}
@@ -174,18 +172,9 @@ export default function HeroGeometric({
               ease: [0.25, 0.4, 0.25, 1],
             }}
           >
-            <h1 className="text-4xl sm:text-6xl md:text-8xl font-bold mb-6 md:mb-8 tracking-tight">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold mb-6 md:mb-8 tracking-tight px-4 sm:px-6 md:px-8">
               <span className="bg-clip-text text-transparent bg-gradient-to-b from-white to-white/80">
                 {title1}
-              </span>
-              <br />
-              <span
-                className={cn(
-                  'bg-clip-text text-transparent bg-gradient-to-r from-indigo-300 via-white/90 to-rose-300 ',
-                  pacifico.className
-                )}
-              >
-                {title2}
               </span>
             </h1>
           </motion.div>
@@ -202,8 +191,7 @@ export default function HeroGeometric({
             }}
           >
             <p className="text-base sm:text-lg md:text-xl text-white/40 mb-8 leading-relaxed font-light tracking-wide max-w-xl mx-auto px-4">
-              Crafting exceptional digital experiences through innovative design
-              and cutting-edge technology.
+              Automating insurance claim supplements with precision.
             </p>
           </motion.div>
 
