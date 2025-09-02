@@ -1,39 +1,13 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { authClient } from '@/lib/auth-client';
-import { Button } from '@/components/ui/button';
-import Link from 'next/link';
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  image?: string | null;
-}
+import { authClient } from "@/lib/auth-client";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export function AuthenticatedButton() {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { data, isPending } = authClient.useSession();
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const session = await authClient.getSession();
-        if (session?.data?.user) {
-          setUser(session.data.user);
-        }
-      } catch (error) {
-        console.error('Error checking auth:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    checkAuth();
-  }, []);
-
-  if (loading) {
+  if (isPending) {
     return (
       <Button
         size="lg"
@@ -45,7 +19,7 @@ export function AuthenticatedButton() {
     );
   }
 
-  if (user) {
+  if (data?.user) {
     return (
       <Button
         asChild
