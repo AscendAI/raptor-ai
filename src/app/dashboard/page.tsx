@@ -45,7 +45,6 @@ export default async function DashboardPage() {
                 📄 New Supplement Report
               </Button>
             </Link>
-            <Input type="file" placeholder="Upload Supplement Report" />
             <Button className="w-full justify-start" variant="outline">
               📸 Upload Photos
             </Button>

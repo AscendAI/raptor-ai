@@ -2,9 +2,11 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { analyseFiles } from "@/lib/server/actions";
+import { Label } from "@radix-ui/react-dropdown-menu";
 import { useState } from "react";
 
-const readFileData = (file: File) => {
+function readFileData(file: File) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -15,11 +17,11 @@ const readFileData = (file: File) => {
     };
     reader.readAsDataURL(file);
   });
-};
+}
 
 //param: file -> the input file (e.g. event.target.files[0])
 //return: images -> an array of images encoded in base64
-const convertPdfToImages = async (file: File) => {
+async function convertPdfToImages(file: File) {
   // Import PDF.js...
   const pdfjs = await import("pdfjs-dist");
   pdfjs.GlobalWorkerOptions.workerSrc = new URL(
@@ -45,29 +47,58 @@ const convertPdfToImages = async (file: File) => {
   }
   canvas.remove();
   return images;
-};
+}
+
+function downloadFile(file: string, fileName: string) {
+  const aElement = document.createElement("a");
+  aElement.href = file;
+  aElement.download = fileName;
+  aElement.click();
+  aElement.remove();
+}
 
 export function UploadFile() {
-  const [file, setFile] = useState<File | null>(null);
+  const [roofReport, setRoofReport] = useState<File | null>(null);
+  const [insuranceReport, setInsuranceReport] = useState<File | null>(null);
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleRoofReportChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0] || null;
-    setFile(selectedFile);
+    setRoofReport(selectedFile);
+  };
+  const handleInsuranceReportChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = event.target.files?.[0] || null;
+    setInsuranceReport(selectedFile);
   };
 
   const handleUpload = async () => {
-    if (!file) return;
+    if (!roofReport) return;
+    if (!insuranceReport) return;
 
-    const images = await convertPdfToImages(file);
-    console.log(images); // Array of base64 encoded images
+    const roofrimages = await convertPdfToImages(roofReport);
+    const insuranceImages = await convertPdfToImages(insuranceReport);
+    
+    // // download them (they are base 64 image strings)
+    // downloadFile(roofrimages[5], "roofreport.png");
+    // downloadFile(insuranceImages[5], "insurancereport.png");
 
-    // Implement your upload logic here
+    const analysis = await analyseFiles({
+      roofReport: [roofrimages[5]],
+      insuranceReport: [insuranceImages[5]],
+    });
   };
 
   return (
     <div className="flex flex-col items-start gap-2">
-      <Input type="file" onChange={handleFileChange} />
-      <Button onClick={handleUpload} disabled={!file}>
+      <div>
+        <Label>Upload Roof Report</Label>
+        <Input type="file" onChange={handleRoofReportChange} accept="application/pdf" />
+      </div>
+      <div>
+        <Label>Upload Insurance Report</Label>
+        <Input type="file" onChange={handleInsuranceReportChange} accept="application/pdf" />
+      </div>
+
+      <Button onClick={handleUpload} disabled={!roofReport||!insuranceReport}>
         Process
       </Button>
     </div>
