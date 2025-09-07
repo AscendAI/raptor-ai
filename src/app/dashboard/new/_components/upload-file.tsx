@@ -8,6 +8,7 @@ import { Label } from "@radix-ui/react-dropdown-menu";
 import { useMutation } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
+import Markdown from 'react-markdown'
 
 function readFileData(file: File) {
   return new Promise((resolve, reject) => {
@@ -99,7 +100,7 @@ export function UploadFile() {
 
     const analysis = await analyseFiles({
       roofReport: [roofrimages[5]],
-      insuranceReport: [insuranceImages[5]],
+      insuranceReport: [insuranceImages[4], insuranceImages[5]],
     });
     setAnalysisResult(analysis);
   };
@@ -139,7 +140,7 @@ export function UploadFile() {
             <CardAction>Download Report</CardAction>
           </CardHeader>
           <CardContent>
-            <p>{analysisResult}</p>
+            <Markdown>{analysisResult}</Markdown>
           </CardContent>
           <CardFooter>
             <p>Analysis Result</p>

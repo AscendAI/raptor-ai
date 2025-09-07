@@ -61,10 +61,65 @@ export async function analyseRoofReport(roofReportImages: string[]) {
   return response.output_text;
 }
 
+const insuranceReportPrompt = `
+You are given an insurance estimate document as images. 
+Extract the structured data according to the following rules:
+
+1. Top-level metadata:
+   - claim_id → the Claim ID (e.g., "14-82V3-83D")
+   - date → the date on the document (e.g., "2025-06-04")
+   - price_list → the "Price List" value (e.g., "ININ28_JUL24")
+
+2. Line items:
+   - Focus on all line items under the **Roof** section. 
+   - Stop extracting when the section changes (e.g., "Front Elevation", "Right Elevation", "Exterior").
+   - Skip any line item explicitly marked as **REVISED**.
+   - For each valid line item, capture:
+       * item_no → the line item number (integer)
+       * description → full text of the description
+       * quantity → split into:
+           - value (decimal or null if missing)
+           - unit (string or null if missing)
+       * options_text → if an "Options:" / "Auto Calculated Waste:" / "Bundle Rounding:" or similar block is tied to the item, capture it verbatim (string). If none exists, return null.
+
+3. Output format:
+   - JSON with this shape:
+
+{
+  "claim_id": "string",
+  "date": "string",
+  "price_list": "string",
+  "sections": [
+    {
+      "section_name": "Roof",
+      "line_items": [
+        {
+          "item_no": number,
+          "description": "string",
+          "quantity": {
+            "value": number | null,
+            "unit": "string" | null
+          },
+          "options_text": "string" | null
+        }
+      ]
+    }
+  ]
+}
+
+4. Important:
+   - Do NOT include cost, depreciation, tax, or age/life fields.
+   - If a field does not exist → set it to null (do not omit).
+   - Ensure all numbers remain as numbers (not strings).
+   - Skip all "REVISED" items completely.
+
+Return only valid JSON.
+`
+
 export async function analyseInsuranceReport(insuranceReportImages: string[]) {
   const response = await client.responses.create({
     model: 'gpt-5-mini',
-    instructions: 'You are insurance report analyser. You will be given a list of images of an insurance report. You will need to analyse the images and return a summary of the report.',
+    instructions: insuranceReportPrompt,
     input: [
       {
         role: 'user',
@@ -73,6 +128,42 @@ export async function analyseInsuranceReport(insuranceReportImages: string[]) {
           image_url: image,
           detail: "high"
         }))
+      }
+    ],
+  });
+  return response.output_text;
+}
+
+const reportComparisonPrompt = `
+I have this analysis of a roofing report of a company fixing roof of a client and an insurance report of the client's insurance company.
+Assume that the roofing report is always correct but the insurance company report may make mistakes.
+Compare the reports to find inaccuracies of the insurance allowance.
+
+These are the common things a roofing report may miss:
+1. Confirm Total Squares and Waste Factor. Compare insurance estimate squares to Roofr/EagleView report. Ensure proper waste factor (10–15%) applied
+2. Drip Edge. Required by code at all eaves + rakes. Cannot be reused; must be new
+3. Starter Strip. Required at eaves + rakes; not cut from field shingles. Manufacturer warranty requirement
+4. Ridge Cap. Must use manufacturer ridge cap if architectural shingles. Ensure ridge footage matches report
+5. Ice & Water Shield in Valleys. Required by IRC; standard valley liner. Calculate length × 6 ft width
+6. Step Flashing. Required at roof-to-wall intersections. Cannot be reused per manufacturer guidance
+7. Chimney Flashing. Required if chimney is present. Includes base flashing, counter flashing, and cricket if wider than 30 inches
+8. Ventilation Items. Count turtle vents, ridge vents, exhaust caps, flue caps. Must match existing ventilation system
+9. Steep/High Charges. Apply for 7/12–9/12 and 10/12+ pitches. Add high charge if 2+ story access required
+10. Underlayment Type. Confirm if synthetic required; adjusters default to felt. Document manufacturer/code requirement`
+
+export async function analyseComparison(roofReportAnalysis: string, insuranceReportAnalysis: string) {
+  const response = await client.responses.create({
+    model: 'gpt-5-mini',
+    instructions: reportComparisonPrompt,
+    input: [
+      {
+        role: 'user',
+        content: [
+          {
+            type: 'input_text',
+            text: `Roof Report Analysis: ${roofReportAnalysis}\n\nInsurance Report Analysis: ${insuranceReportAnalysis}`
+          }
+        ]
       }
     ],
   });

@@ -1,6 +1,6 @@
-"use server"
+"use server";
 
-import { analyseRoofReport } from "../ai/openai";
+import { analyseComparison, analyseInsuranceReport, analyseRoofReport } from "../ai/openai";
 
 export async function analyseFiles(input: {
   roofReport: string[];
@@ -27,9 +27,10 @@ export async function analyseFiles(input: {
   //   .filter((file) => file.data?.name?.startsWith("insuranceReport"))
   //   .map((file) => file.data?.ufsUrl);
 
-  const analysis = await analyseRoofReport(roofReport);
-  console.log(analysis)
-
-  return analysis;
-  
+  const roofReportAnalysis = await analyseRoofReport(roofReport);
+  const insuranceAnalysis = await analyseInsuranceReport(insuranceReport);
+  console.log(roofReportAnalysis);
+  console.log(insuranceAnalysis);
+  const fullAnalysis = await analyseComparison(roofReportAnalysis, insuranceAnalysis)
+  return fullAnalysis
 }
