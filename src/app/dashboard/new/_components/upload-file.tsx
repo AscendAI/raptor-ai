@@ -1,9 +1,12 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { analyseFiles } from "@/lib/server/actions";
 import { Label } from "@radix-ui/react-dropdown-menu";
+import { useMutation } from "@tanstack/react-query";
+import { Loader2 } from "lucide-react";
 import { useState } from "react";
 
 function readFileData(file: File) {
@@ -57,15 +60,28 @@ function downloadFile(file: string, fileName: string) {
   aElement.remove();
 }
 
+function useAnalyseFiles() {
+  return useMutation({
+    mutationFn: analyseFiles,
+    mutationKey: ["analyseFiles"],
+  });
+}
+
 export function UploadFile() {
   const [roofReport, setRoofReport] = useState<File | null>(null);
   const [insuranceReport, setInsuranceReport] = useState<File | null>(null);
+  const { mutateAsync: analyseFiles, isPending } = useAnalyseFiles();
+  const [analysisResult, setAnalysisResult] = useState<string | null>(null);
 
-  const handleRoofReportChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleRoofReportChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const selectedFile = event.target.files?.[0] || null;
     setRoofReport(selectedFile);
   };
-  const handleInsuranceReportChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInsuranceReportChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const selectedFile = event.target.files?.[0] || null;
     setInsuranceReport(selectedFile);
   };
@@ -76,7 +92,7 @@ export function UploadFile() {
 
     const roofrimages = await convertPdfToImages(roofReport);
     const insuranceImages = await convertPdfToImages(insuranceReport);
-    
+
     // // download them (they are base 64 image strings)
     // downloadFile(roofrimages[5], "roofreport.png");
     // downloadFile(insuranceImages[5], "insurancereport.png");
@@ -85,22 +101,51 @@ export function UploadFile() {
       roofReport: [roofrimages[5]],
       insuranceReport: [insuranceImages[5]],
     });
+    setAnalysisResult(analysis);
   };
 
   return (
     <div className="flex flex-col items-start gap-2">
       <div>
         <Label>Upload Roof Report</Label>
-        <Input type="file" onChange={handleRoofReportChange} accept="application/pdf" />
+        <Input
+          type="file"
+          onChange={handleRoofReportChange}
+          accept="application/pdf"
+        />
       </div>
       <div>
         <Label>Upload Insurance Report</Label>
-        <Input type="file" onChange={handleInsuranceReportChange} accept="application/pdf" />
+        <Input
+          type="file"
+          onChange={handleInsuranceReportChange}
+          accept="application/pdf"
+        />
       </div>
 
-      <Button onClick={handleUpload} disabled={!roofReport||!insuranceReport}>
+      <Button
+        onClick={handleUpload}
+        disabled={!roofReport || !insuranceReport || isPending}
+      >
+        {isPending && <Loader2 className="mr-2 animate-spin" />}
         Process
       </Button>
+
+      {analysisResult && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Analysis Result</CardTitle>
+            <CardDescription>Results of the analysis</CardDescription>
+            <CardAction>Download Report</CardAction>
+          </CardHeader>
+          <CardContent>
+            <p>{analysisResult}</p>
+          </CardContent>
+          <CardFooter>
+            <p>Analysis Result</p>
+          </CardFooter>
+        </Card>
+      )}
     </div>
   );
 }
