@@ -190,7 +190,33 @@ Remove Additional Charge for Steep Roof (10/12'12/12 slope): Compare the value i
 Additional Charge for Steep Roof (10/12-12/12 slope): Compare the value in the insurance report with the roofing report's total squares (10/12-12/12). Add the recommended waste percentage to the total. If 10/12 is missing, use only 12/12, and vice versa.
 Underlayment Type: Confirm whether synthetic underlayment is required, according to manufacturer and code specifications. Many adjusters default to felt underlayment.
 
-Your response should be nicely organized and easy to understand.`;
+Rules:
+- Use the roofing report as the source of truth.
+- Mark any insurance report under-allowances or missing items clearly.
+- Skip irrelevant fields (cost, depreciation, taxes).
+- Always return JSON in the exact schema below.
+
+### Output Schema (must always follow this):
+{
+  "success": true,
+  "comparisons": [
+    {
+      "checkpoint": "string",          // e.g. "Drip Edge"
+      "status": "green" | "red" | "missing", 
+      "roof_report_value": "string | null",
+      "insurance_report_value": "string | null",
+      "notes": "string"                // explanation of why green/red/missing
+    }
+  ]
+}
+
+Instructions:
+- status = "green" if insurance ≥ roofing requirement.
+- status = "red" if insurance < roofing requirement or fails rules.
+- status = "missing" if the insurance report has no entry.
+- Always provide a short but clear note for each checkpoint.
+- If a field doesn't exist in either report, set its value to null.
+- Do not return markdown, only raw JSON matching the schema above.`;
 
 // Overloaded function signatures for backward compatibility
 export async function analyseComparison(
@@ -206,26 +232,28 @@ export async function analyseComparison(
 // Implementation
 export async function analyseComparison(
   roofReportInput: string | import('../../schemas/extraction').RoofReportData,
-  insuranceReportInput: string | import('../../schemas/extraction').InsuranceReportData
+  insuranceReportInput:
+    | string
+    | import('../../schemas/extraction').InsuranceReportData
 ) {
   // Convert inputs to string format for AI processing
   let roofReportText: string;
   let insuranceReportText: string;
-  
+
   if (typeof roofReportInput === 'string') {
     roofReportText = roofReportInput;
   } else {
     // Convert parsed data to formatted string
     roofReportText = JSON.stringify(roofReportInput, null, 2);
   }
-  
+
   if (typeof insuranceReportInput === 'string') {
     insuranceReportText = insuranceReportInput;
   } else {
     // Convert parsed data to formatted string
     insuranceReportText = JSON.stringify(insuranceReportInput, null, 2);
   }
-  
+
   const response = await client.responses.create({
     model: 'gpt-5-mini',
     instructions: reportComparisonPrompt,
