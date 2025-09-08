@@ -26,7 +26,7 @@ interface ResultsPageState {
 export default function ResultsPage() {
   const params = useParams();
   const router = useRouter();
-  const sessionId = params.sessionId as string;
+  const taskId = params.taskId as string;
 
   const [state, setState] = useState<ResultsPageState>({
     loading: true,
@@ -36,13 +36,13 @@ export default function ResultsPage() {
 
   useEffect(() => {
     loadAnalysisResults();
-  }, [sessionId]);
+  }, [taskId]);
 
   const loadAnalysisResults = async () => {
     try {
       setState(prev => ({ ...prev, loading: true }));
       
-      const result = await getAnalysisResults(sessionId);
+      const result = await getAnalysisResults(taskId);
       
       if (result.success && result.data) {
         setState({
@@ -79,7 +79,7 @@ export default function ResultsPage() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `analysis-report-${sessionId.slice(-8)}.md`;
+    link.download = `analysis-report-${taskId.slice(-8)}.md`;
     link.click();
     URL.revokeObjectURL(url);
     toast.success('Report downloaded successfully!');
@@ -172,7 +172,7 @@ export default function ResultsPage() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Badge variant="secondary">Session: {sessionId.slice(-8)}</Badge>
+              <Badge variant="secondary">Task: {taskId.slice(-8)}</Badge>
               <Badge variant="default" className="bg-green-600">
                 <CheckCircle className="h-3 w-3 mr-1" />
                 Completed

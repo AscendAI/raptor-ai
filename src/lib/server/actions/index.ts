@@ -77,7 +77,7 @@ export async function generateFinalAnalysis(
 }
 
 // User data management actions
-interface UserReviewSession {
+interface UserReviewTask {
   id: string;
   roofData: RoofReportData;
   insuranceData: InsuranceReportData;
@@ -86,7 +86,7 @@ interface UserReviewSession {
 }
 
 interface AnalysisResult {
-  sessionId: string;
+  taskId: string;
   roofData: RoofReportData;
   insuranceData: InsuranceReportData;
   comparison: string;
@@ -94,29 +94,31 @@ interface AnalysisResult {
 }
 
 // In-memory storage for demo purposes (replace with database in production)
-const userSessions = new Map<string, UserReviewSession>();
+const userTasks = new Map<string, UserReviewTask>();
 const analysisResults = new Map<string, AnalysisResult>();
+
+
 
 // Save user-modified extracted data
 export async function saveUserReviewData(
-  sessionId: string,
+  taskId: string,
   roofData: RoofReportData,
   insuranceData: InsuranceReportData
 ) {
   try {
-    const session: UserReviewSession = {
-      id: sessionId,
+    const task: UserReviewTask = {
+      id: taskId,
       roofData,
       insuranceData,
-      createdAt: userSessions.get(sessionId)?.createdAt || new Date(),
+      createdAt: userTasks.get(taskId)?.createdAt || new Date(),
       updatedAt: new Date()
     };
     
-    userSessions.set(sessionId, session);
+    userTasks.set(taskId, task);
     
     return {
       success: true,
-      sessionId,
+      taskId,
       message: 'User review data saved successfully'
     };
   } catch (error) {
@@ -129,24 +131,24 @@ export async function saveUserReviewData(
 }
 
 // Retrieve user-modified extracted data
-export async function getUserReviewData(sessionId: string) {
+export async function getUserReviewData(taskId: string) {
   try {
-    const session = userSessions.get(sessionId);
+    const task = userTasks.get(taskId);
     
-    if (!session) {
+    if (!task) {
       return {
         success: false,
-        error: 'Session not found'
+        error: 'Task not found'
       };
     }
     
     return {
       success: true,
       data: {
-        roofData: session.roofData,
-        insuranceData: session.insuranceData,
-        createdAt: session.createdAt,
-        updatedAt: session.updatedAt
+        roofData: task.roofData,
+        insuranceData: task.insuranceData,
+        createdAt: task.createdAt,
+        updatedAt: task.updatedAt
       }
     };
   } catch (error) {
@@ -158,30 +160,30 @@ export async function getUserReviewData(sessionId: string) {
   }
 }
 
-// Create a new user review session with extracted data
-export async function createUserReviewSession(
+// Create a new user review task with extracted data
+export async function createUserReviewTask(
   roofData: RoofReportData,
   insuranceData: InsuranceReportData
 ) {
   try {
-    const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const taskId = `${Math.random().toString(36).substr(2, 6)}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
-    const session: UserReviewSession = {
-      id: sessionId,
+    const task: UserReviewTask = {
+      id: taskId,
       roofData,
       insuranceData,
       createdAt: new Date(),
       updatedAt: new Date()
     };
     
-    userSessions.set(sessionId, session);
+    userTasks.set(taskId, task);
     
     return {
       success: true,
-      sessionId,
+      taskId,
       data: {
-        roofData: session.roofData,
-        insuranceData: session.insuranceData
+        roofData,
+        insuranceData
       }
     };
   } catch (error) {
@@ -194,9 +196,9 @@ export async function createUserReviewSession(
 }
 
 // Delete a user review session
-export async function deleteUserReviewSession(sessionId: string) {
+export async function deleteUserReviewTask(taskId: string) {
   try {
-    const deleted = userSessions.delete(sessionId);
+    const deleted = userTasks.delete(taskId);
     
     return {
       success: deleted,
@@ -212,14 +214,14 @@ export async function deleteUserReviewSession(sessionId: string) {
 }
 
 // Retrieve analysis results
-export async function getAnalysisResults(sessionId: string) {
+export async function getAnalysisResults(taskId: string) {
   try {
-    const result = analysisResults.get(sessionId);
+    const result = analysisResults.get(taskId);
     
     if (!result) {
       return {
         success: false,
-        error: 'Analysis results not found or have been cleaned up'
+        error: 'Analysis results not found for this task'
       };
     }
     
@@ -310,7 +312,7 @@ export async function startAnalysisWorkflow(
     }
     
     // Create user review session with extracted data
-    const sessionResult = await createUserReviewSession(
+    const sessionResult = await createUserReviewTask(
       roofExtraction.data,
       insuranceExtraction.data
     );
@@ -326,7 +328,7 @@ export async function startAnalysisWorkflow(
     return {
       success: true,
       phase: 'user_review',
-      sessionId: sessionResult.sessionId,
+      taskId: sessionResult.taskId,
       extractedData: {
         roofData: roofExtraction.data,
         insuranceData: insuranceExtraction.data
@@ -344,12 +346,12 @@ export async function startAnalysisWorkflow(
 }
 
 // Complete the workflow after user review
-export async function completeAnalysisWorkflow(sessionId: string) {
+export async function completeAnalysisWorkflow(taskId: string) {
   try {
     console.log('Completing analysis workflow after user review...');
     
     // Retrieve user-reviewed data
-    const sessionData = await getUserReviewData(sessionId);
+    const sessionData = await getUserReviewData(taskId);
     
     if (!sessionData.success) {
       return {
@@ -375,17 +377,17 @@ export async function completeAnalysisWorkflow(sessionId: string) {
     
     // Store the analysis result temporarily for display
     const analysisResult: AnalysisResult = {
-      sessionId,
+      taskId,
       roofData: finalResult.roofData!,
       insuranceData: finalResult.insuranceData!,
       comparison: finalResult.comparison || 'No comparison available',
       completedAt: new Date()
     };
     
-    analysisResults.set(sessionId, analysisResult);
+    analysisResults.set(taskId, analysisResult);
     
     // Clean up session after successful completion
-    await deleteUserReviewSession(sessionId);
+    await deleteUserReviewTask(taskId);
     
     return {
       success: true,

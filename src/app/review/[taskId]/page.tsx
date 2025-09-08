@@ -45,7 +45,7 @@ interface ReviewPageState {
 export default function ReviewPage() {
   const params = useParams();
   const router = useRouter();
-  const sessionId = params.sessionId as string;
+  const taskId = params.taskId as string;
 
   const [state, setState] = useState<ReviewPageState>({
     loading: true,
@@ -61,13 +61,13 @@ export default function ReviewPage() {
   // Load session data on mount
   useEffect(() => {
     loadSessionData();
-  }, [sessionId]);
+  }, [taskId]);
 
   const loadSessionData = async () => {
     try {
       setState((prev) => ({ ...prev, loading: true, error: null }));
 
-      const result = await getUserReviewData(sessionId);
+      const result = await getUserReviewData(taskId);
 
       if (!result.success) {
         setState((prev) => ({
@@ -105,7 +105,7 @@ export default function ReviewPage() {
       setState((prev) => ({ ...prev, saving: true }));
 
       const result = await saveUserReviewData(
-        sessionId,
+        taskId,
         state.roofData,
         state.insuranceData
       );
@@ -129,15 +129,15 @@ export default function ReviewPage() {
       setState((prev) => ({ ...prev, generating: true }));
 
       // Save current changes first
-      await saveUserReviewData(sessionId, state.roofData, state.insuranceData);
+      await saveUserReviewData(taskId, state.roofData, state.insuranceData);
 
       // Generate final analysis
-      const result = await completeAnalysisWorkflow(sessionId);
+      const result = await completeAnalysisWorkflow(taskId);
 
       if (result.success) {
         toast.success('Analysis completed successfully!');
         // Navigate to results page to show the final analysis
-        router.push(`/results/${sessionId}`);
+        router.push(`/results/${taskId}`);
       } else {
         toast.error(result.error || 'Failed to generate analysis');
       }
@@ -240,7 +240,7 @@ export default function ReviewPage() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Badge variant="secondary">Session: {sessionId.slice(-8)}</Badge>
+              <Badge variant="secondary">Task: {taskId.slice(-8)}</Badge>
             </div>
           </div>
         </div>

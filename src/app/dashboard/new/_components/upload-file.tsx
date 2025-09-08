@@ -92,10 +92,10 @@ export function UploadFile() {
         [insuranceImages[4], insuranceImages[5]] // Use relevant pages
       );
 
-      if (result.success && result.sessionId) {
+      if (result.success && result.taskId) {
         toast.success('Data extracted successfully! Please review and modify as needed.');
         // Redirect to review page
-        router.push(`/review/${result.sessionId}`);
+        router.push(`/review/${result.taskId}`);
       } else {
         toast.error(result.error || 'Failed to extract data from reports');
       }
