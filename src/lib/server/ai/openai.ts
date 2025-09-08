@@ -192,10 +192,40 @@ Underlayment Type: Confirm whether synthetic underlayment is required, according
 
 Your response should be nicely organized and easy to understand.`;
 
+// Overloaded function signatures for backward compatibility
 export async function analyseComparison(
   roofReportAnalysis: string,
   insuranceReportAnalysis: string
+): Promise<string>;
+
+export async function analyseComparison(
+  roofReportData: import('../../schemas/extraction').RoofReportData,
+  insuranceReportData: import('../../schemas/extraction').InsuranceReportData
+): Promise<string>;
+
+// Implementation
+export async function analyseComparison(
+  roofReportInput: string | import('../../schemas/extraction').RoofReportData,
+  insuranceReportInput: string | import('../../schemas/extraction').InsuranceReportData
 ) {
+  // Convert inputs to string format for AI processing
+  let roofReportText: string;
+  let insuranceReportText: string;
+  
+  if (typeof roofReportInput === 'string') {
+    roofReportText = roofReportInput;
+  } else {
+    // Convert parsed data to formatted string
+    roofReportText = JSON.stringify(roofReportInput, null, 2);
+  }
+  
+  if (typeof insuranceReportInput === 'string') {
+    insuranceReportText = insuranceReportInput;
+  } else {
+    // Convert parsed data to formatted string
+    insuranceReportText = JSON.stringify(insuranceReportInput, null, 2);
+  }
+  
   const response = await client.responses.create({
     model: 'gpt-5-mini',
     instructions: reportComparisonPrompt,
@@ -205,7 +235,7 @@ export async function analyseComparison(
         content: [
           {
             type: 'input_text',
-            text: `Roof Report Analysis: ${roofReportAnalysis}\n\nInsurance Report Analysis: ${insuranceReportAnalysis}`,
+            text: `Roof Report Analysis: ${roofReportText}\n\nInsurance Report Analysis: ${insuranceReportText}`,
           },
         ],
       },
