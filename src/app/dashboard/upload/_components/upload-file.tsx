@@ -95,7 +95,7 @@ export function UploadFile() {
       if (result.success && result.taskId) {
         toast.success('Data extracted successfully! Please review and modify as needed.');
         // Redirect to review page
-        router.push(`/review/${result.taskId}`);
+        router.push(`/dashboard/review/${result.taskId}`);
       } else {
         toast.error(result.error || 'Failed to extract data from reports');
       }

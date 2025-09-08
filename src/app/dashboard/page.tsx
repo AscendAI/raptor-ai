@@ -40,7 +40,7 @@ export default async function DashboardPage() {
             <CardDescription>Get started with common tasks</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            <Link href="/dashboard/new">
+            <Link href="/dashboard/upload">
               <Button className="w-full justify-start" variant="outline">
                 📄 New Supplement Report
               </Button>

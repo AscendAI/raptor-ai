@@ -137,7 +137,7 @@ export default function ReviewPage() {
       if (result.success) {
         toast.success('Analysis completed successfully!');
         // Navigate to results page to show the final analysis
-        router.push(`/results/${taskId}`);
+        router.push(`/dashboard/results/${taskId}`);
       } else {
         toast.error(result.error || 'Failed to generate analysis');
       }
