@@ -1,14 +1,13 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { analyseFiles } from "@/lib/server/actions";
+import { startAnalysisWorkflow } from "@/lib/server/actions";
 import { Label } from "@radix-ui/react-dropdown-menu";
-import { useMutation } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
-import Markdown from 'react-markdown'
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 function readFileData(file: File) {
   return new Promise((resolve, reject) => {
@@ -53,26 +52,15 @@ async function convertPdfToImages(file: File) {
   return images;
 }
 
-function downloadFile(file: string, fileName: string) {
-  const aElement = document.createElement("a");
-  aElement.href = file;
-  aElement.download = fileName;
-  aElement.click();
-  aElement.remove();
-}
 
-function useAnalyseFiles() {
-  return useMutation({
-    mutationFn: analyseFiles,
-    mutationKey: ["analyseFiles"],
-  });
-}
+
+
 
 export function UploadFile() {
   const [roofReport, setRoofReport] = useState<File | null>(null);
   const [insuranceReport, setInsuranceReport] = useState<File | null>(null);
-  const { mutateAsync: analyseFiles, isPending } = useAnalyseFiles();
-  const [analysisResult, setAnalysisResult] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const router = useRouter();
 
   const handleRoofReportChange = (
     event: React.ChangeEvent<HTMLInputElement>
@@ -88,21 +76,35 @@ export function UploadFile() {
   };
 
   const handleUpload = async () => {
-    if (!roofReport) return;
-    if (!insuranceReport) return;
+    if (!roofReport || !insuranceReport) return;
 
-    const roofrimages = await convertPdfToImages(roofReport);
-    const insuranceImages = await convertPdfToImages(insuranceReport);
+    try {
+      setIsProcessing(true);
+      toast.info('Processing files and extracting data...');
 
-    // // download them (they are base 64 image strings)
-    // downloadFile(roofrimages[5], "roofreport.png");
-    // downloadFile(insuranceImages[5], "insurancereport.png");
+      // Convert PDFs to images
+      const roofImages = await convertPdfToImages(roofReport);
+      const insuranceImages = await convertPdfToImages(insuranceReport);
 
-    const analysis = await analyseFiles({
-      roofReport: [roofrimages[5]],
-      insuranceReport: [insuranceImages[4], insuranceImages[5]],
-    });
-    setAnalysisResult(analysis);
+      // Start the analysis workflow (extract data and create session)
+      const result = await startAnalysisWorkflow(
+        [roofImages[5]], // Use one representative page
+        [insuranceImages[4], insuranceImages[5]] // Use relevant pages
+      );
+
+      if (result.success && result.taskId) {
+        toast.success('Data extracted successfully! Please review and modify as needed.');
+        // Redirect to review page
+        router.push(`/dashboard/review/${result.taskId}`);
+      } else {
+        toast.error(result.error || 'Failed to extract data from reports');
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast.error('An unexpected error occurred while processing the files');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -126,26 +128,18 @@ export function UploadFile() {
 
       <Button
         onClick={handleUpload}
-        disabled={!roofReport || !insuranceReport || isPending}
+        disabled={!roofReport || !insuranceReport || isProcessing}
       >
-        {isPending && <Loader2 className="mr-2 animate-spin" />}
-        Process
+        {isProcessing && <Loader2 className="mr-2 animate-spin" />}
+        {isProcessing ? 'Processing...' : 'Extract Data & Review'}
       </Button>
 
-      {analysisResult && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Analysis Result</CardTitle>
-            <CardDescription>Results of the analysis</CardDescription>
-            <CardAction>Download Report</CardAction>
-          </CardHeader>
-          <CardContent>
-            <Markdown>{analysisResult}</Markdown>
-          </CardContent>
-          <CardFooter>
-            <p>Analysis Result</p>
-          </CardFooter>
-        </Card>
+      {isProcessing && (
+        <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <p className="text-sm text-blue-700">
+            Processing your files and extracting data. This may take a moment...
+          </p>
+        </div>
       )}
     </div>
   );
