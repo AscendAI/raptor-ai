@@ -2,6 +2,7 @@
 
 import { analyseRoofReport, analyseInsuranceReport, analyseComparison } from '../ai/openai';
 import { parseRoofReportData, parseInsuranceReportData, stringifyForComparison, type RoofReportData, type InsuranceReportData } from '../../schemas/extraction';
+import { type ComparisonResult } from '../../schemas/comparison';
 
 // Extract data from both reports (Phase 1)
 export async function extractReportData(
@@ -89,7 +90,7 @@ interface AnalysisResult {
   taskId: string;
   roofData: RoofReportData;
   insuranceData: InsuranceReportData;
-  comparison: string;
+  comparison: ComparisonResult;
   completedAt: Date;
 }
 
@@ -249,7 +250,7 @@ export async function cleanupOldResults() {
     const now = new Date();
     const maxAge = 24 * 60 * 60 * 1000; // 24 hours
     
-    for (const [sessionId, result] of analysisResults.entries()) {
+    for (const [sessionId, result] of Array.from(analysisResults.entries())) {
       if (now.getTime() - result.completedAt.getTime() > maxAge) {
         analysisResults.delete(sessionId);
       }
@@ -380,7 +381,7 @@ export async function completeAnalysisWorkflow(taskId: string) {
       taskId,
       roofData: finalResult.roofData!,
       insuranceData: finalResult.insuranceData!,
-      comparison: finalResult.comparison || 'No comparison available',
+      comparison: finalResult.comparison!,
       completedAt: new Date()
     };
     
