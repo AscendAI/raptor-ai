@@ -1,27 +1,26 @@
-import { getAuthSession } from "@/lib/server/auth";
-import { redirect } from "next/navigation";
-import { Button } from "@/components/ui/button";
+import { getAuthSession } from '@/lib/server/auth';
+import { redirect } from 'next/navigation';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import Link from "next/link";
+} from '@/components/ui/card';
+import Link from 'next/link';
 
 export default async function DashboardPage() {
   const session = await getAuthSession();
   if (!session?.user) {
-    return redirect("/auth");
+    return redirect('/auth');
   }
 
   return (
     <>
       <div className="mb-8">
         <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2">
-          Welcome back, {session.user.name?.split(" ")[0]}! 👋
+          Welcome back, {session.user.name?.split(' ')[0]}! 👋
         </h2>
         <p className="text-slate-600 dark:text-slate-400">
           Ready to streamline your insurance claim supplements?
@@ -40,9 +39,9 @@ export default async function DashboardPage() {
             <CardDescription>Get started with common tasks</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            <Link href="/dashboard/upload">
+            <Link href="/dashboard/new-analysis">
               <Button className="w-full justify-start" variant="outline">
-                📄 New Supplement Report
+                📄 New Analysis Report
               </Button>
             </Link>
             <Button className="w-full justify-start" variant="outline">
@@ -90,11 +89,11 @@ export default async function DashboardPage() {
               <span
                 className={`text-xs px-2 py-1 rounded-full ${
                   session.user.emailVerified
-                    ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
-                    : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400"
+                    ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                    : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
                 }`}
               >
-                {session.user.emailVerified ? "Verified" : "Unverified"}
+                {session.user.emailVerified ? 'Verified' : 'Unverified'}
               </span>
             </div>
             <div className="flex justify-between items-center">
