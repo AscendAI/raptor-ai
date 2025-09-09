@@ -11,11 +11,7 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2, ArrowLeft } from 'lucide-react';
-import {
-  getUserReviewData,
-  completeAnalysisWorkflow,
-} from '@/lib/server/actions';
-import { toast } from 'sonner';
+import { getUserReviewData } from '@/lib/server/actions';
 import { SteppedInsuranceReview } from '@/components/review/stepped-insurance-review';
 import { RoofReportData, InsuranceReportData } from '@/lib/schemas/extraction';
 
@@ -68,25 +64,10 @@ export default function InsuranceReportReviewPage() {
     loadTaskDetails();
   }, [taskId]);
 
-  const handleContinue = async () => {
-    try {
-      toast.info('Generating final analysis...');
-
-      const result = await completeAnalysisWorkflow(taskId);
-
-      if (result.success) {
-        toast.success('Analysis completed!');
-        // Navigate to results page
-        router.push(`/dashboard/results/${taskId}`);
-      } else {
-        toast.error(result.error || 'Failed to generate analysis');
-      }
-    } catch (error) {
-      console.error('Error generating analysis:', error);
-      toast.error('Failed to generate analysis');
-    }
+  const handleContinue = () => {
+    // Navigate directly to analysis page
+    router.push(`/dashboard/analysis/${taskId}`);
   };
-
   const handleBack = () => {
     // Navigate back to insurance upload page
     router.push(`/dashboard/insurance-report-upload/${taskId}`);
