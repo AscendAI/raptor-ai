@@ -7,14 +7,15 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, ArrowLeft, Download, CheckCircle } from 'lucide-react';
 import { RoofReportData, InsuranceReportData } from '@/lib/schemas/extraction';
+import { ComparisonResult } from '@/lib/schemas/comparison';
 import { getAnalysisResults } from '@/lib/server/actions';
-import Markdown from 'react-markdown';
+import { ComparisonResults } from '@/components/results/comparison-results';
 import { toast } from 'sonner';
 
 interface AnalysisResult {
   roofData: RoofReportData;
   insuranceData: InsuranceReportData;
-  comparison: string;
+  comparison: ComparisonResult;
 }
 
 interface ResultsPageState {
@@ -50,7 +51,9 @@ export default function ResultsPage() {
           result: {
             roofData: result.data.roofData,
             insuranceData: result.data.insuranceData,
-            comparison: result.data.comparison
+            comparison: typeof result.data.comparison === 'string' 
+              ? JSON.parse(result.data.comparison) 
+              : result.data.comparison
           },
           error: null
         });
@@ -74,7 +77,24 @@ export default function ResultsPage() {
   const handleDownloadReport = () => {
     if (!state.result) return;
     
-    const reportContent = `# Roof vs Insurance Report Analysis\n\n${state.result.comparison}`;
+    const comparison = state.result.comparison;
+    const reportContent = `# Roof vs Insurance Report Analysis
+
+## Summary
+- Total Checkpoints: ${comparison.summary.total}
+- Matching (Green): ${comparison.summary.green}
+- Discrepancies (Red): ${comparison.summary.red}
+- Missing Data: ${comparison.summary.missing}
+
+## Detailed Comparison
+${comparison.comparisons.map(item => 
+  `### ${item.checkpoint}
+**Status:** ${item.status.toUpperCase()}
+**Roof Report:** ${item.roof_report_value || 'N/A'}
+**Insurance Report:** ${item.insurance_report_value || 'N/A'}
+**Notes:** ${item.notes}
+`
+).join('\n')}`;
     const blob = new Blob([reportContent], { type: 'text/markdown' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -200,9 +220,9 @@ export default function ResultsPage() {
               </Button>
             </CardHeader>
             <CardContent>
-              <div className="prose max-w-none">
-                <Markdown>{state.result?.comparison}</Markdown>
-              </div>
+              {state.result?.comparison && (
+                <ComparisonResults data={state.result.comparison} />
+              )}
             </CardContent>
           </Card>
 

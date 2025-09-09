@@ -1,4 +1,5 @@
 import OpenAI from 'openai';
+import { ComparisonResult } from '../../schemas/comparison';
 
 const client = new OpenAI({
   apiKey: process.env['OPENAI_API_KEY'], // This is the default and can be omitted
@@ -199,6 +200,12 @@ Rules:
 ### Output Schema (must always follow this):
 {
   "success": true,
+  "summary": {
+    "green": 0,     // count of green status items
+    "red": 0,       // count of red status items
+    "missing": 0,   // count of missing status items
+    "total": 0      // total number of checkpoints
+  },
   "comparisons": [
     {
       "checkpoint": "string",          // e.g. "Drip Edge"
@@ -216,18 +223,19 @@ Instructions:
 - status = "missing" if the insurance report has no entry.
 - Always provide a short but clear note for each checkpoint.
 - If a field doesn't exist in either report, set its value to null.
+- Calculate summary counts: count how many items have each status (green/red/missing) and set total to the total number of comparisons.
 - Do not return markdown, only raw JSON matching the schema above.`;
 
 // Overloaded function signatures for backward compatibility
 export async function analyseComparison(
   roofReportAnalysis: string,
   insuranceReportAnalysis: string
-): Promise<string>;
+): Promise<ComparisonResult>;
 
 export async function analyseComparison(
   roofReportData: import('../../schemas/extraction').RoofReportData,
   insuranceReportData: import('../../schemas/extraction').InsuranceReportData
-): Promise<string>;
+): Promise<ComparisonResult>;
 
 // Implementation
 export async function analyseComparison(
@@ -235,7 +243,7 @@ export async function analyseComparison(
   insuranceReportInput:
     | string
     | import('../../schemas/extraction').InsuranceReportData
-) {
+): Promise<ComparisonResult> {
   // Convert inputs to string format for AI processing
   let roofReportText: string;
   let insuranceReportText: string;
@@ -254,20 +262,26 @@ export async function analyseComparison(
     insuranceReportText = JSON.stringify(insuranceReportInput, null, 2);
   }
 
-  const response = await client.responses.create({
-    model: 'gpt-5-mini',
-    instructions: reportComparisonPrompt,
-    input: [
+  const response = await client.chat.completions.create({
+    model: 'gpt-4o-mini',
+    messages: [
+      {
+        role: 'system',
+        content: reportComparisonPrompt,
+      },
       {
         role: 'user',
-        content: [
-          {
-            type: 'input_text',
-            text: `Roof Report Analysis: ${roofReportText}\n\nInsurance Report Analysis: ${insuranceReportText}`,
-          },
-        ],
+        content: `Roof Report Analysis: ${roofReportText}\n\nInsurance Report Analysis: ${insuranceReportText}`,
       },
     ],
+    response_format: { type: 'json_object' },
   });
-  return response.output_text;
+
+  const content = response.choices[0].message.content;
+  if (!content) {
+    throw new Error('No response content received from OpenAI');
+  }
+
+  const parsed = JSON.parse(content);
+  return ComparisonResult.parse(parsed);
 }
