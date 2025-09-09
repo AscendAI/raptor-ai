@@ -2,7 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, ArrowLeft, Download, CheckCircle } from 'lucide-react';
@@ -41,27 +47,28 @@ export default function ResultsPage() {
 
   const loadAnalysisResults = async () => {
     try {
-      setState(prev => ({ ...prev, loading: true }));
-      
+      setState((prev) => ({ ...prev, loading: true }));
+
       const result = await getAnalysisResults(taskId);
-      
+
       if (result.success && result.data) {
         setState({
           loading: false,
           result: {
             roofData: result.data.roofData,
             insuranceData: result.data.insuranceData,
-            comparison: typeof result.data.comparison === 'string' 
-              ? JSON.parse(result.data.comparison) 
-              : result.data.comparison
+            comparison:
+              typeof result.data.comparison === 'string'
+                ? JSON.parse(result.data.comparison)
+                : result.data.comparison,
           },
-          error: null
+          error: null,
         });
       } else {
         setState({
           loading: false,
           result: null,
-          error: result.error || 'Analysis results not found'
+          error: result.error || 'Analysis results not found',
         });
       }
     } catch (error) {
@@ -69,14 +76,14 @@ export default function ResultsPage() {
       setState({
         loading: false,
         result: null,
-        error: 'Failed to load analysis results'
+        error: 'Failed to load analysis results',
       });
     }
   };
 
   const handleDownloadReport = () => {
     if (!state.result) return;
-    
+
     const comparison = state.result.comparison;
     const reportContent = `# Roof vs Insurance Report Analysis
 
@@ -87,14 +94,17 @@ export default function ResultsPage() {
 - Missing Data: ${comparison.summary.missing}
 
 ## Detailed Comparison
-${comparison.comparisons.map(item => 
-  `### ${item.checkpoint}
+${comparison.comparisons
+  .map(
+    (item) =>
+      `### ${item.checkpoint}
 **Status:** ${item.status.toUpperCase()}
 **Roof Report:** ${item.roof_report_value || 'N/A'}
 **Insurance Report:** ${item.insurance_report_value || 'N/A'}
 **Notes:** ${item.notes}
 `
-).join('\n')}`;
+  )
+  .join('\n')}`;
     const blob = new Blob([reportContent], { type: 'text/markdown' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -112,7 +122,9 @@ ${comparison.comparisons.map(item =>
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-center space-y-4">
               <Loader2 className="h-8 w-8 animate-spin mx-auto" />
-              <p className="text-muted-foreground">Loading analysis results...</p>
+              <p className="text-muted-foreground">
+                Loading analysis results...
+              </p>
             </div>
           </div>
         </div>
@@ -149,15 +161,16 @@ ${comparison.comparisons.map(item =>
         <div className="container mx-auto px-4 py-8">
           <Card>
             <CardHeader>
-              <CardTitle className="text-destructive">Results Not Available</CardTitle>
-              <CardDescription>
-                {state.error}
-              </CardDescription>
+              <CardTitle className="text-destructive">
+                Results Not Available
+              </CardTitle>
+              <CardDescription>{state.error}</CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground mb-4">
-                The analysis has been completed, but the detailed results are no longer stored in the system. 
-                This is normal behavior as sessions are cleaned up after successful completion.
+                The analysis has been completed, but the detailed results are no
+                longer stored in the system. This is normal behavior as sessions
+                are cleaned up after successful completion.
               </p>
               <Button onClick={() => router.push('/dashboard')}>
                 Start New Analysis
@@ -211,7 +224,8 @@ ${comparison.comparisons.map(item =>
               <div>
                 <CardTitle>Comparison Analysis</CardTitle>
                 <CardDescription>
-                  AI-generated analysis comparing roof report data with insurance report data
+                  AI-generated analysis comparing roof report data with
+                  insurance report data
                 </CardDescription>
               </div>
               <Button onClick={handleDownloadReport} variant="outline">
@@ -233,17 +247,30 @@ ${comparison.comparisons.map(item =>
                 <div className="space-y-2">
                   <h3 className="font-medium">Analysis Complete</h3>
                   <p className="text-sm text-muted-foreground">
-                    Your analysis has been completed successfully. You can download the report or start a new analysis.
+                    Your analysis has been completed successfully. You can
+                    download the report or start a new analysis.
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
                   <Button
                     variant="outline"
-                    onClick={() => router.push('/dashboard/new')}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      console.log('New Analysis button clicked');
+                      router.push('/dashboard/new-analysis');
+                    }}
                   >
                     New Analysis
                   </Button>
-                  <Button onClick={() => router.push('/dashboard')}>
+                  <Button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      console.log('Back to Dashboard button clicked');
+                      router.push('/dashboard');
+                    }}
+                  >
                     Back to Dashboard
                   </Button>
                 </div>
