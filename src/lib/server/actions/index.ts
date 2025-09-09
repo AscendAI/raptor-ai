@@ -4,6 +4,50 @@ import { analyseRoofReport, analyseInsuranceReport, analyseComparison } from '..
 import { parseRoofReportData, parseInsuranceReportData, stringifyForComparison, type RoofReportData, type InsuranceReportData } from '../../schemas/extraction';
 import { type ComparisonResult } from '../../schemas/comparison';
 
+// Extract roof report data only
+export async function extractRoofData(roofReportImages: string[]) {
+  try {
+    console.log('Extracting roof report data...');
+    const roofAnalysisRaw = await analyseRoofReport(roofReportImages);
+    const roofResult = parseRoofReportData(roofAnalysisRaw);
+    
+    return {
+      success: roofResult.success,
+      data: roofResult.data,
+      error: roofResult.error,
+      rawText: roofResult.rawText
+    };
+  } catch (error) {
+    console.error('Error extracting roof report data:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error occurred'
+    };
+  }
+}
+
+// Extract insurance report data only
+export async function extractInsuranceData(insuranceReportImages: string[]) {
+  try {
+    console.log('Extracting insurance report data...');
+    const insuranceAnalysisRaw = await analyseInsuranceReport(insuranceReportImages);
+    const insuranceResult = parseInsuranceReportData(insuranceAnalysisRaw);
+    
+    return {
+      success: insuranceResult.success,
+      data: insuranceResult.data,
+      error: insuranceResult.error,
+      rawText: insuranceResult.rawText
+    };
+  } catch (error) {
+    console.error('Error extracting insurance report data:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error occurred'
+    };
+  }
+}
+
 // Extract data from both reports (Phase 1)
 export async function extractReportData(
   roofReportImages: string[],
@@ -13,29 +57,15 @@ export async function extractReportData(
     console.log('Starting extraction of report data...');
     
     // Extract roof report data
-    console.log('Extracting roof report data...');
-    const roofAnalysisRaw = await analyseRoofReport(roofReportImages);
-    const roofResult = parseRoofReportData(roofAnalysisRaw);
+    const roofResult = await extractRoofData(roofReportImages);
     
     // Extract insurance report data
-    console.log('Extracting insurance report data...');
-    const insuranceAnalysisRaw = await analyseInsuranceReport(insuranceReportImages);
-    const insuranceResult = parseInsuranceReportData(insuranceAnalysisRaw);
+    const insuranceResult = await extractInsuranceData(insuranceReportImages);
     
     return {
       success: true,
-      roofExtraction: {
-        success: roofResult.success,
-        data: roofResult.data,
-        error: roofResult.error,
-        rawText: roofResult.rawText
-      },
-      insuranceExtraction: {
-        success: insuranceResult.success,
-        data: insuranceResult.data,
-        error: insuranceResult.error,
-        rawText: insuranceResult.rawText
-      }
+      roofExtraction: roofResult,
+      insuranceExtraction: insuranceResult
     };
   } catch (error) {
     console.error('Error extracting report data:', error);
@@ -189,6 +219,76 @@ export async function createUserReviewTask(
     };
   } catch (error) {
     console.error('Error creating user review session:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error occurred'
+    };
+  }
+}
+
+// Create a user review task with just roof data initially
+export async function createRoofReviewTask(roofData: RoofReportData) {
+  try {
+    const taskId = `${Math.random().toString(36).substr(2, 6)}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    // Create a partial task with just roof data
+    const task: Partial<UserReviewTask> & { id: string; roofData: RoofReportData; createdAt: Date; updatedAt: Date } = {
+      id: taskId,
+      roofData,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    
+    userTasks.set(taskId, task as UserReviewTask);
+    
+    return {
+      success: true,
+      taskId,
+      data: {
+        roofData
+      }
+    };
+  } catch (error) {
+    console.error('Error creating roof review task:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error occurred'
+    };
+  }
+}
+
+// Update an existing task with insurance data
+export async function updateTaskWithInsuranceData(
+  taskId: string,
+  insuranceData: InsuranceReportData
+) {
+  try {
+    const existingTask = userTasks.get(taskId);
+    if (!existingTask) {
+      return {
+        success: false,
+        error: 'Task not found'
+      };
+    }
+    
+    const updatedTask: UserReviewTask = {
+      ...existingTask,
+      insuranceData,
+      updatedAt: new Date()
+    };
+    
+    userTasks.set(taskId, updatedTask);
+    
+    return {
+      success: true,
+      taskId,
+      data: {
+        roofData: updatedTask.roofData,
+        insuranceData
+      }
+    };
+  } catch (error) {
+    console.error('Error updating task with insurance data:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error occurred'
