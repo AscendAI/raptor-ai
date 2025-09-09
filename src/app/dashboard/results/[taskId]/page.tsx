@@ -82,8 +82,8 @@ export default function ResultsPage() {
 
 ## Summary
 - Total Checkpoints: ${comparison.summary.total}
-- Matching (Green): ${comparison.summary.green}
-- Discrepancies (Red): ${comparison.summary.red}
+- Matching (Pass): ${comparison.summary.pass}
+- Discrepancies (Failed): ${comparison.summary.failed}
 - Missing Data: ${comparison.summary.missing}
 
 ## Detailed Comparison

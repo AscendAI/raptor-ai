@@ -136,95 +136,99 @@ export async function analyseInsuranceReport(insuranceReportImages: string[]) {
 }
 
 const reportComparisonPrompt = `
-I have two reports:
-A roofing report from a company fixing the roof of a client's property.
-An insurance estimate from the client's insurance company.
+You are given two reports:
 
-Assume the roofing report is always accurate, but the insurance report may contain mistakes.
-Your task is to compare the two reports to identify inaccuracies in the insurance estimate. These are common areas that a roofing report might miss or the insurance report might get wrong:
+Roofing report (this is always accurate).
 
-Total Squares and Waste Factor: Compare the insurance estimate's total squares to the roofing report. Ensure that the appropriate waste factor (10-15%) is applied.
+Insurance estimate (may contain mistakes).
 
-Drip Edge: Verify that the drip edge is included as required by code for all eaves+rakes. It must be new and cannot be reused.
+Your task: Compare the insurance estimate against the roofing report to identify inaccuracies.
 
-Starter Strip: Confirm that the starter strip is required at eaves+rakes, and ensure it is not cut from field shingles. This is also a manufacturer warranty requirement.
+Common Areas of Error:
 
-Ridge Cap: Check if the ridge cap in the insurance estimate matches the manufacturer's specifications, particularly if architectural shingles are used. Ensure the ridge footage aligns with the roofing report.
+Total Squares & Waste Factor: Compare the insurance estimate's total squares to the roofing report. Ensure a proper waste factor of 10–15% is applied.
 
-Ice & Water Shield in Valleys: Verify that ice and water shield is included in the valleys, as required by the International Residential Code (IRC). The length should be calculated based on a 6-foot width.
+Drip Edge: Must be included for all eaves and rakes; required by code. It must be new (cannot be reused).
 
-Step Flashing: Confirm that step flashing is included at roof-to-wall intersections. Per manufacturer guidance, step flashing cannot be reused.
+Starter Strip: Required at eaves and rakes. Cannot be cut from field shingles (per manufacturer warranty).
 
-Chimney Flashing: Check if chimney flashing is included when a chimney is present. The flashing should include base flashing, counter flashing, and a cricket if the chimney width exceeds 30 inches.
+Ridge Cap: Must match manufacturer's specifications for architectural shingles. Ridge footage must align with the roofing report.
 
-Ventilation Items: Ensure the insurance report includes all necessary ventilation items such as turtle vents, ridge vents, exhaust caps, and flue caps. These must match the existing ventilation system.
+Ice & Water Shield (Valleys): Required by IRC in valleys. Should be calculated as (valley length * 6 ft width).
 
-Steep/High Charges: Confirm that additional charges for steep roofs (7/12-9/12 and 10/12+ pitches) are applied, and verify if a high charge is added for roofs requiring access to two or more stories.
+Step Flashing: Required at roof-to-wall intersections. Cannot be reused.
 
-Underlayment Type: Confirm whether synthetic underlayment is required, according to manufacturer and code specifications. Many adjusters default to felt underlayment.
+Chimney Flashing: Must be included if a chimney is present. Includes base flashing, counter flashing, and a cricket if chimney width > 30".
 
-Comparison Criteria:
-Tear-off Quantity: Compare the tear-off quantity in both reports. If the insurance estimate's tear-off quantity is equal to or greater than the roofing report, flag it as a green flag.
+Ventilation Items: Insurance report must include turtle vents, ridge vents, exhaust caps, and flue caps matching the existing system.
 
-Square Comparison: Compare the “felt” quantity from the insurance estimate with the recommended waste percentage in the roofing report. If the insurance estimate's value is equal to or greater than the roofing report's recommendation, flag it as a green flag; otherwise, it's a red flag.
+Steep/High Charges: Verify additional charges for steep slopes (7/12-9/12 and 10/12-12/12). Confirm if extra charges are included for two+ story access.
 
-Drip Edge: Compare the drip edge quantity in the insurance report with the total eaves + rakes in the roofing report. If the insurance value is equal to or greater than the roofing report, it's a green flag.
+Underlayment Type: Confirm that synthetic underlayment is included. Defaulting to felt is incorrect.
 
-Starter Strip: Compare the starter strip value in the insurance report with the roofing report's eaves + rakes. Also, check the option text (if available) to ensure the starter strip is not cut from field shingles, as required by the manufacturer's warranty.
+Comparison Criteria
 
-Hip/Ridge Cap: Compare the hip/ridge cap value in the insurance report with the hips and ridges in the roofing report. If the insurance report's value is equal to or greater than the roofing report, flag it as a green flag; otherwise, it's a red flag.
+Tear-off Quantity: Insurance tear-off ≥ roofing report → pass, else failed.
 
-Ice & Water Shield in Valleys: Ensure that the insurance estimate includes the proper ice and water shield in valleys (valley length * 6 feet width).
+Square Comparison: Insurance “felt” quantity compared to roofing + waste factor. Insurance ≥ roofing → pass, else failed.
 
-Step Flashing: Check if step flashing is included in the insurance report. If missing, flag it as missing and note that it should be included.
+Drip Edge: Insurance quantity vs roofing eaves+rakes. Insurance ≥ roofing → pass, else failed.
 
-Chimney Flashing: Verify if chimney flashing is included in the insurance report. If missing, flag it as missing and state that it should be included.
+Starter Strip: Insurance vs roofing eaves+rakes. Must not be cut from field shingles.
 
-Ventilation Items: Check if ventilation items (turtle vents, ridge vents, exhaust caps, flue caps) are included in the insurance report. If missing, flag them as missing and state that they should be included.
+Hip/Ridge Cap: Insurance vs roofing hips+ridges. Insurance ≥ roofing → pass, else failed.
 
-Remove Additional Charge for Steep Roof (7/12-9/12 slope): Compare the value in the insurance report with the total squares of 7/12 + 9/12 slope from the roofing report.
+Ice & Water Shield in Valleys: Must include correct (valley length * 6 ft width).
 
-Additional Charge for Steep Roof (7/12-9/12 slope): Compare the insurance estimate value with the roofing report's total squares (7/12 + 9/12). Add the recommended waste percentage to the total. If the insurance estimate does not meet the expected value, flag it as a red flag.
+Step Flashing: If not listed in insurance → missing, else pass.
 
-Remove Additional Charge for Steep Roof (10/12'12/12 slope): Compare the value in the insurance report with the total squares of 10/12-12/12 slope from the roofing report.
+Chimney Flashing: If not listed in insurance → missing, else pass.
 
-Additional Charge for Steep Roof (10/12-12/12 slope): Compare the value in the insurance report with the roofing report's total squares (10/12-12/12). Add the recommended waste percentage to the total. If 10/12 is missing, use only 12/12, and vice versa.
-Underlayment Type: Confirm whether synthetic underlayment is required, according to manufacturer and code specifications. Many adjusters default to felt underlayment.
+Ventilation Items: If missing from insurance → missing, else pass.
 
-Rules:
-- Use the roofing report as the source of truth.
-- Mark any insurance report under-allowances or missing items clearly.
-- Skip irrelevant fields (cost, depreciation, taxes).
-- Always return JSON in the exact schema below.
+Steep Roof (7/12-9/12):
 
-### Output Schema (must always follow this):
+Removal Charge → Compare to combined squares.
+
+Additional Charge → Compare to squares + waste factor.
+
+Steep Roof (10/12-12/12):
+
+Removal Charge → Compare to combined squares.
+
+Additional Charge → Compare to squares + waste factor.
+
+Underlayment Type: If missing from insurance → missing, else pass.
+
+Rules
+
+1. Always use the roofing report as the source of truth.
+
+2. Flag under-allowances or missing items in the insurance report.
+
+3. Always return JSON using the schema below.
+
+4. Provide a clear note for each checkpoint explaining why it was marked.
+
+JSON Output Schema
 {
   "success": true,
   "summary": {
-    "green": 0,     // count of green status items
-    "red": 0,       // count of red status items
-    "missing": 0,   // count of missing status items
-    "total": 0      // total number of checkpoints
+    "pass": 0,        // number of items marked as pass
+    "failed": 0,      // number of items marked as failed
+    "missing": 0,     // number of items marked as missing
+    "total": 0        // total checkpoints evaluated
   },
   "comparisons": [
     {
-      "checkpoint": "string",          // e.g. "Drip Edge"
-      "status": "green" | "red" | "missing", 
-      "roof_report_value": "string | null",
-      "insurance_report_value": "string | null",
-      "notes": "string"                // explanation of why green/red/missing
+      "checkpoint": "string",            // e.g., "Drip Edge"
+      "status": "pass" | "failed" | "missing",
+      "roof_report_value": "string|null",
+      "insurance_report_value": "string|null",
+      "notes": "string"                  // explanation for decision
     }
   ]
-}
-
-Instructions:
-- status = "green" if insurance ≥ roofing requirement.
-- status = "red" if insurance < roofing requirement or fails rules.
-- status = "missing" if the insurance report has no entry.
-- Always provide a short but clear note for each checkpoint.
-- If a field doesn't exist in either report, set its value to null.
-- Calculate summary counts: count how many items have each status (green/red/missing) and set total to the total number of comparisons.
-- Do not return markdown, only raw JSON matching the schema above.`;
+}`;
 
 // Overloaded function signatures for backward compatibility
 export async function analyseComparison(
@@ -263,7 +267,7 @@ export async function analyseComparison(
   }
 
   const response = await client.chat.completions.create({
-    model: 'gpt-4o-mini',
+    model: 'gpt-5-mini',
     messages: [
       {
         role: 'system',

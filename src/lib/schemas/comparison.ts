@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 // Status enum for comparison checkpoints
-export const ComparisonStatus = z.enum(['green', 'red', 'missing']);
+export const ComparisonStatus = z.enum(['pass', 'failed', 'missing']);
 export type ComparisonStatus = z.infer<typeof ComparisonStatus>;
 
 // Individual comparison checkpoint schema
@@ -16,8 +16,8 @@ export type ComparisonCheckpoint = z.infer<typeof ComparisonCheckpoint>;
 
 // Summary statistics schema
 export const ComparisonSummary = z.object({
-  green: z.number(),
-  red: z.number(),
+  pass: z.number(),
+  failed: z.number(),
   missing: z.number(),
   total: z.number()
 });
@@ -34,8 +34,8 @@ export type ComparisonResult = z.infer<typeof ComparisonResult>;
 // Helper function to calculate summary from comparisons
 export function calculateSummary(comparisons: ComparisonCheckpoint[]): ComparisonSummary {
   const summary = {
-    green: 0,
-    red: 0,
+    pass: 0,
+    failed: 0,
     missing: 0,
     total: comparisons.length
   };
@@ -49,15 +49,15 @@ export function calculateSummary(comparisons: ComparisonCheckpoint[]): Compariso
 
 // Status display helpers
 export const statusConfig = {
-  green: {
+  pass: {
     label: 'Pass',
     icon: '✅',
     color: 'text-green-600 dark:text-green-400',
     bgColor: 'bg-green-100 dark:bg-green-900/30',
     borderColor: 'border-green-200 dark:border-green-800'
   },
-  red: {
-    label: 'Fail',
+  failed: {
+    label: 'Failed',
     icon: '❌',
     color: 'text-red-600 dark:text-red-400',
     bgColor: 'bg-red-100 dark:bg-red-900/30',

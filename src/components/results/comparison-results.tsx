@@ -46,11 +46,11 @@ function SummaryStats({ summary }: SummaryStatsProps) {
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
       <div className="flex items-center gap-2">
         <div className="w-3 h-3 rounded-full bg-green-500"></div>
-        <span className="text-sm font-medium">{summary.green} Pass</span>
+        <span className="text-sm font-medium">{summary.pass} Pass</span>
       </div>
       <div className="flex items-center gap-2">
         <div className="w-3 h-3 rounded-full bg-red-500"></div>
-        <span className="text-sm font-medium">{summary.red} Fail</span>
+        <span className="text-sm font-medium">{summary.failed} Failed</span>
       </div>
       <div className="flex items-center gap-2">
         <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
@@ -106,7 +106,8 @@ function ComparisonRow({ comparison }: ComparisonRowProps) {
 }
 
 export function ComparisonResults({ data, className }: ComparisonResultsProps) {
-  if (!data.success) {
+  // Show error only if there are no comparisons at all
+  if (!data.success && (!data.comparisons || data.comparisons.length === 0)) {
     return (
       <Card className={cn('w-full', className)}>
         <CardContent className="pt-6">
