@@ -266,22 +266,24 @@ export async function analyseComparison(
     insuranceReportText = JSON.stringify(insuranceReportInput, null, 2);
   }
 
-  const response = await client.chat.completions.create({
+  const response = await client.responses.create({
     model: 'gpt-5-mini',
-    messages: [
-      {
-        role: 'system',
-        content: reportComparisonPrompt,
-      },
+    instructions: reportComparisonPrompt,
+    reasoning: { effort: 'high' },
+    input: [
       {
         role: 'user',
-        content: `Roof Report Analysis: ${roofReportText}\n\nInsurance Report Analysis: ${insuranceReportText}`,
+        content: [
+          {
+            type: 'input_text',
+            text: `Roof Report Analysis: ${roofReportText}\n\nInsurance Report Analysis: ${insuranceReportText}`,
+          },
+        ],
       },
     ],
-    response_format: { type: 'json_object' },
   });
 
-  const content = response.choices[0].message.content;
+  const content = response.output_text;
   if (!content) {
     throw new Error('No response content received from OpenAI');
   }
