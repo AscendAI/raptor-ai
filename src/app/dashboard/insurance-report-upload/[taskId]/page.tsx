@@ -19,47 +19,7 @@ import {
   updateTaskWithInsuranceData,
   getUserReviewData,
 } from '@/lib/server/actions';
-
-function readFileData(file: File) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      resolve(e.target?.result);
-    };
-    reader.onerror = (err) => {
-      reject(err);
-    };
-    reader.readAsDataURL(file);
-  });
-}
-
-async function convertPdfToImages(file: File) {
-  const pdfjs = await import('pdfjs-dist');
-  pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-    'pdfjs-dist/build/pdf.worker.min.mjs',
-    import.meta.url
-  ).toString();
-  const images: string[] = [];
-
-  const data = await readFileData(file);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const pdf = await pdfjs.getDocument(data as any).promise;
-  const canvas = document.createElement('canvas');
-  for (let i = 0; i < pdf.numPages; i++) {
-    const page = await pdf.getPage(i + 1);
-    const viewport = page.getViewport({ scale: 0.75 });
-    const context = canvas.getContext('2d');
-    if (!context) continue;
-    canvas.height = viewport.height;
-    canvas.width = viewport.width;
-    await page.render({ canvasContext: context, viewport: viewport, canvas })
-      .promise;
-    // Use JPEG compression with 0.7 quality to reduce file size
-    images.push(canvas.toDataURL('image/jpeg', 0.7));
-  }
-  canvas.remove();
-  return images;
-}
+import { convertPdfToImages } from '@/lib/utils/pdf';
 
 export default function InsuranceReportUploadPage() {
   const params = useParams();
