@@ -116,7 +116,7 @@ export function RoofDataEditor({ data, onChange }: RoofDataEditorProps) {
     <div className="space-y-8">
       {/* Measurements */}
       <Card className="shadow-sm border-slate-200 pt-0">
-        <CardHeader className="bg-gradient-to-r from-slate-50 to-slate-100/50 border-b border-slate-200 rounded-t-xl pt-6">
+        <CardHeader className="bg-gradient-to-r from-slate-100 to-slate-300 border-b border-slate-200 rounded-t-xl pt-6">
           <CardTitle className="flex items-center gap-3 text-slate-800">
             <div className="p-2 bg-slate-200 rounded-lg">
               <Edit3 className="h-5 w-5 text-slate-600" />
@@ -152,12 +152,12 @@ export function RoofDataEditor({ data, onChange }: RoofDataEditorProps) {
 
       {/* Pitch Breakdown */}
       <Card className="shadow-sm border-slate-200 pt-0">
-        <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100/50 border-b border-blue-200 rounded-t-xl pt-6">
+        <CardHeader className="bg-gradient-to-r from-orange-50 to-orange-200 border-b border-orange-200 rounded-t-xl pt-6">
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="text-slate-800 flex items-center gap-3">
-                <div className="p-2 bg-blue-200 rounded-lg">
-                  <Edit3 className="h-5 w-5 text-blue-600" />
+                <div className="p-2 bg-orange-200 rounded-lg">
+                  <Edit3 className="h-5 w-5 text-orange-600" />
                 </div>
                 Pitch Breakdown
               </CardTitle>
@@ -168,7 +168,7 @@ export function RoofDataEditor({ data, onChange }: RoofDataEditorProps) {
             <Button
               onClick={addPitchBreakdown}
               size="sm"
-              className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
+              className="bg-orange-700 hover:bg-orange-800 text-white shadow-sm"
             >
               <Plus className="h-4 w-4 mr-2" />
               Add Pitch
@@ -185,7 +185,7 @@ export function RoofDataEditor({ data, onChange }: RoofDataEditorProps) {
                 <div className="flex items-center justify-between mb-6">
                   <Badge
                     variant="secondary"
-                    className="bg-blue-100 text-blue-800 border-blue-200"
+                    className="bg-orange-100 text-orange-800 border-orange-200"
                   >
                     Pitch {index + 1}
                   </Badge>
@@ -261,7 +261,7 @@ export function RoofDataEditor({ data, onChange }: RoofDataEditorProps) {
 
       {/* Waste Table */}
       <Card className="shadow-sm border-slate-200 pt-0">
-        <CardHeader className="bg-gradient-to-r from-emerald-50 to-emerald-100/50 border-b border-emerald-200 rounded-t-xl pt-6">
+        <CardHeader className="bg-gradient-to-r from-emerald-50 to-emerald-100 border-b border-emerald-200 rounded-t-xl pt-6">
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="text-slate-800 flex items-center gap-3">
