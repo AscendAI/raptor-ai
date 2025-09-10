@@ -269,7 +269,7 @@ export async function analyseComparison(
   const response = await client.responses.create({
     model: 'gpt-5-mini',
     instructions: reportComparisonPrompt,
-    reasoning: { effort: 'high' },
+    // reasoning: { effort: 'high' },
     input: [
       {
         role: 'user',

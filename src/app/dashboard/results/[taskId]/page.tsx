@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import {
   Card,
@@ -41,11 +41,7 @@ export default function ResultsPage() {
     error: null,
   });
 
-  useEffect(() => {
-    loadAnalysisResults();
-  }, [taskId]);
-
-  const loadAnalysisResults = async () => {
+  const loadAnalysisResults = useCallback(async () => {
     try {
       setState((prev) => ({ ...prev, loading: true }));
 
@@ -79,7 +75,11 @@ export default function ResultsPage() {
         error: 'Failed to load analysis results',
       });
     }
-  };
+  }, [taskId]);
+
+  useEffect(() => {
+    loadAnalysisResults();
+  }, [loadAnalysisResults]);
 
   const handleDownloadReport = () => {
     if (!state.result) return;
