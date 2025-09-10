@@ -146,25 +146,16 @@ Your task: Compare the insurance estimate against the roofing report to identify
 
 Common Areas of Error:
 
-Total Squares & Waste Factor: Compare the insurance estimate's total squares to the roofing report. Ensure a proper waste factor of 10–15% is applied.
-
-Drip Edge: Must be included for all eaves and rakes; required by code. It must be new (cannot be reused).
-
-Starter Strip: Required at eaves and rakes. Cannot be cut from field shingles (per manufacturer warranty).
-
-Ridge Cap: Must match manufacturer's specifications for architectural shingles. Ridge footage must align with the roofing report.
-
-Ice & Water Shield (Valleys): Required by IRC in valleys. Should be calculated as (valley length * 6 ft width).
-
-Step Flashing: Required at roof-to-wall intersections. Cannot be reused.
-
-Chimney Flashing: Must be included if a chimney is present. Includes base flashing, counter flashing, and a cricket if chimney width > 30".
-
-Ventilation Items: Insurance report must include turtle vents, ridge vents, exhaust caps, and flue caps matching the existing system.
-
-Steep/High Charges: Verify additional charges for steep slopes (7/12-9/12 and 10/12-12/12). Confirm if extra charges are included for two+ story access.
-
-Underlayment Type: Confirm that synthetic underlayment is included. Defaulting to felt is incorrect.
+1. Total Squares & Waste Factor
+2. Drip Edge
+3. Starter Strip
+4. Ridge Cap
+5. Ice & Water Shield (Valleys)
+6. Step Flashing
+7. Chimney Flashing
+8. Ventilation Items
+9. Steep/High Charges
+10. Underlayment Type
 
 Comparison Criteria
 
