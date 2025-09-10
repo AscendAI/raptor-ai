@@ -50,7 +50,7 @@ export function getCurrentStepIndex(pathname: string): number {
 }
 
 export function getStepsForIndicator() {
-  return WORKFLOW_STEPS.map(step => ({
+  return WORKFLOW_STEPS.map((step) => ({
     id: step.id,
     title: step.title,
     description: step.description,

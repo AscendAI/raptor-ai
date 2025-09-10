@@ -2,7 +2,10 @@
 
 import { usePathname } from 'next/navigation';
 import { StepIndicator } from '@/components/ui/step-indicator';
-import { getStepsForIndicator, getCurrentStepIndex } from '@/lib/constants/workflow';
+import {
+  getStepsForIndicator,
+  getCurrentStepIndex,
+} from '@/lib/constants/workflow';
 import { Card } from '@/components/ui/card';
 
 interface WorkflowLayoutProps {
@@ -11,7 +14,11 @@ interface WorkflowLayoutProps {
   description?: string;
 }
 
-export function WorkflowLayout({ children, title, description }: WorkflowLayoutProps) {
+export function WorkflowLayout({
+  children,
+  title,
+  description,
+}: WorkflowLayoutProps) {
   const pathname = usePathname();
   const currentStep = getCurrentStepIndex(pathname);
   const steps = getStepsForIndicator();
@@ -22,7 +29,9 @@ export function WorkflowLayout({ children, title, description }: WorkflowLayoutP
       <div className="mb-8">
         <Card className="p-4 md:p-6">
           <div className="mb-4 md:mb-6">
-            <h1 className="text-xl md:text-2xl font-bold text-center mb-2">Analysis Workflow</h1>
+            <h1 className="text-xl md:text-2xl font-bold text-center mb-2">
+              Analysis Workflow
+            </h1>
             <p className="text-muted-foreground text-center text-sm">
               Follow these steps to complete your document analysis
             </p>

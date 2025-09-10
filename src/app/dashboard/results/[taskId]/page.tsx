@@ -122,9 +122,7 @@ ${comparison.comparisons
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center space-y-4">
             <Loader2 className="h-8 w-8 animate-spin mx-auto" />
-            <p className="text-muted-foreground">
-              Loading analysis results...
-            </p>
+            <p className="text-muted-foreground">Loading analysis results...</p>
           </div>
         </div>
       </WorkflowLayout>
@@ -182,8 +180,8 @@ ${comparison.comparisons
             <div>
               <CardTitle>Comparison Analysis</CardTitle>
               <CardDescription>
-                AI-generated analysis comparing roof report data with
-                insurance report data
+                AI-generated analysis comparing roof report data with insurance
+                report data
               </CardDescription>
             </div>
             <Button onClick={handleDownloadReport} variant="outline">

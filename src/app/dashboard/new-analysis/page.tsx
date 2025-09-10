@@ -73,7 +73,9 @@ export default function NewAnalysisPage() {
 
               <div className="flex flex-col items-center text-center p-4 bg-muted rounded-lg">
                 <Shield className="h-8 w-8 mb-2 text-primary" />
-                <h3 className="font-semibold text-sm">4. Review Insurance Data</h3>
+                <h3 className="font-semibold text-sm">
+                  4. Review Insurance Data
+                </h3>
                 <p className="text-xs text-muted-foreground mt-1">
                   Verify and edit extracted insurance data
                 </p>
