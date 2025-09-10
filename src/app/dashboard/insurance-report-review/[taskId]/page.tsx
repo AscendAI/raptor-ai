@@ -14,6 +14,7 @@ import { Loader2, ArrowLeft } from 'lucide-react';
 import { getUserReviewData } from '@/lib/server/actions';
 import { SteppedInsuranceReview } from '@/components/review/stepped-insurance-review';
 import { RoofReportData, InsuranceReportData } from '@/lib/schemas/extraction';
+import { WorkflowLayout } from '@/components/common/workflow-layout';
 
 interface TaskDetails {
   roofData: RoofReportData;
@@ -75,20 +76,20 @@ export default function InsuranceReportReviewPage() {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <WorkflowLayout>
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
             <p className="text-muted-foreground">Loading task details...</p>
           </div>
         </div>
-      </div>
+      </WorkflowLayout>
     );
   }
 
   if (error || !taskDetails) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <WorkflowLayout>
         <Card className="max-w-2xl mx-auto">
           <CardHeader>
             <CardTitle>Error</CardTitle>
@@ -106,20 +107,15 @@ export default function InsuranceReportReviewPage() {
             </Button>
           </CardContent>
         </Card>
-      </div>
+      </WorkflowLayout>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">Review Insurance Data</h1>
-        <p className="text-muted-foreground mt-2">
-          Review and edit the extracted insurance report data before generating
-          analysis
-        </p>
-      </div>
-
+    <WorkflowLayout
+      title="Review Insurance Data"
+      description="Review and edit the extracted insurance report data before generating analysis"
+    >
       <div className="max-w-4xl mx-auto">
         <SteppedInsuranceReview
           taskId={taskId}
@@ -129,6 +125,6 @@ export default function InsuranceReportReviewPage() {
           onBack={handleBack}
         />
       </div>
-    </div>
+    </WorkflowLayout>
   );
 }

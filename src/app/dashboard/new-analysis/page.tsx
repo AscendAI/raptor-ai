@@ -47,7 +47,7 @@ export default function NewAnalysisPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
               <div className="flex flex-col items-center text-center p-4 bg-muted rounded-lg">
                 <FileText className="h-8 w-8 mb-2 text-primary" />
-                <h3 className="font-semibold text-sm">Upload Roof Report</h3>
+                <h3 className="font-semibold text-sm">1. Upload Roof Report</h3>
                 <p className="text-xs text-muted-foreground mt-1">
                   Upload your roofing inspection document
                 </p>
@@ -55,7 +55,7 @@ export default function NewAnalysisPage() {
 
               <div className="flex flex-col items-center text-center p-4 bg-muted rounded-lg">
                 <FileText className="h-8 w-8 mb-2 text-primary" />
-                <h3 className="font-semibold text-sm">Review Roof Data</h3>
+                <h3 className="font-semibold text-sm">2. Review Roof Data</h3>
                 <p className="text-xs text-muted-foreground mt-1">
                   Verify and edit extracted roof data
                 </p>
@@ -64,7 +64,7 @@ export default function NewAnalysisPage() {
               <div className="flex flex-col items-center text-center p-4 bg-muted rounded-lg">
                 <Shield className="h-8 w-8 mb-2 text-primary" />
                 <h3 className="font-semibold text-sm">
-                  Upload Insurance Report
+                  3. Upload Insurance Report
                 </h3>
                 <p className="text-xs text-muted-foreground mt-1">
                   Upload your insurance claim document
@@ -73,7 +73,7 @@ export default function NewAnalysisPage() {
 
               <div className="flex flex-col items-center text-center p-4 bg-muted rounded-lg">
                 <Shield className="h-8 w-8 mb-2 text-primary" />
-                <h3 className="font-semibold text-sm">Review Insurance Data</h3>
+                <h3 className="font-semibold text-sm">4. Review Insurance Data</h3>
                 <p className="text-xs text-muted-foreground mt-1">
                   Verify and edit extracted insurance data
                 </p>
@@ -81,7 +81,7 @@ export default function NewAnalysisPage() {
 
               <div className="flex flex-col items-center text-center p-4 bg-muted rounded-lg">
                 <BarChart3 className="h-8 w-8 mb-2 text-primary" />
-                <h3 className="font-semibold text-sm">View Analysis</h3>
+                <h3 className="font-semibold text-sm">5. View Analysis</h3>
                 <p className="text-xs text-muted-foreground mt-1">
                   Review comprehensive comparison results
                 </p>

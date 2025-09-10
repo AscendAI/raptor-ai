@@ -19,6 +19,7 @@ import {
   createRoofReviewTaskWithId,
 } from '@/lib/server/actions';
 import { convertPdfToImages } from '@/lib/utils/pdf';
+import { WorkflowLayout } from '@/components/common/workflow-layout';
 
 export default function RoofReportUploadPage() {
   const params = useParams();
@@ -83,14 +84,10 @@ export default function RoofReportUploadPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">Upload Roof Report</h1>
-        <p className="text-muted-foreground mt-2">
-          Upload your roofing document to begin the analysis process
-        </p>
-      </div>
-
+    <WorkflowLayout
+      title="Upload Roof Report"
+      description="Upload your roofing document to begin the analysis process"
+    >
       <Card className="max-w-2xl mx-auto">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -143,6 +140,6 @@ export default function RoofReportUploadPage() {
           </Button>
         </CardContent>
       </Card>
-    </div>
+    </WorkflowLayout>
   );
 }

@@ -20,6 +20,7 @@ import {
   getUserReviewData,
 } from '@/lib/server/actions';
 import { convertPdfToImages } from '@/lib/utils/pdf';
+import { WorkflowLayout } from '@/components/common/workflow-layout';
 
 export default function InsuranceReportUploadPage() {
   const params = useParams();
@@ -116,20 +117,20 @@ export default function InsuranceReportUploadPage() {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <WorkflowLayout>
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
             <p className="text-muted-foreground">Verifying task...</p>
           </div>
         </div>
-      </div>
+      </WorkflowLayout>
     );
   }
 
   if (!taskExists) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <WorkflowLayout>
         <Card className="max-w-2xl mx-auto">
           <CardHeader>
             <CardTitle>Task Not Found</CardTitle>
@@ -143,19 +144,15 @@ export default function InsuranceReportUploadPage() {
             </Button>
           </CardContent>
         </Card>
-      </div>
+      </WorkflowLayout>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">Upload Insurance Report</h1>
-        <p className="text-muted-foreground mt-2">
-          Upload your insurance document to continue the analysis process
-        </p>
-      </div>
-
+    <WorkflowLayout
+      title="Upload Insurance Report"
+      description="Upload your insurance document to continue the analysis process"
+    >
       <Card className="max-w-2xl mx-auto">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -217,6 +214,6 @@ export default function InsuranceReportUploadPage() {
           </div>
         </CardContent>
       </Card>
-    </div>
+    </WorkflowLayout>
   );
 }

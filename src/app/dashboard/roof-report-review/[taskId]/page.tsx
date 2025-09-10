@@ -14,6 +14,7 @@ import { Loader2 } from 'lucide-react';
 import { getUserReviewData } from '@/lib/server/actions';
 import { SteppedRoofReview } from '@/components/review/stepped-roof-review';
 import { RoofReportData, InsuranceReportData } from '@/lib/schemas/extraction';
+import { WorkflowLayout } from '@/components/common/workflow-layout';
 
 interface TaskDetails {
   roofData: RoofReportData;
@@ -70,20 +71,20 @@ export default function RoofReportReviewPage() {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <WorkflowLayout>
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
             <p className="text-muted-foreground">Loading task details...</p>
           </div>
         </div>
-      </div>
+      </WorkflowLayout>
     );
   }
 
   if (error || !taskDetails) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <WorkflowLayout>
         <Card className="max-w-2xl mx-auto">
           <CardHeader>
             <CardTitle>Error</CardTitle>
@@ -97,19 +98,15 @@ export default function RoofReportReviewPage() {
             </Button>
           </CardContent>
         </Card>
-      </div>
+      </WorkflowLayout>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">Review Roof Data</h1>
-        <p className="text-muted-foreground mt-2">
-          Review and edit the extracted roof report data before proceeding
-        </p>
-      </div>
-
+    <WorkflowLayout
+      title="Review Roof Data"
+      description="Review and edit the extracted roof report data before proceeding"
+    >
       <div className="max-w-4xl mx-auto">
         <SteppedRoofReview
           taskId={taskId}
@@ -118,6 +115,6 @@ export default function RoofReportReviewPage() {
           onBack={handleBack}
         />
       </div>
-    </div>
+    </WorkflowLayout>
   );
 }

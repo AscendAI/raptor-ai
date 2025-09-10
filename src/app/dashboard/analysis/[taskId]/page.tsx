@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2, CheckCircle, AlertCircle, BarChart3 } from 'lucide-react';
 import { toast } from 'sonner';
 import { completeAnalysisWorkflow } from '@/lib/server/actions';
+import { WorkflowLayout } from '@/components/common/workflow-layout';
 
 interface AnalysisStep {
   id: string;
@@ -189,15 +190,10 @@ export default function AnalysisPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">Generating Analysis</h1>
-        <p className="text-muted-foreground mt-2">
-          Please wait while we analyze your documents and generate the
-          comparison report
-        </p>
-      </div>
-
+    <WorkflowLayout
+      title="Generating Analysis"
+      description="Please wait while we analyze your documents and generate the comparison report"
+    >
       <Card className="max-w-2xl mx-auto">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -327,6 +323,6 @@ export default function AnalysisPage() {
           )}
         </CardContent>
       </Card>
-    </div>
+    </WorkflowLayout>
   );
 }
