@@ -162,60 +162,65 @@ ${comparison.comparisons
       title="Analysis Results"
       description="Final comparison analysis"
     >
-      <div className="space-y-6">
-        {/* Task Info */}
+      <div className="max-w-6xl mx-auto space-y-8">
+        {/* Task Status Header */}
         <div className="flex justify-center">
-          <div className="flex items-center gap-2">
-            <Badge variant="secondary">Task: {taskId.slice(-8)}</Badge>
-            <Badge variant="default" className="bg-green-600">
-              <CheckCircle className="h-3 w-3 mr-1" />
-              Completed
-            </Badge>
+          <div className="flex items-center gap-3 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+            <CheckCircle className="h-5 w-5 text-green-600" />
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary">Task: {taskId.slice(-8)}</Badge>
+              <Badge
+                variant="default"
+                className="bg-green-600 hover:bg-green-700"
+              >
+                Analysis Complete
+              </Badge>
+            </div>
           </div>
         </div>
 
-        {/* Analysis Results */}
+        {/* Analysis Results - No wrapper card, let the component handle its own layout */}
+        {state.result?.comparison && (
+          <ComparisonResults data={state.result.comparison} />
+        )}
+
+        {/* Actions Panel */}
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-            <div>
-              <CardTitle>Comparison Analysis</CardTitle>
-              <CardDescription>
-                AI-generated analysis comparing roof report data with insurance
-                report data
-              </CardDescription>
-            </div>
-            <Button onClick={handleDownloadReport} variant="outline">
-              <Download className="h-4 w-4 mr-2" />
-              Download Report
-            </Button>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Download className="h-5 w-5" />
+              Export & Actions
+            </CardTitle>
+            <CardDescription>
+              Download your analysis report or start a new analysis
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            {state.result?.comparison && (
-              <ComparisonResults data={state.result.comparison} />
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Action Buttons */}
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div className="space-y-2">
-                <h3 className="font-medium">Analysis Complete</h3>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <p className="font-medium">Analysis Complete</p>
                 <p className="text-sm text-muted-foreground">
-                  Your analysis has been completed successfully. You can
-                  download the report or start a new analysis.
+                  Your comparison analysis has been completed successfully.
+                  Download the report or start a new analysis when ready.
                 </p>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+                <Button
+                  onClick={handleDownloadReport}
+                  variant="outline"
+                  className="min-w-[140px]"
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Download Report
+                </Button>
                 <Button
                   variant="outline"
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    console.log('New Analysis button clicked');
                     router.push('/dashboard/new-analysis');
                   }}
+                  className="min-w-[120px]"
                 >
                   New Analysis
                 </Button>
@@ -223,11 +228,11 @@ ${comparison.comparisons
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    console.log('Back to Dashboard button clicked');
                     router.push('/dashboard');
                   }}
+                  className="min-w-[120px]"
                 >
-                  Back to Dashboard
+                  Dashboard
                 </Button>
               </div>
             </div>
