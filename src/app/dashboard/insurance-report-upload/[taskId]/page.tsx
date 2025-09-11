@@ -10,8 +10,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { FileUpload } from '@/components/ui/file-upload';
 import { Loader2, Upload, FileText, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import {
@@ -62,11 +61,8 @@ export default function InsuranceReportUploadPage() {
     checkTask();
   }, [taskId, router]);
 
-  const handleInsuranceFileChange = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const selectedFile = event.target.files?.[0] || null;
-    setInsuranceFile(selectedFile);
+  const handleInsuranceFileChange = (file: File | null) => {
+    setInsuranceFile(file);
   };
 
   const processInsuranceDocument = async () => {
@@ -164,28 +160,13 @@ export default function InsuranceReportUploadPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="insurance-file">Select Insurance Report PDF</Label>
-            <Input
-              id="insurance-file"
-              type="file"
-              accept=".pdf"
-              onChange={handleInsuranceFileChange}
-              disabled={isProcessing}
-            />
-          </div>
-
-          {insuranceFile && (
-            <div className="p-4 bg-muted rounded-lg">
-              <p className="text-sm font-medium">Selected file:</p>
-              <p className="text-sm text-muted-foreground">
-                {insuranceFile.name}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Size: {(insuranceFile.size / 1024 / 1024).toFixed(2)} MB
-              </p>
-            </div>
-          )}
+          <FileUpload
+            id="insurance-file"
+            accept=".pdf"
+            selectedFile={insuranceFile}
+            onFileSelect={handleInsuranceFileChange}
+            disabled={isProcessing}
+          />
 
           <div className="flex gap-4">
             <Button onClick={handleBack} variant="outline" className="flex-1">

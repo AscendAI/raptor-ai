@@ -10,8 +10,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { FileUpload } from '@/components/ui/file-upload';
 import { Loader2, Upload, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import {
@@ -38,9 +37,8 @@ export default function RoofReportUploadPage() {
     }
   }, [taskId, router]);
 
-  const handleRoofFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = event.target.files?.[0] || null;
-    setRoofFile(selectedFile);
+  const handleRoofFileChange = (file: File | null) => {
+    setRoofFile(file);
   };
 
   const processRoofDocument = async () => {
@@ -99,26 +97,13 @@ export default function RoofReportUploadPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="roof-file">Select Roof Report PDF</Label>
-            <Input
-              id="roof-file"
-              type="file"
-              accept=".pdf"
-              onChange={handleRoofFileChange}
-              disabled={isProcessing}
-            />
-          </div>
-
-          {roofFile && (
-            <div className="p-4 bg-muted rounded-lg">
-              <p className="text-sm font-medium">Selected file:</p>
-              <p className="text-sm text-muted-foreground">{roofFile.name}</p>
-              <p className="text-xs text-muted-foreground">
-                Size: {(roofFile.size / 1024 / 1024).toFixed(2)} MB
-              </p>
-            </div>
-          )}
+          <FileUpload
+            id="roof-file"
+            accept=".pdf"
+            selectedFile={roofFile}
+            onFileSelect={handleRoofFileChange}
+            disabled={isProcessing}
+          />
 
           <Button
             onClick={processRoofDocument}
