@@ -74,6 +74,12 @@ export default function AnalysisPage() {
     try {
       console.log('Starting analysis for task:', taskId);
 
+      // Start the actual AI analysis in the background immediately
+      let analysisPromise: Promise<{
+        success: boolean;
+        error?: string;
+      }> | null = null;
+
       // Step 1: Processing Data - Validate task exists
       setCurrentStepIndex(0);
       updateStepStatus(0, 'running');
@@ -117,21 +123,26 @@ export default function AnalysisPage() {
         );
       }
 
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate processing
+      // Start the actual analysis in the background after validation
+      analysisPromise = completeAnalysisWorkflow(taskId);
+
+      // Simulate processing for 15 seconds while analysis runs in background
+      await new Promise((resolve) => setTimeout(resolve, 10000));
       updateStepStatus(0, 'completed');
 
       // Step 2: Comparing Reports
       setCurrentStepIndex(1);
       updateStepStatus(1, 'running');
-      await new Promise((resolve) => setTimeout(resolve, 1500)); // Simulate comparison
+      // Simulate comparison for 10-15 seconds while analysis continues in background
+      await new Promise((resolve) => setTimeout(resolve, 12000));
       updateStepStatus(1, 'completed');
 
       // Step 3: Generating Analysis
       setCurrentStepIndex(2);
       updateStepStatus(2, 'running');
 
-      // This is where the actual analysis happens
-      const result = await completeAnalysisWorkflow(taskId);
+      // Now wait for the actual analysis to complete (it should be done or almost done by now)
+      const result = await analysisPromise;
 
       if (!result.success) {
         throw new Error(result.error || 'Failed to generate analysis');
@@ -309,7 +320,7 @@ export default function AnalysisPage() {
           {!isComplete && !error && (
             <div className="text-center space-y-3">
               <p className="text-sm text-muted-foreground">
-                This process typically takes 30-60 seconds
+                This process typically takes 30-45 seconds
               </p>
               <Button
                 onClick={handleGoBack}
