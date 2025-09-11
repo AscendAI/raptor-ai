@@ -53,14 +53,14 @@ export function calculateSummary(
 export const statusConfig = {
   pass: {
     label: 'Pass',
-    icon: 'CheckCircle2',
+    icon: 'Check',
     color: 'text-green-600 dark:text-green-400',
     bgColor: 'bg-green-100 dark:bg-green-900/30',
     borderColor: 'border-green-200 dark:border-green-800',
   },
   failed: {
     label: 'Failed',
-    icon: 'XCircle',
+    icon: 'X',
     color: 'text-red-600 dark:text-red-400',
     bgColor: 'bg-red-100 dark:bg-red-900/30',
     borderColor: 'border-red-200 dark:border-red-800',

@@ -15,7 +15,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import { CheckCircle2, XCircle, AlertTriangle, BarChart3 } from 'lucide-react';
+import { Check, X, AlertTriangle, BarChart3 } from 'lucide-react';
 import {
   type ComparisonResult,
   type ComparisonCheckpoint,
@@ -35,8 +35,8 @@ interface StatusBadgeProps {
 
 // Icon mapping for status config icons used in accordion items
 const statusIcons = {
-  CheckCircle2,
-  XCircle,
+  Check,
+  X,
   AlertTriangle,
 } as const;
 
@@ -68,7 +68,7 @@ function SummaryStats({ summary }: SummaryStatsProps) {
     {
       label: 'Passed',
       value: summary.pass,
-      icon: CheckCircle2,
+      icon: Check,
       color: 'text-green-600 dark:text-green-400',
       bgColor: 'bg-green-50 dark:bg-green-900/20',
       borderColor: 'border-green-200 dark:border-green-800',
@@ -77,7 +77,7 @@ function SummaryStats({ summary }: SummaryStatsProps) {
     {
       label: 'Failed',
       value: summary.failed,
-      icon: XCircle,
+      icon: X,
       color: 'text-red-600 dark:text-red-400',
       bgColor: 'bg-red-50 dark:bg-red-900/20',
       borderColor: 'border-red-200 dark:border-red-800',
