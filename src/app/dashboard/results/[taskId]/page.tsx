@@ -11,7 +11,13 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Download, CheckCircle } from 'lucide-react';
+import {
+  Loader2,
+  Download,
+  CheckCircle,
+  FileText,
+  TrendingUp,
+} from 'lucide-react';
 import { RoofReportData, InsuranceReportData } from '@/lib/schemas/extraction';
 import { ComparisonResult } from '@/lib/schemas/comparison';
 import { getAnalysisResults } from '@/lib/server/actions';
@@ -165,16 +171,27 @@ ${comparison.comparisons
       <div className="max-w-6xl mx-auto space-y-8">
         {/* Task Status Header */}
         <div className="flex justify-center">
-          <div className="flex items-center gap-3 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-            <CheckCircle className="h-5 w-5 text-green-600" />
-            <div className="flex items-center gap-2">
-              <Badge variant="secondary">Task: {taskId.slice(-8)}</Badge>
-              <Badge
-                variant="default"
-                className="bg-green-600 hover:bg-green-700"
-              >
-                Analysis Complete
-              </Badge>
+          <div className="flex items-center gap-4 p-6 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl border border-green-200 dark:border-green-800 shadow-sm">
+            <div className="p-3 bg-green-500 rounded-full">
+              <CheckCircle className="h-6 w-6 text-white" />
+            </div>
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-3">
+                <Badge variant="secondary" className="font-mono text-xs">
+                  Task: {taskId.slice(-8)}
+                </Badge>
+                <Badge
+                  variant="default"
+                  className="bg-green-600 hover:bg-green-700 text-white border-green-600"
+                >
+                  <TrendingUp className="h-3 w-3 mr-1" />
+                  Analysis Complete
+                </Badge>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Your roof vs insurance report comparison has been successfully
+                completed
+              </p>
             </div>
           </div>
         </div>
@@ -185,10 +202,10 @@ ${comparison.comparisons
         )}
 
         {/* Actions Panel */}
-        <Card>
+        <Card className="border-2 border-dashed border-muted-foreground/20 hover:border-muted-foreground/40 transition-colors">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Download className="h-5 w-5" />
+              <FileText className="h-5 w-5" />
               Export & Actions
             </CardTitle>
             <CardDescription>
@@ -196,19 +213,25 @@ ${comparison.comparisons
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div className="space-y-1">
-                <p className="font-medium">Analysis Complete</p>
-                <p className="text-sm text-muted-foreground">
-                  Your comparison analysis has been completed successfully.
-                  Download the report or start a new analysis when ready.
-                </p>
+            <div className="flex flex-col space-y-6">
+              <div className="flex items-start gap-4 p-4 bg-muted/30 rounded-lg border">
+                <div className="p-2 bg-primary/10 rounded-full">
+                  <CheckCircle className="h-5 w-5 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-sm">Analysis Complete</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Your comparison analysis has been completed successfully.
+                    Download the report or start a new analysis when ready.
+                  </p>
+                </div>
               </div>
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                 <Button
                   onClick={handleDownloadReport}
-                  variant="outline"
-                  className="min-w-[140px]"
+                  className="flex-1 sm:flex-none min-w-[140px]"
+                  size="lg"
                 >
                   <Download className="h-4 w-4 mr-2" />
                   Download Report
@@ -220,17 +243,20 @@ ${comparison.comparisons
                     e.stopPropagation();
                     router.push('/dashboard/new-analysis');
                   }}
-                  className="min-w-[120px]"
+                  className="flex-1 sm:flex-none min-w-[120px]"
+                  size="lg"
                 >
                   New Analysis
                 </Button>
                 <Button
+                  variant="ghost"
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
                     router.push('/dashboard');
                   }}
-                  className="min-w-[120px]"
+                  className="flex-1 sm:flex-none min-w-[120px]"
+                  size="lg"
                 >
                   Dashboard
                 </Button>

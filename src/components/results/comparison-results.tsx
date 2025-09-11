@@ -15,6 +15,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
+import { CheckCircle2, XCircle, AlertTriangle, BarChart3 } from 'lucide-react';
 import {
   type ComparisonResult,
   type ComparisonCheckpoint,
@@ -32,6 +33,13 @@ interface StatusBadgeProps {
   className?: string;
 }
 
+// Icon mapping for status config icons used in accordion items
+const statusIcons = {
+  CheckCircle2,
+  XCircle,
+  AlertTriangle,
+} as const;
+
 function StatusBadge({ status, className }: StatusBadgeProps) {
   const config = statusConfig[status];
 
@@ -46,7 +54,6 @@ function StatusBadge({ status, className }: StatusBadgeProps) {
         className
       )}
     >
-      <span className="mr-1">{config.icon}</span>
       {config.label}
     </Badge>
   );
@@ -61,51 +68,66 @@ function SummaryStats({ summary }: SummaryStatsProps) {
     {
       label: 'Passed',
       value: summary.pass,
-      color: 'bg-green-500',
+      icon: CheckCircle2,
+      color: 'text-green-600 dark:text-green-400',
       bgColor: 'bg-green-50 dark:bg-green-900/20',
-      textColor: 'text-green-700 dark:text-green-300',
+      borderColor: 'border-green-200 dark:border-green-800',
+      accentColor: 'bg-green-500',
     },
     {
       label: 'Failed',
       value: summary.failed,
-      color: 'bg-red-500',
+      icon: XCircle,
+      color: 'text-red-600 dark:text-red-400',
       bgColor: 'bg-red-50 dark:bg-red-900/20',
-      textColor: 'text-red-700 dark:text-red-300',
+      borderColor: 'border-red-200 dark:border-red-800',
+      accentColor: 'bg-red-500',
     },
     {
       label: 'Missing',
       value: summary.missing,
-      color: 'bg-yellow-500',
+      icon: AlertTriangle,
+      color: 'text-yellow-600 dark:text-yellow-400',
       bgColor: 'bg-yellow-50 dark:bg-yellow-900/20',
-      textColor: 'text-yellow-700 dark:text-yellow-300',
+      borderColor: 'border-yellow-200 dark:border-yellow-800',
+      accentColor: 'bg-yellow-500',
     },
     {
       label: 'Total',
       value: summary.total,
-      color: 'bg-gray-400',
+      icon: BarChart3,
+      color: 'text-gray-600 dark:text-gray-400',
       bgColor: 'bg-gray-50 dark:bg-gray-900/20',
-      textColor: 'text-gray-700 dark:text-gray-300',
+      borderColor: 'border-gray-200 dark:border-gray-800',
+      accentColor: 'bg-gray-400',
     },
   ];
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-      {stats.map((stat) => (
-        <div
-          key={stat.label}
-          className={`p-4 rounded-lg border ${stat.bgColor}`}
-        >
-          <div className="flex items-center gap-3">
-            <div className={`w-3 h-3 rounded-full ${stat.color}`}></div>
-            <div>
-              <p className={`text-2xl font-bold ${stat.textColor}`}>
-                {stat.value}
-              </p>
-              <p className="text-sm text-muted-foreground">{stat.label}</p>
+      {stats.map((stat) => {
+        const IconComponent = stat.icon;
+        return (
+          <div
+            key={stat.label}
+            className={`p-4 rounded-lg border transition-all hover:shadow-sm ${stat.bgColor} ${stat.borderColor}`}
+          >
+            <div className="flex items-center gap-3">
+              <div
+                className={`p-2 rounded-full ${stat.accentColor}/10 border ${stat.borderColor}`}
+              >
+                <IconComponent className={`h-4 w-4 ${stat.color}`} />
+              </div>
+              <div className="flex-1">
+                <p className={`text-2xl font-bold ${stat.color}`}>
+                  {stat.value}
+                </p>
+                <p className="text-sm text-muted-foreground">{stat.label}</p>
+              </div>
             </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
@@ -120,47 +142,65 @@ function ComparisonAccordionItem({
   index,
 }: ComparisonAccordionItemProps) {
   const config = statusConfig[comparison.status];
+  const IconComponent = statusIcons[config.icon as keyof typeof statusIcons];
 
   return (
-    <AccordionItem value={`item-${index}`} className="border rounded-lg mb-2">
-      <AccordionTrigger className="px-4 py-3 hover:no-underline">
+    <AccordionItem
+      value={`item-${index}`}
+      className="border rounded-lg mb-2 overflow-hidden"
+    >
+      <AccordionTrigger className="px-4 py-3 hover:no-underline hover:bg-muted/50 transition-colors">
         <div className="flex items-center justify-between w-full pr-4">
           <div className="flex items-center gap-3">
-            <span className="text-lg">{config.icon}</span>
+            <div
+              className={`p-1.5 rounded-full ${config.bgColor} border ${config.borderColor}`}
+            >
+              <IconComponent className={`h-4 w-4 ${config.color}`} />
+            </div>
             <div className="text-left">
               <p className="font-medium text-sm">{comparison.checkpoint}</p>
               <p className="text-xs text-muted-foreground">
                 {comparison.status === 'pass'
-                  ? 'Values match'
+                  ? 'Values match perfectly'
                   : comparison.status === 'failed'
-                    ? 'Discrepancy found'
-                    : 'Data missing'}
+                    ? 'Discrepancy detected'
+                    : 'Required data missing'}
               </p>
             </div>
           </div>
           <StatusBadge status={comparison.status} />
         </div>
       </AccordionTrigger>
-      <AccordionContent className="px-4 pb-4">
-        <div className="space-y-4">
+      <AccordionContent className="px-4 pb-4 bg-muted/20">
+        <div className="space-y-4 pt-2">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1">
+                <div className="w-2 h-2 rounded-full bg-blue-500"></div>
                 Roof Report Value
-              </p>
-              <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-md border">
-                <p className="text-sm">
-                  {comparison.roof_report_value || 'Not specified'}
+              </div>
+              <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-md border border-blue-200 dark:border-blue-800">
+                <p className="text-sm font-medium">
+                  {comparison.roof_report_value || (
+                    <span className="text-muted-foreground italic">
+                      Not specified
+                    </span>
+                  )}
                 </p>
               </div>
             </div>
             <div className="space-y-2">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1">
+                <div className="w-2 h-2 rounded-full bg-green-500"></div>
                 Insurance Report Value
-              </p>
-              <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-md border">
-                <p className="text-sm">
-                  {comparison.insurance_report_value || 'Not included'}
+              </div>
+              <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-md border border-green-200 dark:border-green-800">
+                <p className="text-sm font-medium">
+                  {comparison.insurance_report_value || (
+                    <span className="text-muted-foreground italic">
+                      Not included
+                    </span>
+                  )}
                 </p>
               </div>
             </div>
@@ -171,7 +211,7 @@ function ComparisonAccordionItem({
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                 Analysis Notes
               </p>
-              <div className="p-3 bg-gray-50 dark:bg-gray-900/20 rounded-md border">
+              <div className="p-3 bg-gray-50 dark:bg-gray-900/20 rounded-md border border-gray-200 dark:border-gray-800">
                 <p className="text-sm leading-relaxed">{comparison.notes}</p>
               </div>
             </div>
