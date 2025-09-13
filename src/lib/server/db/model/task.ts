@@ -41,13 +41,6 @@ export async function getTaskData(
   return db.query.task.findFirst({
     where: (tbl, { and, eq }) =>
       and(eq(tbl.id, taskId), eq(tbl.userId, userId)),
-    columns: {
-      roofData: true,
-      insuranceData: true,
-      comparison: true,
-      createdAt: true,
-      updatedAt: true,
-    },
   });
 }
 
