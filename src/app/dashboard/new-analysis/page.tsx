@@ -10,19 +10,23 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { FileText, Shield, BarChart3 } from 'lucide-react';
-import { v4 as uuidv4 } from 'uuid';
-
-// Generate a unique task ID
-function generateTaskId(): string {
-  return uuidv4();
-}
+import { startNewTask } from '@/lib/server/actions';
 
 export default function NewAnalysisPage() {
   const router = useRouter();
 
-  const startRoofAnalysis = () => {
-    const taskId = generateTaskId();
-    router.push(`/dashboard/roof-report-upload/${taskId}`);
+  const startRoofAnalysis = async () => {
+    try {
+      const res = await startNewTask();
+      if (!res.success || !res.taskId) {
+        throw new Error(res.error || 'Failed to start a new task');
+      }
+      router.push(`/dashboard/roof-report-upload/${res.taskId}`);
+    } catch (e) {
+      console.error(e);
+      // Fallback: send to dashboard on failure
+      router.push('/dashboard');
+    }
   };
 
   return (

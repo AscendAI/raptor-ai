@@ -1,10 +1,11 @@
-"use server";
+'use server';
 
 import {
   analyseRoofReport,
   analyseInsuranceReport,
   analyseComparison,
 } from '../ai/openai';
+import { randomUUID } from 'crypto';
 import {
   parseRoofReportData,
   parseInsuranceReportData,
@@ -20,6 +21,29 @@ import {
 } from '@/lib/server/db/model/task';
 import { getAuthSession } from '@/lib/server/auth';
 import { revalidateTaskData } from '../cache';
+
+// Create a new empty task and return a server-generated taskId
+export async function startNewTask() {
+  try {
+    const session = await getAuthSession();
+    if (!session?.user?.id) {
+      return { success: false, error: 'Not authenticated' } as const;
+    }
+
+    const taskId = randomUUID();
+    // Create an empty task row keyed by (userId, taskId)
+    await upsertTaskData(session.user.id, taskId, {});
+    revalidateTaskData(taskId);
+
+    return { success: true, taskId } as const;
+  } catch (error) {
+    console.error('Error starting new task:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error occurred',
+    } as const;
+  }
+}
 
 // Extract roof report data only
 export async function extractRoofData(roofReportImages: string[]) {
@@ -177,65 +201,7 @@ export async function getUserReviewData(taskId: string) {
   }
 }
 
-// Create a new user review task with extracted data
-export async function createUserReviewTask(
-  roofData: RoofReportData,
-  insuranceData: InsuranceReportData
-) {
-  try {
-    const taskId = `${Math.random().toString(36).substr(2, 6)}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    const session = await getAuthSession();
-    if (!session?.user?.id) {
-      return { success: false, error: 'Not authenticated' };
-    }
-
-    await upsertTaskData(session.user.id, taskId, { roofData, insuranceData });
-    revalidateTaskData(taskId);
-
-    return {
-      success: true,
-      taskId,
-      data: {
-        roofData,
-        insuranceData,
-      },
-    };
-  } catch (error) {
-    console.error('Error creating user review session:', error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error occurred',
-    };
-  }
-}
-
-// Create a user review task with just roof data initially
-export async function createRoofReviewTask(roofData: RoofReportData) {
-  try {
-    const taskId = `${Math.random().toString(36).substr(2, 6)}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    const session = await getAuthSession();
-    if (!session?.user?.id) {
-      return { success: false, error: 'Not authenticated' };
-    }
-
-    await upsertTaskData(session.user.id, taskId, { roofData });
-    revalidateTaskData(taskId);
-
-    return {
-      success: true,
-      taskId,
-      data: {
-        roofData,
-      },
-    };
-  } catch (error) {
-    console.error('Error creating roof review task:', error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error occurred',
-    };
-  }
-}
+// (Deprecated legacy functions removed: createUserReviewTask, createRoofReviewTask)
 
 // Create a roof review task with a predefined task ID
 export async function createRoofReviewTaskWithId(
@@ -298,6 +264,34 @@ export async function updateTaskWithInsuranceData(
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error occurred',
     };
+  }
+}
+
+// Save only roof data edits without touching insurance data
+export async function saveRoofReviewData(
+  taskId: string,
+  roofData: RoofReportData
+) {
+  try {
+    const session = await getAuthSession();
+    if (!session?.user?.id) {
+      return { success: false, error: 'Not authenticated' } as const;
+    }
+
+    await upsertTaskData(session.user.id, taskId, { roofData });
+    revalidateTaskData(taskId);
+
+    return {
+      success: true,
+      taskId,
+      message: 'Roof data saved successfully',
+    } as const;
+  } catch (error) {
+    console.error('Error saving roof review data:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error occurred',
+    } as const;
   }
 }
 

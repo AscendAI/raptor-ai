@@ -13,7 +13,7 @@ import { toast } from 'sonner';
 import { Loader2, Save, ArrowRight } from 'lucide-react';
 import { RoofDataEditor } from './roof-data-editor';
 import { RoofReportData } from '@/lib/schemas/extraction';
-import { saveUserReviewData } from '@/lib/server/actions';
+import { saveRoofReviewData } from '@/lib/server/actions';
 
 interface SteppedRoofReviewProps {
   taskId: string;
@@ -42,19 +42,7 @@ export function SteppedRoofReview({
       setIsSaving(true);
       toast.info('Saving roof data...');
 
-      // Save with empty insurance data for now
-      const emptyInsuranceData = {
-        claim_id: '',
-        date: '',
-        price_list: '',
-        sections: [],
-      };
-
-      const result = await saveUserReviewData(
-        taskId,
-        currentRoofData,
-        emptyInsuranceData
-      );
+      const result = await saveRoofReviewData(taskId, currentRoofData);
 
       if (result.success) {
         toast.success('Roof data saved successfully!');
