@@ -1,4 +1,4 @@
-'use server';
+"use server";
 
 import {
   analyseRoofReport,
@@ -13,6 +13,12 @@ import {
   type InsuranceReportData,
 } from '../../schemas/extraction';
 import { type ComparisonResult } from '../../schemas/comparison';
+import {
+  upsertTaskData,
+  getTaskData,
+  deleteTask as modelDeleteTask,
+} from '@/lib/server/db/model/task';
+import { getAuthSession } from '@/lib/server/auth';
 
 // Extract roof report data only
 export async function extractRoofData(roofReportImages: string[]) {
@@ -101,23 +107,11 @@ export async function generateFinalAnalysis(
 // User data management actions
 interface UserReviewTask {
   id: string;
-  roofData: RoofReportData;
-  insuranceData: InsuranceReportData;
+  roofData?: RoofReportData;
+  insuranceData?: InsuranceReportData;
   createdAt: Date;
   updatedAt: Date;
 }
-
-interface AnalysisResult {
-  taskId: string;
-  roofData: RoofReportData;
-  insuranceData: InsuranceReportData;
-  comparison: ComparisonResult;
-  completedAt: Date;
-}
-
-// In-memory storage for demo purposes (replace with database in production)
-const userTasks = new Map<string, UserReviewTask>();
-const analysisResults = new Map<string, AnalysisResult>();
 
 // Save user-modified extracted data
 export async function saveUserReviewData(
@@ -126,15 +120,15 @@ export async function saveUserReviewData(
   insuranceData: InsuranceReportData
 ) {
   try {
-    const task: UserReviewTask = {
-      id: taskId,
-      roofData,
-      insuranceData,
-      createdAt: userTasks.get(taskId)?.createdAt || new Date(),
-      updatedAt: new Date(),
-    };
+    const session = await getAuthSession();
+    if (!session?.user?.id) {
+      return {
+        success: false,
+        error: 'Not authenticated',
+      };
+    }
 
-    userTasks.set(taskId, task);
+    await upsertTaskData(session.user.id, taskId, { roofData, insuranceData });
 
     return {
       success: true,
@@ -153,22 +147,30 @@ export async function saveUserReviewData(
 // Retrieve user-modified extracted data
 export async function getUserReviewData(taskId: string) {
   try {
-    const task = userTasks.get(taskId);
-
-    if (!task) {
+    const session = await getAuthSession();
+    if (!session?.user?.id) {
       return {
         success: false,
-        error: 'Task not found',
+        error: 'Not authenticated',
+      };
+    }
+
+    const t = await getTaskData(session.user.id, taskId);
+
+    if (!t || !t.roofData) {
+      return {
+        success: false,
+        error: 'Task not found or roof data missing',
       };
     }
 
     return {
       success: true,
       data: {
-        roofData: task.roofData,
-        insuranceData: task.insuranceData,
-        createdAt: task.createdAt,
-        updatedAt: task.updatedAt,
+        roofData: t.roofData as RoofReportData,
+        insuranceData: t.insuranceData as InsuranceReportData | undefined,
+        createdAt: t.createdAt!,
+        updatedAt: t.updatedAt!,
       },
     };
   } catch (error) {
@@ -187,16 +189,12 @@ export async function createUserReviewTask(
 ) {
   try {
     const taskId = `${Math.random().toString(36).substr(2, 6)}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const session = await getAuthSession();
+    if (!session?.user?.id) {
+      return { success: false, error: 'Not authenticated' };
+    }
 
-    const task: UserReviewTask = {
-      id: taskId,
-      roofData,
-      insuranceData,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    userTasks.set(taskId, task);
+    await upsertTaskData(session.user.id, taskId, { roofData, insuranceData });
 
     return {
       success: true,
@@ -219,21 +217,12 @@ export async function createUserReviewTask(
 export async function createRoofReviewTask(roofData: RoofReportData) {
   try {
     const taskId = `${Math.random().toString(36).substr(2, 6)}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const session = await getAuthSession();
+    if (!session?.user?.id) {
+      return { success: false, error: 'Not authenticated' };
+    }
 
-    // Create a partial task with just roof data
-    const task: Partial<UserReviewTask> & {
-      id: string;
-      roofData: RoofReportData;
-      createdAt: Date;
-      updatedAt: Date;
-    } = {
-      id: taskId,
-      roofData,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    userTasks.set(taskId, task as UserReviewTask);
+    await upsertTaskData(session.user.id, taskId, { roofData });
 
     return {
       success: true,
@@ -257,20 +246,12 @@ export async function createRoofReviewTaskWithId(
   roofData: RoofReportData
 ) {
   try {
-    // Create a partial task with just roof data
-    const task: Partial<UserReviewTask> & {
-      id: string;
-      roofData: RoofReportData;
-      createdAt: Date;
-      updatedAt: Date;
-    } = {
-      id: taskId,
-      roofData,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+    const session = await getAuthSession();
+    if (!session?.user?.id) {
+      return { success: false, error: 'Not authenticated' };
+    }
 
-    userTasks.set(taskId, task as UserReviewTask);
+    await upsertTaskData(session.user.id, taskId, { roofData });
 
     return {
       success: true,
@@ -294,28 +275,22 @@ export async function updateTaskWithInsuranceData(
   insuranceData: InsuranceReportData
 ) {
   try {
-    const existingTask = userTasks.get(taskId);
-    if (!existingTask) {
+    const session = await getAuthSession();
+    if (!session?.user?.id) {
       return {
         success: false,
-        error: 'Task not found',
+        error: 'Not authenticated',
       };
     }
 
-    const updatedTask: UserReviewTask = {
-      ...existingTask,
-      insuranceData,
-      updatedAt: new Date(),
-    };
-
-    userTasks.set(taskId, updatedTask);
+    await upsertTaskData(session.user.id, taskId, { insuranceData });
 
     return {
       success: true,
       taskId,
       data: {
-        roofData: updatedTask.roofData,
-        insuranceData,
+        // We only updated insuranceData here; the page doesn't need roofData back
+        insuranceData: insuranceData,
       },
     };
   } catch (error) {
@@ -330,12 +305,13 @@ export async function updateTaskWithInsuranceData(
 // Delete a user review session
 export async function deleteUserReviewTask(taskId: string) {
   try {
-    const deleted = userTasks.delete(taskId);
+    const session = await getAuthSession();
+    if (!session?.user?.id) {
+      return { success: false, error: 'Not authenticated' };
+    }
 
-    return {
-      success: deleted,
-      message: deleted ? 'Session deleted successfully' : 'Session not found',
-    };
+    await modelDeleteTask(session.user.id, taskId);
+    return { success: true, message: 'No-op: tasks are persisted in DB' };
   } catch (error) {
     console.error('Error deleting user review session:', error);
     return {
@@ -348,9 +324,17 @@ export async function deleteUserReviewTask(taskId: string) {
 // Retrieve analysis results
 export async function getAnalysisResults(taskId: string) {
   try {
-    const result = analysisResults.get(taskId);
+    const session = await getAuthSession();
+    if (!session?.user?.id) {
+      return {
+        success: false,
+        error: 'Not authenticated',
+      };
+    }
 
-    if (!result) {
+    const t = await getTaskData(session.user.id, taskId);
+
+    if (!t || !t.comparison) {
       return {
         success: false,
         error: 'Analysis results not found for this task',
@@ -360,10 +344,10 @@ export async function getAnalysisResults(taskId: string) {
     return {
       success: true,
       data: {
-        roofData: result.roofData,
-        insuranceData: result.insuranceData,
-        comparison: result.comparison,
-        completedAt: result.completedAt,
+        roofData: t.roofData as RoofReportData,
+        insuranceData: t.insuranceData as InsuranceReportData,
+        comparison: t.comparison as ComparisonResult,
+        completedAt: t.updatedAt!,
       },
     };
   } catch (error) {
@@ -378,18 +362,9 @@ export async function getAnalysisResults(taskId: string) {
 // Clean up old analysis results (call periodically)
 export async function cleanupOldResults() {
   try {
-    const now = new Date();
-    const maxAge = 24 * 60 * 60 * 1000; // 24 hours
-
-    for (const [sessionId, result] of Array.from(analysisResults.entries())) {
-      if (now.getTime() - result.completedAt.getTime() > maxAge) {
-        analysisResults.delete(sessionId);
-      }
-    }
-
     return {
       success: true,
-      message: 'Old results cleaned up successfully',
+      message: 'No-op: results are persisted in DB',
     };
   } catch (error) {
     console.error('Error cleaning up old results:', error);
@@ -416,10 +391,19 @@ export async function completeAnalysisWorkflow(taskId: string) {
       };
     }
 
+    // Validate required data is present
+    if (!sessionData.data?.roofData || !sessionData.data?.insuranceData) {
+      return {
+        success: false,
+        error: 'Missing roof or insurance data',
+        phase: 'data_validation',
+      };
+    }
+
     // Generate final analysis with user-reviewed data
     const finalResult = await generateFinalAnalysis(
-      sessionData.data!.roofData,
-      sessionData.data!.insuranceData
+      sessionData.data.roofData,
+      sessionData.data.insuranceData
     );
 
     if (!finalResult.success) {
@@ -430,19 +414,15 @@ export async function completeAnalysisWorkflow(taskId: string) {
       };
     }
 
-    // Store the analysis result temporarily for display
-    const analysisResult: AnalysisResult = {
-      taskId,
-      roofData: finalResult.roofData!,
-      insuranceData: finalResult.insuranceData!,
-      comparison: finalResult.comparison!,
-      completedAt: new Date(),
-    };
-
-    analysisResults.set(taskId, analysisResult);
-
-    // Clean up session after successful completion
-    await deleteUserReviewTask(taskId);
+    // Persist the final analysis in the DB
+    const session = await getAuthSession();
+    if (session?.user?.id) {
+      await upsertTaskData(session.user.id, taskId, {
+        roofData: finalResult.roofData!,
+        insuranceData: finalResult.insuranceData!,
+        comparison: finalResult.comparison!,
+      });
+    }
 
     return {
       success: true,
