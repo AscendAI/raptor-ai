@@ -2,6 +2,7 @@ import { pgTable, text, timestamp, json } from "drizzle-orm/pg-core";
 import { user } from "./auth";
 import type { InsuranceReportData, RoofReportData } from "@/lib/schemas/extraction";
 import type { ComparisonResult } from "@/components/results";
+import { FileData } from "@/lib/schemas/files";
 
 export const task = pgTable("task", {
   id: text("id").primaryKey(),
@@ -14,6 +15,7 @@ export const task = pgTable("task", {
   roofData: json("roof_data").$type<RoofReportData>(),
   insuranceData: json("insurance_data").$type<InsuranceReportData>(),
   comparison: json("comparison").$type<ComparisonResult>(),
+  files: json("files").$type<FileData[]>(),
   createdAt: timestamp("created_at")
     .$defaultFn(() => /* @__PURE__ */ new Date())
     .notNull(),
