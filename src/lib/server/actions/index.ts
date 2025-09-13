@@ -19,6 +19,7 @@ import {
   deleteTask as modelDeleteTask,
 } from '@/lib/server/db/model/task';
 import { getAuthSession } from '@/lib/server/auth';
+import { revalidateTaskData } from '../cache';
 
 // Extract roof report data only
 export async function extractRoofData(roofReportImages: string[]) {
@@ -122,6 +123,7 @@ export async function saveUserReviewData(
     }
 
     await upsertTaskData(session.user.id, taskId, { roofData, insuranceData });
+    revalidateTaskData(taskId);
 
     return {
       success: true,
@@ -188,6 +190,7 @@ export async function createUserReviewTask(
     }
 
     await upsertTaskData(session.user.id, taskId, { roofData, insuranceData });
+    revalidateTaskData(taskId);
 
     return {
       success: true,
@@ -216,6 +219,7 @@ export async function createRoofReviewTask(roofData: RoofReportData) {
     }
 
     await upsertTaskData(session.user.id, taskId, { roofData });
+    revalidateTaskData(taskId);
 
     return {
       success: true,
@@ -245,6 +249,7 @@ export async function createRoofReviewTaskWithId(
     }
 
     await upsertTaskData(session.user.id, taskId, { roofData });
+    revalidateTaskData(taskId);
 
     return {
       success: true,
@@ -277,6 +282,7 @@ export async function updateTaskWithInsuranceData(
     }
 
     await upsertTaskData(session.user.id, taskId, { insuranceData });
+    revalidateTaskData(taskId);
 
     return {
       success: true,
@@ -418,6 +424,7 @@ export async function completeAnalysisWorkflow(taskId: string) {
         insuranceData: finalResult.insuranceData!,
         comparison: finalResult.comparison!,
       });
+      revalidateTaskData(taskId);
     }
 
     return {
