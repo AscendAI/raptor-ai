@@ -23,3 +23,6 @@ export const task = pgTable("task", {
     .$defaultFn(() => /* @__PURE__ */ new Date())
     .notNull(),
 });
+
+export type TaskInsert = typeof task.$inferInsert;
+export type TaskSelect = typeof task.$inferSelect;

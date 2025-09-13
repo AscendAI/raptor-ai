@@ -1,23 +1,16 @@
-import { db } from '@/lib/server/db';
-import { task } from '@/lib/server/db/schema';
-import type { InsuranceReportData, RoofReportData } from '@/lib/schemas/extraction';
-import type { ComparisonResult } from '@/lib/schemas/comparison';
-import type { FileData } from '@/lib/schemas/files';
+import { db } from "@/lib/server/db";
+import { task } from "@/lib/server/db/schema";
+import { and, eq } from "drizzle-orm";
+import type { TaskInsert, TaskSelect } from "@/lib/server/db/schema/task";
 
-type UpsertPayload = Partial<{
-  name: string | null;
-  image: string | null;
-  description: string | null;
-  files: FileData[] | null;
-  roofData: RoofReportData | null;
-  insuranceData: InsuranceReportData | null;
-  comparison: ComparisonResult | null;
-}>;
+type TaskUpsertData = Partial<
+  Omit<TaskInsert, "id" | "userId" | "createdAt" | "updatedAt">
+>;
 
 export async function upsertTaskData(
   userId: string,
   taskId: string,
-  data: UpsertPayload
+  data: TaskUpsertData
 ) {
   const now = new Date();
   await db
@@ -35,9 +28,19 @@ export async function upsertTaskData(
     });
 }
 
-export async function getTaskData(userId: string, taskId: string) {
+export async function getTaskData(
+  userId: string,
+  taskId: string
+): Promise<
+  | Pick<
+      TaskSelect,
+      "roofData" | "insuranceData" | "comparison" | "createdAt" | "updatedAt"
+    >
+  | undefined
+> {
   return db.query.task.findFirst({
-    where: (tbl, { and, eq }) => and(eq(tbl.id, taskId), eq(tbl.userId, userId)),
+    where: (tbl, { and, eq }) =>
+      and(eq(tbl.id, taskId), eq(tbl.userId, userId)),
     columns: {
       roofData: true,
       insuranceData: true,
@@ -48,10 +51,11 @@ export async function getTaskData(userId: string, taskId: string) {
   });
 }
 
-// getAnalysis merged into getTaskData
-
-// Optional: delete a task (not used currently)
-export async function deleteTask(_userId: string, _taskId: string) {
-  // Intentionally a no-op for now to preserve history
-  return { success: true } as const;
+// Optional: delete a task (currently a no-op to preserve history)
+export async function deleteTask(userId: string, taskId: string) {
+  const rows = await db
+    .delete(task)
+    .where(and(eq(task.id, taskId), eq(task.userId, userId)))
+    .returning({ id: task.id });
+  return { success: rows.length > 0 } as const;
 }

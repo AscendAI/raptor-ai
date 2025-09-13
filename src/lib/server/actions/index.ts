@@ -104,14 +104,7 @@ export async function generateFinalAnalysis(
   }
 }
 
-// User data management actions
-interface UserReviewTask {
-  id: string;
-  roofData?: RoofReportData;
-  insuranceData?: InsuranceReportData;
-  createdAt: Date;
-  updatedAt: Date;
-}
+// User data management actions (types inferred from Drizzle via model)
 
 // Save user-modified extracted data
 export async function saveUserReviewData(
@@ -310,8 +303,11 @@ export async function deleteUserReviewTask(taskId: string) {
       return { success: false, error: 'Not authenticated' };
     }
 
-    await modelDeleteTask(session.user.id, taskId);
-    return { success: true, message: 'No-op: tasks are persisted in DB' };
+    const res = await modelDeleteTask(session.user.id, taskId);
+    return {
+      success: res.success,
+      message: res.success ? 'Task deleted successfully' : 'Task not found',
+    };
   } catch (error) {
     console.error('Error deleting user review session:', error);
     return {
