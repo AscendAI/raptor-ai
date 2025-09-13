@@ -10,10 +10,11 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { FileText, Shield, BarChart3 } from 'lucide-react';
+import { v4 as uuidv4 } from 'uuid';
 
 // Generate a unique task ID
 function generateTaskId(): string {
-  return `${Math.random().toString(36).substr(2, 6)}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  return uuidv4();
 }
 
 export default function NewAnalysisPage() {
