@@ -9,7 +9,8 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { FileText, Shield, BarChart3 } from 'lucide-react';
+import { FileText, Shield, BarChart3, Eye, Upload } from 'lucide-react';
+import { StepCard } from '@/components/new-analysis/StepCard';
 
 // Generate a unique task ID
 function generateTaskId(): string {
@@ -45,49 +46,45 @@ export default function NewAnalysisPage() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-              <div className="flex flex-col items-center text-center p-4 bg-muted rounded-lg">
-                <FileText className="h-8 w-8 mb-2 text-primary" />
-                <h3 className="font-semibold text-sm">1. Upload Roof Report</h3>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Upload your roofing inspection document
-                </p>
-              </div>
-
-              <div className="flex flex-col items-center text-center p-4 bg-muted rounded-lg">
-                <FileText className="h-8 w-8 mb-2 text-primary" />
-                <h3 className="font-semibold text-sm">2. Review Roof Data</h3>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Verify and edit extracted roof data
-                </p>
-              </div>
-
-              <div className="flex flex-col items-center text-center p-4 bg-muted rounded-lg">
-                <Shield className="h-8 w-8 mb-2 text-primary" />
-                <h3 className="font-semibold text-sm">
-                  3. Upload Insurance Report
-                </h3>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Upload your insurance claim document
-                </p>
-              </div>
-
-              <div className="flex flex-col items-center text-center p-4 bg-muted rounded-lg">
-                <Shield className="h-8 w-8 mb-2 text-primary" />
-                <h3 className="font-semibold text-sm">
-                  4. Review Insurance Data
-                </h3>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Verify and edit extracted insurance data
-                </p>
-              </div>
-
-              <div className="flex flex-col items-center text-center p-4 bg-muted rounded-lg">
-                <BarChart3 className="h-8 w-8 mb-2 text-primary" />
-                <h3 className="font-semibold text-sm">5. View Analysis</h3>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Review comprehensive comparison results
-                </p>
-              </div>
+              <StepCard
+                icon={Upload}
+                stepNumber={1}
+                title="Upload Roof Report"
+                description="Upload your roofing inspection document"
+                colorTheme="blue"
+              />
+              
+              <StepCard
+                icon={Eye}
+                stepNumber={2}
+                title="Review Roof Data"
+                description="Verify and edit extracted roof data"
+                colorTheme="green"
+              />
+              
+              <StepCard
+                icon={Shield}
+                stepNumber={3}
+                title="Upload Insurance Report"
+                description="Upload your insurance claim document"
+                colorTheme="orange"
+              />
+              
+              <StepCard
+                icon={FileText}
+                stepNumber={4}
+                title="Review Insurance Data"
+                description="Verify and edit extracted insurance data"
+                colorTheme="purple"
+              />
+              
+              <StepCard
+                icon={BarChart3}
+                stepNumber={5}
+                title="View Analysis"
+                description="Review comprehensive comparison results"
+                colorTheme="indigo"
+              />
             </div>
           </CardContent>
         </Card>
