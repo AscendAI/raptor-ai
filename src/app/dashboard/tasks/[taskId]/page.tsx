@@ -1,7 +1,7 @@
-import { WorkflowLayout } from "@/components/common/workflow-layout";
-import { getAuthSession } from "@/lib/server/auth";
-import { getCachedTaskData } from "@/lib/server/cache";
-import { redirect } from "next/navigation";
+import { WorkflowLayout } from '@/components/common/workflow-layout';
+import { getAuthSession } from '@/lib/server/auth';
+import { getCachedTaskData } from '@/lib/server/cache';
+import { redirect } from 'next/navigation';
 
 export default async function TaskPage({
   params,
@@ -11,12 +11,12 @@ export default async function TaskPage({
   const taskId = params.taskId;
   const session = await getAuthSession();
   if (!session?.user.id) {
-    return redirect("/login");
+    return redirect('/login');
   }
 
   const task = await getCachedTaskData(session.user.id, taskId);
   if (!task) {
-    return redirect("/dashboard");
+    return redirect('/dashboard');
   }
 
   return (
