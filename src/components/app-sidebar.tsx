@@ -38,66 +38,28 @@ const data = {
   ],
   navMain: [
     {
-      title: 'Home ',
+      title: 'Home',
       url: '/',
       icon: Home,
-      isActive: true,
-      items: [
-        {
-          title: 'History',
-          url: '#',
-        },
-        {
-          title: 'Starred',
-          url: '#',
-        },
-        {
-          title: 'Settings',
-          url: '#',
-        },
-      ],
+      isActive: false,
     },
     {
-      title: 'Models',
-      url: '#',
+      title: 'Dashboard',
+      url: '/dashboard',
       icon: Bot,
-      items: [
-        {
-          title: 'Genesis',
-          url: '#',
-        },
-        {
-          title: 'Explorer',
-          url: '#',
-        },
-        {
-          title: 'Quantum',
-          url: '#',
-        },
-      ],
+      isActive: true,
     },
     {
-      title: 'Documentation',
-      url: '#',
+      title: 'New Analysis',
+      url: '/dashboard/new-analysis',
       icon: BookOpen,
-      items: [
-        {
-          title: 'Introduction',
-          url: '#',
-        },
-        {
-          title: 'Get Started',
-          url: '#',
-        },
-        {
-          title: 'Tutorials',
-          url: '#',
-        },
-        {
-          title: 'Changelog',
-          url: '#',
-        },
-      ],
+      isActive: false,
+    },
+    {
+      title: 'Tasks',
+      url: '/dashboard/tasks',
+      icon: Command,
+      isActive: false,
     },
   ],
 };
