@@ -9,8 +9,9 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { FileText, Shield, BarChart3 } from 'lucide-react';
 import { startNewTask } from '@/lib/server/actions';
+import { StepCard } from '@/components/new-analysis/step-card';
+import { FileText, Shield, BarChart3, Eye, Upload } from 'lucide-react';
 
 export default function NewAnalysisPage() {
   const router = useRouter();
@@ -41,7 +42,7 @@ export default function NewAnalysisPage() {
 
       <div className="max-w-4xl mx-auto">
         {/* Workflow Overview */}
-        <Card className="mb-8">
+        <Card className="mb-6">
           <CardHeader>
             <CardTitle>Analysis Workflow</CardTitle>
             <CardDescription>
@@ -50,49 +51,45 @@ export default function NewAnalysisPage() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-              <div className="flex flex-col items-center text-center p-4 bg-muted rounded-lg">
-                <FileText className="h-8 w-8 mb-2 text-primary" />
-                <h3 className="font-semibold text-sm">1. Upload Roof Report</h3>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Upload your roofing inspection document
-                </p>
-              </div>
+              <StepCard
+                icon={Upload}
+                stepNumber={1}
+                title="Upload Roof Report"
+                description="Upload your roofing inspection document"
+                colorTheme="blue"
+              />
 
-              <div className="flex flex-col items-center text-center p-4 bg-muted rounded-lg">
-                <FileText className="h-8 w-8 mb-2 text-primary" />
-                <h3 className="font-semibold text-sm">2. Review Roof Data</h3>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Verify and edit extracted roof data
-                </p>
-              </div>
+              <StepCard
+                icon={Eye}
+                stepNumber={2}
+                title="Review Roof Data"
+                description="Verify and edit extracted roof data"
+                colorTheme="green"
+              />
 
-              <div className="flex flex-col items-center text-center p-4 bg-muted rounded-lg">
-                <Shield className="h-8 w-8 mb-2 text-primary" />
-                <h3 className="font-semibold text-sm">
-                  3. Upload Insurance Report
-                </h3>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Upload your insurance claim document
-                </p>
-              </div>
+              <StepCard
+                icon={Shield}
+                stepNumber={3}
+                title="Upload Insurance Report"
+                description="Upload your insurance claim document"
+                colorTheme="orange"
+              />
 
-              <div className="flex flex-col items-center text-center p-4 bg-muted rounded-lg">
-                <Shield className="h-8 w-8 mb-2 text-primary" />
-                <h3 className="font-semibold text-sm">
-                  4. Review Insurance Data
-                </h3>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Verify and edit extracted insurance data
-                </p>
-              </div>
+              <StepCard
+                icon={FileText}
+                stepNumber={4}
+                title="Review Insurance Data"
+                description="Verify and edit extracted insurance data"
+                colorTheme="purple"
+              />
 
-              <div className="flex flex-col items-center text-center p-4 bg-muted rounded-lg">
-                <BarChart3 className="h-8 w-8 mb-2 text-primary" />
-                <h3 className="font-semibold text-sm">5. View Analysis</h3>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Review comprehensive comparison results
-                </p>
-              </div>
+              <StepCard
+                icon={BarChart3}
+                stepNumber={5}
+                title="View Analysis"
+                description="Review comprehensive comparison results"
+                colorTheme="indigo"
+              />
             </div>
           </CardContent>
         </Card>
