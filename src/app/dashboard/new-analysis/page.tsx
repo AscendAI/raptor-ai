@@ -111,6 +111,7 @@ export default function NewAnalysisPage() {
               onClick={startRoofAnalysis}
               size="lg"
               className="w-full md:w-auto"
+              variant="gradient"
             >
               <FileText className="h-4 w-4 mr-2" />
               Start New Analysis
