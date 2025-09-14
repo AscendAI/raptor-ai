@@ -1,110 +1,47 @@
-'use client';
-
-import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Loader2, ArrowLeft } from 'lucide-react';
-import { getUserReviewData } from '@/lib/server/actions';
-import { SteppedInsuranceReview } from '@/components/review/stepped-insurance-review';
-import { RoofReportData, InsuranceReportData } from '@/lib/schemas/extraction';
 import { WorkflowLayout } from '@/components/common/workflow-layout';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import Link from 'next/link';
+import { getAuthSession } from '@/lib/server/auth';
+import { getCachedTaskData } from '@/lib/server/cache';
+import { InsuranceReviewClient } from '@/components/review/insurance-review-client';
+import { redirect } from 'next/navigation';
 
-interface TaskDetails {
-  roofData: RoofReportData;
-  insuranceData: InsuranceReportData;
-  createdAt: Date;
-  updatedAt: Date;
-}
+export default async function InsuranceReportReviewPage({
+  params,
+}: {
+  params: { taskId: string };
+}) {
+  const taskId = params.taskId;
+  const session = await getAuthSession();
+  const userId = session?.user?.id;
 
-export default function InsuranceReportReviewPage() {
-  const params = useParams();
-  const router = useRouter();
-  const taskId = params.taskId as string;
+  if (!userId) return redirect('/auth');
 
-  const [taskDetails, setTaskDetails] = useState<TaskDetails | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const task = await getCachedTaskData(userId, taskId);
 
-  useEffect(() => {
-    const loadTaskDetails = async () => {
-      if (!taskId) {
-        setError('Invalid task ID');
-        return;
-      }
-
-      try {
-        setLoading(true);
-        const result = await getUserReviewData(taskId);
-
-        if (result.success && result.data) {
-          if (!result.data.insuranceData) {
-            setError(
-              'Insurance data not found. Please upload insurance report first.'
-            );
-            return;
-          }
-          setTaskDetails(result.data as TaskDetails);
-        } else {
-          setError(result.error || 'Failed to load task details');
-        }
-      } catch (err) {
-        console.error('Error loading task details:', err);
-        setError('Failed to load task details');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadTaskDetails();
-  }, [taskId]);
-
-  const handleContinue = () => {
-    // Navigate directly to analysis page
-    router.push(`/dashboard/analysis/${taskId}`);
-  };
-  const handleBack = () => {
-    // Navigate back to insurance upload page
-    router.push(`/dashboard/insurance-report-upload/${taskId}`);
-  };
-
-  if (loading) {
-    return (
-      <WorkflowLayout>
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-center">
-            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-            <p className="text-muted-foreground">Loading task details...</p>
-          </div>
-        </div>
-      </WorkflowLayout>
-    );
-  }
-
-  if (error || !taskDetails) {
+  if (!task?.roofData || !task?.insuranceData) {
     return (
       <WorkflowLayout>
         <Card className="max-w-2xl mx-auto">
           <CardHeader>
-            <CardTitle>Error</CardTitle>
+            <CardTitle>Task Not Ready</CardTitle>
             <CardDescription>
-              {error || 'Failed to load task details'}
+              {task?.roofData
+                ? 'Insurance data not found. Please upload insurance report first.'
+                : 'Roof data not found. Please upload roof report first.'}
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <Button onClick={handleBack} variant="outline">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Insurance Upload
-            </Button>
-            <Button onClick={() => router.push('/dashboard')} variant="outline">
-              Return to Dashboard
-            </Button>
+          <CardContent>
+            <Link
+              href={
+                task?.roofData
+                  ? `/dashboard/insurance-report-upload/${taskId}`
+                  : `/dashboard/roof-report-upload/${taskId}`
+              }
+              className="underline"
+            >
+              Go to Upload
+            </Link>
           </CardContent>
         </Card>
       </WorkflowLayout>
@@ -117,12 +54,10 @@ export default function InsuranceReportReviewPage() {
       description="Review and edit the extracted insurance report data before generating analysis"
     >
       <div className="max-w-4xl mx-auto">
-        <SteppedInsuranceReview
+        <InsuranceReviewClient
           taskId={taskId}
-          roofData={taskDetails.roofData}
-          insuranceData={taskDetails.insuranceData}
-          onNext={handleContinue}
-          onBack={handleBack}
+          roofData={task.roofData}
+          insuranceData={task.insuranceData}
         />
       </div>
     </WorkflowLayout>

@@ -1,7 +1,10 @@
-import { getTaskData } from "../db/model/task";
-import { unstable_cache as cache , revalidateTag} from "next/cache";
+import { getTaskData } from '../db/model/task';
+import { unstable_cache as cache, revalidateTag } from 'next/cache';
 
 export const getCachedTaskData = (userId: string, taskId: string) => {
+  if (!userId || !taskId) {
+    return undefined;
+  }
   const cachedFn = cache(
     async () => {
       return await getTaskData(userId, taskId);
@@ -10,7 +13,7 @@ export const getCachedTaskData = (userId: string, taskId: string) => {
     { tags: [`user-${userId}-task`, `task-${taskId}`] }
   );
   return cachedFn();
-}
+};
 
 export function revalidateTaskData(taskId: string) {
   return revalidateTag(`task-${taskId}`);
