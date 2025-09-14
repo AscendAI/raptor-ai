@@ -13,10 +13,7 @@ import { Button } from '@/components/ui/button';
 import { FileUpload } from '@/components/ui/file-upload';
 import { Loader2, Upload, FileText } from 'lucide-react';
 import { toast } from 'sonner';
-import {
-  extractAndSaveRoofData,
-  createRoofReviewTaskWithId,
-} from '@/lib/server/actions';
+import { extractAndSaveRoofData } from '@/lib/server/actions';
 import { convertPdfToImages } from '@/lib/utils/pdf';
 import { WorkflowLayout } from '@/components/common/workflow-layout';
 
@@ -44,8 +41,8 @@ export default function RoofReportUploadPage() {
   const processRoofDocument = async () => {
     if (!roofFile) return;
 
+    setIsProcessing(true);
     try {
-      setIsProcessing(true);
       toast.info('Processing roof document...');
 
       // Convert PDF to images
@@ -61,24 +58,14 @@ export default function RoofReportUploadPage() {
         );
       }
 
-      // Create a task with the roof data using the current taskId
-      const taskResult = await createRoofReviewTaskWithId(
-        taskId,
-        extractionResult.data
-      );
-
-      if (taskResult.success) {
-        toast.success('Roof document processed successfully!');
-        // Navigate to roof review page with the same taskId
-        router.push(`/dashboard/roof-report-review/${taskId}`);
-      } else {
-        throw new Error(taskResult.error || 'Failed to create task');
-      }
+      toast.success('Roof document processed successfully!');
+      // Navigate to roof review page with the same taskId
+      router.push(`/dashboard/roof-report-review/${taskId}`);
     } catch (error) {
       console.error('Error processing roof document:', error);
       toast.error('Failed to process roof document');
-      setIsProcessing(false);
     }
+    setIsProcessing(false);
   };
 
   return (

@@ -244,36 +244,6 @@ export async function getUserReviewData(taskId: string) {
 
 // (Deprecated legacy functions removed: createUserReviewTask, createRoofReviewTask)
 
-// Create a roof review task with a predefined task ID
-export async function createRoofReviewTaskWithId(
-  taskId: string,
-  roofData: RoofReportData
-) {
-  try {
-    const session = await getAuthSession();
-    if (!session?.user?.id) {
-      return { success: false, error: 'Not authenticated' };
-    }
-
-    await upsertTaskData(session.user.id, taskId, { roofData });
-    revalidateTaskData(taskId);
-
-    return {
-      success: true,
-      taskId,
-      data: {
-        roofData,
-      },
-    };
-  } catch (error) {
-    console.error('Error creating roof review task with ID:', error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error occurred',
-    };
-  }
-}
-
 // Update an existing task with insurance data
 export async function updateTaskWithInsuranceData(
   taskId: string,
