@@ -7,7 +7,7 @@ import {
   Bot,
   Command,
   GalleryVerticalEnd,
-  SquareTerminal,
+  Home,
 } from 'lucide-react';
 
 import { NavMain } from '@/components/nav-main';
@@ -31,26 +31,16 @@ const data = {
   },
   teams: [
     {
-      name: 'Acme Inc',
+      name: 'Raptor AI',
       logo: GalleryVerticalEnd,
-      plan: 'Enterprise',
-    },
-    {
-      name: 'Acme Corp.',
-      logo: AudioWaveform,
-      plan: 'Startup',
-    },
-    {
-      name: 'Evil Corp.',
-      logo: Command,
-      plan: 'Free',
+      //   plan: 'Enterprise',
     },
   ],
   navMain: [
     {
-      title: 'Playground',
-      url: '#',
-      icon: SquareTerminal,
+      title: 'Home ',
+      url: '/',
+      icon: Home,
       isActive: true,
       items: [
         {
@@ -119,7 +109,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <TeamSwitcher teams={data.teams} />
       </SidebarHeader>
       <SidebarContent>
-        <SidebarTrigger />
         <NavMain items={data.navMain} />
       </SidebarContent>
       <SidebarFooter>
