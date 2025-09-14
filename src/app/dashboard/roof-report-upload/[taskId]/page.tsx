@@ -56,6 +56,8 @@ export default function RoofReportUploadPage() {
         roofFile
       );
 
+      console.log('Roof extraction result:', extractionResult);
+
       if (!extractionResult.success || !extractionResult.data) {
         throw new Error(
           extractionResult.error || 'Failed to extract roof data'

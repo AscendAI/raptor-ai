@@ -82,6 +82,8 @@ export default function InsuranceReportUploadPage() {
         insuranceFile
       );
 
+      console.log('Insurance extraction result:', extractionResult);
+
       if (!extractionResult.success || !extractionResult.data) {
         throw new Error(
           extractionResult.error || 'Failed to extract insurance data'
