@@ -109,13 +109,62 @@ export async function extractAndSaveRoofData(
 }
 
 // Extract insurance report data only
-export async function extractInsuranceData(insuranceReportImages: string[]) {
+export async function extractAndSaveInsuranceData(
+  insuranceReportImages: string[],
+  taskId: string
+) {
   try {
     console.log('Extracting insurance report data...');
+    const session = await getAuthSession();
+    if (!session?.user?.id) {
+      return {
+        success: false,
+        error: 'Not authenticated',
+      };
+    }
+
+    const task = await getCachedTaskData(session.user.id, taskId);
+    if (!task) {
+      return {
+        success: false,
+        error: 'Task not found',
+      };
+    }
+
     const insuranceAnalysisRaw = await analyseInsuranceReport(
       insuranceReportImages
     );
     const insuranceResult = parseInsuranceReportData(insuranceAnalysisRaw);
+
+    if (!insuranceResult.success) {
+      return {
+        success: false,
+        error: insuranceResult.error,
+        rawText: insuranceResult.rawText,
+      };
+    }
+
+    // Upload insurance report images
+    const uploadedFiles = await uploadFiles(
+      insuranceReportImages.map((report, idx) => ({
+        name: `task_${taskId}_insuranceReport_${idx}`,
+        type: 'png',
+        data: report,
+      }))
+    );
+    const insuranceReportFiles = uploadedFiles
+      .filter((res) => ('data' in res ? true : false))
+      .map((file) => ({
+        id: file.data!.name,
+        name: file.data!.name,
+        url: file.data!.ufsUrl,
+      }));
+
+    await upsertTaskData(session.user.id, taskId, {
+      files: [...insuranceReportFiles, ...(task.files || [])],
+      insuranceData: insuranceResult.data,
+    });
+    revalidateTaskData(taskId);
 
     return {
       success: insuranceResult.success,
@@ -243,40 +292,6 @@ export async function getUserReviewData(taskId: string) {
 }
 
 // (Deprecated legacy functions removed: createUserReviewTask, createRoofReviewTask)
-
-// Update an existing task with insurance data
-export async function updateTaskWithInsuranceData(
-  taskId: string,
-  insuranceData: InsuranceReportData
-) {
-  try {
-    const session = await getAuthSession();
-    if (!session?.user?.id) {
-      return {
-        success: false,
-        error: 'Not authenticated',
-      };
-    }
-
-    await upsertTaskData(session.user.id, taskId, { insuranceData });
-    revalidateTaskData(taskId);
-
-    return {
-      success: true,
-      taskId,
-      data: {
-        // We only updated insuranceData here; the page doesn't need roofData back
-        insuranceData: insuranceData,
-      },
-    };
-  } catch (error) {
-    console.error('Error updating task with insurance data:', error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error occurred',
-    };
-  }
-}
 
 // Save only roof data edits without touching insurance data
 export async function saveRoofReviewData(
