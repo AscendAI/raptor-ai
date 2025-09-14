@@ -73,15 +73,15 @@ const staticData = {
   ],
 };
 
-export function AppSidebar({ 
-  session, 
-  ...props 
+export function AppSidebar({
+  session,
+  ...props
 }: React.ComponentProps<typeof Sidebar> & { session: Session }) {
   // Use session data from server component
   const userData = {
     name: session.user.name || 'User',
     email: session.user.email || '',
-    avatar: session.user.image || '', // Let AvatarFallback handle missing images
+    avatar: session.user.image || '',
   };
 
   return (
