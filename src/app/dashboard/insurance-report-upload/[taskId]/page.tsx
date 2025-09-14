@@ -14,8 +14,7 @@ import { FileUpload } from '@/components/ui/file-upload';
 import { Loader2, Upload, FileText, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import {
-  extractInsuranceData,
-  updateTaskWithInsuranceData,
+  extractAndSaveInsuranceData,
   getUserReviewData,
 } from '@/lib/server/actions';
 import { convertPdfToImages } from '@/lib/utils/pdf';
@@ -68,8 +67,8 @@ export default function InsuranceReportUploadPage() {
   const processInsuranceDocument = async () => {
     if (!insuranceFile) return;
 
+    setIsProcessing(true);
     try {
-      setIsProcessing(true);
       toast.info('Processing insurance document...');
 
       // Convert PDF to images
@@ -77,7 +76,10 @@ export default function InsuranceReportUploadPage() {
 
       // Extract insurance data
       toast.info('Extracting insurance data...');
-      const extractionResult = await extractInsuranceData(insuranceImages);
+      const extractionResult = await extractAndSaveInsuranceData(
+        insuranceImages,
+        taskId
+      );
 
       if (!extractionResult.success || !extractionResult.data) {
         throw new Error(
@@ -85,26 +87,14 @@ export default function InsuranceReportUploadPage() {
         );
       }
 
-      // Update the existing task with insurance data
-      const updateResult = await updateTaskWithInsuranceData(
-        taskId,
-        extractionResult.data
-      );
-
-      if (updateResult.success) {
-        toast.success('Insurance document processed successfully!');
-        // Navigate to insurance review page
-        router.push(`/dashboard/insurance-report-review/${taskId}`);
-      } else {
-        throw new Error(
-          updateResult.error || 'Failed to update task with insurance data'
-        );
-      }
+      toast.success('Insurance document processed successfully!');
+      // Navigate to insurance review page
+      router.push(`/dashboard/insurance-report-review/${taskId}`);
     } catch (error) {
       console.error('Error processing insurance document:', error);
       toast.error('Failed to process insurance document');
-      setIsProcessing(false);
     }
+    setIsProcessing(false);
   };
 
   const handleBack = () => {
