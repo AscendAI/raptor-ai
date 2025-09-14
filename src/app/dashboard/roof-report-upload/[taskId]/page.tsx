@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { FileUpload } from '@/components/ui/file-upload';
 import { Loader2, Upload, FileText } from 'lucide-react';
 import { toast } from 'sonner';
-import { extractAndSaveRoofData } from '@/lib/server/actions';
+import { extractAndSaveRoofData, getUserReviewData } from '@/lib/server/actions';
 import { convertPdfToImages } from '@/lib/utils/pdf';
 import { WorkflowLayout } from '@/components/common/workflow-layout';
 
@@ -50,7 +50,13 @@ export default function RoofReportUploadPage() {
 
       // Extract roof data
       toast.info('Extracting roof data...');
-      const extractionResult = await extractAndSaveRoofData(roofImages, taskId);
+      const extractionResult = await extractAndSaveRoofData(
+        roofImages,
+        taskId,
+        roofFile
+      );
+
+      console.log('Roof extraction result:', extractionResult);
 
       if (!extractionResult.success || !extractionResult.data) {
         throw new Error(
@@ -59,6 +65,33 @@ export default function RoofReportUploadPage() {
       }
 
       toast.success('Roof document processed successfully!');
+      
+      // Verify data exists before navigation with retry mechanism
+      const maxRetries = 3;
+      let retryCount = 0;
+      let verificationResult;
+      
+      while (retryCount < maxRetries) {
+         console.log(`Verifying roof data${retryCount > 0 ? ` (attempt ${retryCount + 1}/${maxRetries})` : ''}...`);
+         verificationResult = await getUserReviewData(taskId);
+         
+         if (verificationResult.success && verificationResult.data?.roofData) {
+           break;
+         }
+         
+         retryCount++;
+         if (retryCount < maxRetries) {
+           // Wait before retry with exponential backoff
+           console.log(`Retrying in ${retryCount} second(s)...`);
+           await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
+         }
+       }
+       
+       if (!verificationResult?.success || !verificationResult.data?.roofData) {
+         throw new Error('Data verification failed after multiple attempts - roof data not found in database');
+       }
+       
+       console.log('Roof data verified successfully!');
       // Navigate to roof review page with the same taskId
       router.push(`/dashboard/roof-report-review/${taskId}`);
     } catch (error) {

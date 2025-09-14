@@ -78,8 +78,11 @@ export default function InsuranceReportUploadPage() {
       toast.info('Extracting insurance data...');
       const extractionResult = await extractAndSaveInsuranceData(
         insuranceImages,
-        taskId
+        taskId,
+        insuranceFile
       );
+
+      console.log('Insurance extraction result:', extractionResult);
 
       if (!extractionResult.success || !extractionResult.data) {
         throw new Error(
@@ -88,6 +91,33 @@ export default function InsuranceReportUploadPage() {
       }
 
       toast.success('Insurance document processed successfully!');
+      
+      // Verify data exists before navigation with retry mechanism
+      const maxRetries = 3;
+      let retryCount = 0;
+      let verificationResult;
+      
+      while (retryCount < maxRetries) {
+         console.log(`Verifying insurance data${retryCount > 0 ? ` (attempt ${retryCount + 1}/${maxRetries})` : ''}...`);
+         verificationResult = await getUserReviewData(taskId);
+         
+         if (verificationResult.success && verificationResult.data?.insuranceData) {
+           break;
+         }
+         
+         retryCount++;
+         if (retryCount < maxRetries) {
+           // Wait before retry with exponential backoff
+           console.log(`Retrying in ${retryCount} second(s)...`);
+           await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
+         }
+       }
+       
+       if (!verificationResult?.success || !verificationResult.data?.insuranceData) {
+         throw new Error('Data verification failed after multiple attempts - insurance data not found in database');
+       }
+       
+       console.log('Insurance data verified successfully!');
       // Navigate to insurance review page
       router.push(`/dashboard/insurance-report-review/${taskId}`);
     } catch (error) {
