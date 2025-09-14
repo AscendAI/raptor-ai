@@ -20,7 +20,7 @@ import {
   deleteTask as modelDeleteTask,
 } from '@/lib/server/db/model/task';
 import { getAuthSession } from '@/lib/server/auth';
-import { revalidateTaskData } from '../cache';
+import { getCachedTaskData, revalidateTaskData } from '../cache';
 import { uploadFiles } from '../uploadthing';
 
 // Create a new empty task and return a server-generated taskId
@@ -52,12 +52,20 @@ export async function extractAndSaveRoofData(
   taskId: string
 ) {
   try {
-    console.log("Extracting roof report data...");
+    console.log('Extracting roof report data...');
     const session = await getAuthSession();
     if (!session?.user?.id) {
       return {
         success: false,
-        error: "Not authenticated",
+        error: 'Not authenticated',
+      };
+    }
+
+    const task = await getCachedTaskData(session.user.id, taskId);
+    if (!task) {
+      return {
+        success: false,
+        error: 'Task not found',
       };
     }
 
@@ -67,12 +75,12 @@ export async function extractAndSaveRoofData(
     const uploadedFiles = await uploadFiles(
       roofReportImages.map((report, idx) => ({
         name: `task_${taskId}_roofReport_${idx}`,
-        type: "png",
+        type: 'png',
         data: report,
       }))
     );
     const roofReportFiles = uploadedFiles
-      .filter((res) => ("data" in res ? true : false))
+      .filter((res) => ('data' in res ? true : false))
       .map((file) => ({
         id: file.data!.name,
         name: file.data!.name,
@@ -81,7 +89,7 @@ export async function extractAndSaveRoofData(
 
     await upsertTaskData(session.user.id, taskId, {
       roofData: roofResult.data,
-      files: roofReportFiles,
+      files: [...roofReportFiles, ...(task.files || [])],
     });
     revalidateTaskData(taskId);
 
