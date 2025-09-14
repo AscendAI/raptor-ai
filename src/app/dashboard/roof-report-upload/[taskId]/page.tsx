@@ -14,7 +14,7 @@ import { FileUpload } from '@/components/ui/file-upload';
 import { Loader2, Upload, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import {
-  extractRoofData,
+  extractAndSaveRoofData,
   createRoofReviewTaskWithId,
 } from '@/lib/server/actions';
 import { convertPdfToImages } from '@/lib/utils/pdf';
@@ -53,7 +53,7 @@ export default function RoofReportUploadPage() {
 
       // Extract roof data
       toast.info('Extracting roof data...');
-      const extractionResult = await extractRoofData(roofImages);
+      const extractionResult = await extractAndSaveRoofData(roofImages, taskId);
 
       if (!extractionResult.success || !extractionResult.data) {
         throw new Error(
