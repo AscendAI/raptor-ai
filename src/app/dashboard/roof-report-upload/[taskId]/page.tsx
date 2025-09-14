@@ -50,7 +50,13 @@ export default function RoofReportUploadPage() {
 
       // Extract roof data
       toast.info('Extracting roof data...');
-      const extractionResult = await extractAndSaveRoofData(roofImages, taskId);
+      const extractionResult = await extractAndSaveRoofData(
+        roofImages,
+        taskId,
+        roofFile
+      );
+
+      console.log('Roof extraction result:', extractionResult);
 
       if (!extractionResult.success || !extractionResult.data) {
         throw new Error(
