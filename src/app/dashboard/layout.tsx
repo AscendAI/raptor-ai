@@ -1,8 +1,5 @@
-import { LogoutButton } from '@/components/auth/logout-button';
 import { getAuthSession } from '@/lib/server/auth';
 import { redirect } from 'next/navigation';
-import Image from 'next/image';
-import Link from 'next/link';
 import { AppSidebar } from '@/components/app-sidebar';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 
