@@ -31,13 +31,7 @@ export async function upsertTaskData(
 export async function getTaskData(
   userId: string,
   taskId: string
-): Promise<
-  | Pick<
-      TaskSelect,
-      "roofData" | "insuranceData" | "comparison" | "createdAt" | "updatedAt"
-    >
-  | undefined
-> {
+) {
   return db.query.task.findFirst({
     where: (tbl, { and, eq }) =>
       and(eq(tbl.id, taskId), eq(tbl.userId, userId)),

@@ -1,5 +1,4 @@
 import { WorkflowLayout } from "@/components/common/workflow-layout";
-import { SteppedRoofReview } from '@/components/review/stepped-roof-review';
 import { getAuthSession } from "@/lib/server/auth";
 import { getCachedTaskData } from "@/lib/server/cache";
 import { redirect } from "next/navigation";
@@ -16,13 +15,19 @@ export default async function TaskPage({
   }
 
   const task = await getCachedTaskData(session.user.id, taskId);
+  if (!task) {
+    return redirect("/dashboard");
+  }
 
   return (
     <WorkflowLayout
       title="Review Roof Data"
       description="Review and edit the extracted roof report data before proceeding"
     >
-      Testo
+      <div>
+        Task:
+        <p>{JSON.stringify(task)}</p>
+      </div>
     </WorkflowLayout>
   );
 }
