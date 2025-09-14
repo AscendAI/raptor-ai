@@ -1,14 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import {
-  AudioWaveform,
-  BookOpen,
-  Bot,
-  Command,
-  GalleryVerticalEnd,
-  Home,
-} from 'lucide-react';
+import { BookOpen, Bot, Command, GalleryVerticalEnd, Home } from 'lucide-react';
 
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -19,16 +12,32 @@ import {
   SidebarFooter,
   SidebarHeader,
   SidebarRail,
-  SidebarTrigger,
 } from '@/components/ui/sidebar';
 
-// This is sample data.
-const data = {
+type Session = {
+  session: {
+    id: string;
+    userId: string;
+    expiresAt: Date;
+    createdAt: Date;
+    updatedAt: Date;
+    token: string;
+    ipAddress?: string | null;
+    userAgent?: string | null;
+  };
   user: {
-    name: 'shadcn',
-    email: 'm@example.com',
-    avatar: '/avatars/shadcn.jpg',
-  },
+    id: string;
+    name: string | null;
+    email: string;
+    emailVerified: boolean;
+    image?: string | null | undefined;
+    createdAt: Date;
+    updatedAt: Date;
+  };
+};
+
+// Static data that doesn't depend on user session
+const staticData = {
   teams: [
     {
       name: 'Raptor AI',
@@ -64,17 +73,27 @@ const data = {
   ],
 };
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebar({ 
+  session, 
+  ...props 
+}: React.ComponentProps<typeof Sidebar> & { session: Session }) {
+  // Use session data from server component
+  const userData = {
+    name: session.user.name || 'User',
+    email: session.user.email || '',
+    avatar: session.user.image || '', // Let AvatarFallback handle missing images
+  };
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
+        <TeamSwitcher teams={staticData.teams} />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={staticData.navMain} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={userData} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

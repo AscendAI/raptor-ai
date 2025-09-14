@@ -1,28 +1,28 @@
-"use client"
+'use client';
 
-import * as React from "react"
+import * as React from 'react';
 
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@/components/ui/sidebar"
+} from '@/components/ui/sidebar';
 
 export function TeamSwitcher({
   teams,
 }: {
   teams: {
-    name: string
-    logo: React.ElementType
-    plan?: string
-  }[]
+    name: string;
+    logo: React.ElementType;
+    plan?: string;
+  }[];
 }) {
-  const { toggleSidebar } = useSidebar()
-  const [activeTeam, setActiveTeam] = React.useState(teams[0])
+  const { toggleSidebar } = useSidebar();
+  const [activeTeam, setActiveTeam] = React.useState(teams[0]);
 
   if (!activeTeam) {
-    return null
+    return null;
   }
 
   return (
@@ -45,5 +45,5 @@ export function TeamSwitcher({
         </SidebarMenuButton>
       </SidebarMenuItem>
     </SidebarMenu>
-  )
+  );
 }
