@@ -78,7 +78,8 @@ export default function InsuranceReportUploadPage() {
       toast.info('Extracting insurance data...');
       const extractionResult = await extractAndSaveInsuranceData(
         insuranceImages,
-        taskId
+        taskId,
+        insuranceFile
       );
 
       if (!extractionResult.success || !extractionResult.data) {

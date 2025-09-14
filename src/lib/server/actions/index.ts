@@ -21,7 +21,7 @@ import {
 } from '@/lib/server/db/model/task';
 import { getAuthSession } from '@/lib/server/auth';
 import { getCachedTaskData, revalidateTaskData } from '../cache';
-import { uploadFiles } from '../uploadthing';
+import { uploadFile } from '../uploadthing';
 
 // Create a new empty task and return a server-generated taskId
 export async function startNewTask() {
@@ -49,7 +49,8 @@ export async function startNewTask() {
 // Extract roof report data only
 export async function extractAndSaveRoofData(
   roofReportImages: string[],
-  taskId: string
+  taskId: string,
+  roofReport: File
 ) {
   try {
     console.log('Extracting roof report data...');
@@ -72,24 +73,40 @@ export async function extractAndSaveRoofData(
     // Analyse roof report images
     const roofAnalysisRaw = await analyseRoofReport(roofReportImages);
     const roofResult = parseRoofReportData(roofAnalysisRaw);
-    const uploadedFiles = await uploadFiles(
-      roofReportImages.map((report, idx) => ({
-        name: `task_${taskId}_roofReport_${idx}`,
-        type: 'png',
-        data: report,
-      }))
-    );
-    const roofReportFiles = uploadedFiles
-      .filter((res) => ('data' in res ? true : false))
-      .map((file) => ({
-        id: file.data!.name,
-        name: file.data!.name,
-        url: file.data!.ufsUrl,
-      }));
+
+    if (!roofResult.success) {
+      return {
+        success: false,
+        data: roofResult.data,
+        error: roofResult.error,
+        rawText: roofResult.rawText,
+      };
+    }
+
+    const filePdfName = `task_${taskId}_roofReport.pdf`;
+    const fileExists = task.files?.some((f) => f.name === filePdfName);
+
+    if (!fileExists) {
+      const updatedFile = new File(
+        [await roofReport.arrayBuffer()],
+        filePdfName,
+        { type: 'application/pdf' }
+      );
+
+      const uploadedFiles = await uploadFile(updatedFile);
+      const roofReportFiles = uploadedFiles
+        .filter((res) => ('data' in res ? true : false))
+        .map((file) => ({
+          id: file.data!.key,
+          name: file.data!.name,
+          url: file.data!.ufsUrl,
+        }));
+      task.files = [...roofReportFiles, ...(task.files || [])];
+    }
 
     await upsertTaskData(session.user.id, taskId, {
       roofData: roofResult.data,
-      files: [...roofReportFiles, ...(task.files || [])],
+      files: task.files,
     });
     revalidateTaskData(taskId);
 
@@ -111,7 +128,8 @@ export async function extractAndSaveRoofData(
 // Extract insurance report data only
 export async function extractAndSaveInsuranceData(
   insuranceReportImages: string[],
-  taskId: string
+  taskId: string,
+  insuranceReport: File
 ) {
   try {
     console.log('Extracting insurance report data...');
@@ -139,29 +157,35 @@ export async function extractAndSaveInsuranceData(
     if (!insuranceResult.success) {
       return {
         success: false,
+        data: insuranceResult.data,
         error: insuranceResult.error,
         rawText: insuranceResult.rawText,
       };
     }
 
-    // Upload insurance report images
-    const uploadedFiles = await uploadFiles(
-      insuranceReportImages.map((report, idx) => ({
-        name: `task_${taskId}_insuranceReport_${idx}`,
-        type: 'png',
-        data: report,
-      }))
-    );
-    const insuranceReportFiles = uploadedFiles
-      .filter((res) => ('data' in res ? true : false))
-      .map((file) => ({
-        id: file.data!.name,
-        name: file.data!.name,
-        url: file.data!.ufsUrl,
-      }));
+    const filePdfName = `task_${taskId}_insuranceReport.pdf`;
+    const fileExists = task.files?.some((f) => f.name === filePdfName);
+
+    if (!fileExists) {
+      const updatedFile = new File(
+        [await insuranceReport.arrayBuffer()],
+        filePdfName,
+        { type: 'application/pdf' }
+      );
+
+      const uploadedFiles = await uploadFile(updatedFile);
+      const insuranceReportFiles = uploadedFiles
+        .filter((res) => ('data' in res ? true : false))
+        .map((file) => ({
+          id: file.data!.key,
+          name: file.data!.name,
+          url: file.data!.ufsUrl,
+        }));
+      task.files = [...insuranceReportFiles, ...(task.files || [])];
+    }
 
     await upsertTaskData(session.user.id, taskId, {
-      files: [...insuranceReportFiles, ...(task.files || [])],
+      files: task.files,
       insuranceData: insuranceResult.data,
     });
     revalidateTaskData(taskId);

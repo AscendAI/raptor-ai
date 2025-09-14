@@ -29,8 +29,17 @@ export async function uploadFiles(
   const utFiles = files.map(
     (file) => dataUrlToUTFile(file.data, `${file.name}.${file.type}`)!
   );
+  const validFiles = utFiles.filter((file) => file !== undefined);
+  if (validFiles.length === 0) {
+    return [];
+  }
   const response = await utapi.uploadFiles(utFiles);
   return response;
+}
+
+export async function uploadFile(file: File) {
+  const uploadedFiles = await utapi.uploadFiles([file]);
+  return uploadedFiles;
 }
 
 export async function deleteFiles(images: string[]) {
