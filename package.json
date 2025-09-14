@@ -10,7 +10,8 @@
     "db:push": "dotenv -e .env -- drizzle-kit push",
     "generate": "dotenv -e .env -- @better-auth/cli generate --config ./src/lib/server/auth/index.ts --output ./src/lib/server/db/schema/auth.ts",
     "typecheck": "tsc --noEmit",
-    "sc:extractor": "dotenv -e .env -- tsx ./scripts/extractor.ts"
+    "sc:extractor": "dotenv -e .env -- tsx ./scripts/extractor.ts",
+    "db:studio": "dotenv -e .env -- drizzle-kit studio"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.1",
