@@ -135,7 +135,9 @@ export function SteppedRoofReview({
             <Card className="shadow-sm border-slate-200 sticky top-2 pb-0">
               <CardHeader className="py-0">
                 <CardTitle className="text-base font-medium py-0 flex items-center gap-2">
-                  <BsFilePdfFill className="w-5 h-5 text-primary" />
+                  <div className="p-2 bg-muted rounded-lg">
+                    <BsFilePdfFill className="w-5 h-5 text-primary" />
+                  </div>
                   PDF Preview
                 </CardTitle>
                 <CardDescription className="text-sm py-0">
@@ -143,7 +145,7 @@ export function SteppedRoofReview({
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-0">
-                <div className="h-[calc(100vh-115px)] min-h-[600px]">
+                <div className="h-[calc(100vh-130px)] min-h-[600px]">
                   <PDFViewer pdfUrl={roofPdfFile.url} className="h-full" />
                 </div>
               </CardContent>
