@@ -118,7 +118,7 @@ export default function InsuranceReportReviewPage() {
       title="Review Insurance Data"
       description="Review and edit the extracted insurance report data before generating analysis"
     >
-      <div className="w-full px-2 lg:px-4">
+      <div className="w-full">
         <SteppedInsuranceReview
           taskId={taskId}
           roofData={taskDetails.roofData}

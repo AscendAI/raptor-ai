@@ -25,7 +25,7 @@ export function WorkflowLayout({
 
   return (
     <div className="min-h-screen bg-gray-50/30">
-      <div className="container mx-auto px-2 lg:px-4 py-4">
+      <div className="container mx-auto py-4">
         {/* Step Indicator */}
         <div className="mb-4">
           <Card className="p-3">
@@ -48,7 +48,9 @@ export function WorkflowLayout({
         {/* Page Title */}
         {(title || description) && (
           <div className="mb-4 text-center">
-            {title && <h2 className="text-xl md:text-2xl font-bold">{title}</h2>}
+            {title && (
+              <h2 className="text-xl md:text-2xl font-bold">{title}</h2>
+            )}
             {description && (
               <p className="text-muted-foreground mt-1 text-sm">
                 {description}

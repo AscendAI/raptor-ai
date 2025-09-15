@@ -109,7 +109,7 @@ export default function RoofReportReviewPage() {
       title="Review Roof Data"
       description="Review and edit the extracted roof report data before proceeding"
     >
-      <div className="w-full px-2 lg:px-4">
+      <div className="w-full">
         <SteppedRoofReview
           taskId={taskId}
           roofData={taskDetails.roofData}
