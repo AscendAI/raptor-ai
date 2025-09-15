@@ -41,8 +41,9 @@ export function SteppedInsuranceReview({
   const [showPdfPreview, setShowPdfPreview] = useState(false);
 
   // Find the insurance report PDF
-  const insurancePdfFile = files.find(file => 
-    file.name.includes('insuranceReport') && file.name.endsWith('.pdf')
+  const insurancePdfFile = files.find(
+    (file) =>
+      file.name.includes('insuranceReport') && file.name.endsWith('.pdf')
   );
 
   const handleSave = async () => {
@@ -104,8 +105,8 @@ export function SteppedInsuranceReview({
                 Review Insurance Data
               </CardTitle>
               <CardDescription className="text-slate-600 mt-2">
-                Review and modify the extracted insurance data. Make any necessary
-                corrections before generating the final analysis.
+                Review and modify the extracted insurance data. Make any
+                necessary corrections before generating the final analysis.
               </CardDescription>
             </div>
             {insurancePdfFile && (
@@ -163,16 +164,25 @@ export function SteppedInsuranceReview({
         </CardContent>
       </Card>
 
-      <div className={`${showPdfPreview && insurancePdfFile ? 'grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6' : ''}`}>
-        <div className={showPdfPreview && insurancePdfFile ? 'xl:col-span-1' : ''}>
-          <InsuranceDataEditor data={currentInsuranceData} onChange={setCurrentInsuranceData} />
+      <div
+        className={`${showPdfPreview && insurancePdfFile ? 'grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6' : ''}`}
+      >
+        <div
+          className={showPdfPreview && insurancePdfFile ? 'xl:col-span-1' : ''}
+        >
+          <InsuranceDataEditor
+            data={currentInsuranceData}
+            onChange={setCurrentInsuranceData}
+          />
         </div>
         {showPdfPreview && insurancePdfFile && (
           <div className="xl:col-span-1">
-            <Card className="shadow-sm border-slate-200 sticky top-4">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base font-medium">PDF Preview</CardTitle>
-                <CardDescription className="text-sm">
+            <Card className="shadow-sm border-slate-200 sticky top-4 pb-0">
+              <CardHeader className="py-0">
+                <CardTitle className="text-base font-medium py-0">
+                  PDF Preview
+                </CardTitle>
+                <CardDescription className="text-sm py-0">
                   Original insurance report document
                 </CardDescription>
               </CardHeader>
