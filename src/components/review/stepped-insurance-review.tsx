@@ -177,7 +177,7 @@ export function SteppedInsuranceReview({
         </div>
         {showPdfPreview && insurancePdfFile && (
           <div className="xl:col-span-1">
-            <Card className="shadow-sm border-slate-200 sticky top-4 pb-0">
+            <Card className="shadow-sm border-slate-200 sticky top-2 pb-0">
               <CardHeader className="py-0">
                 <CardTitle className="text-base font-medium py-0">
                   PDF Preview
@@ -187,7 +187,7 @@ export function SteppedInsuranceReview({
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-0">
-                <div className="h-[calc(100vh-200px)] min-h-[600px]">
+                <div className="h-[calc(100vh-115px)] min-h-[600px]">
                   <PDFViewer pdfUrl={insurancePdfFile.url} className="h-full" />
                 </div>
               </CardContent>
