@@ -83,9 +83,24 @@ export function RoofDataEditor({ data, onChange }: RoofDataEditorProps) {
     field: string,
     value: string | boolean
   ) => {
-    const updated = data.waste_table.map((item, i) =>
-      i === index ? { ...item, [field]: value } : item
-    );
+    let updated;
+    
+    // If updating the 'recommended' field and setting it to true,
+    // ensure all other items have recommended set to false
+    if (field === 'recommended' && value === true) {
+      updated = data.waste_table.map((item, i) => {
+        if (i === index) {
+          return { ...item, [field]: value };
+        } else {
+          return { ...item, recommended: false };
+        }
+      });
+    } else {
+      updated = data.waste_table.map((item, i) =>
+        i === index ? { ...item, [field]: value } : item
+      );
+    }
+    
     onChange({
       ...data,
       waste_table: updated,

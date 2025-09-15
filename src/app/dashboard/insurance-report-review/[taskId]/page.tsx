@@ -15,10 +15,12 @@ import { getUserReviewData } from '@/lib/server/actions';
 import { SteppedInsuranceReview } from '@/components/review/stepped-insurance-review';
 import { RoofReportData, InsuranceReportData } from '@/lib/schemas/extraction';
 import { WorkflowLayout } from '@/components/common/workflow-layout';
+import { FileData } from '@/lib/schemas/files';
 
 interface TaskDetails {
   roofData: RoofReportData;
   insuranceData: InsuranceReportData;
+  files: FileData[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -116,11 +118,12 @@ export default function InsuranceReportReviewPage() {
       title="Review Insurance Data"
       description="Review and edit the extracted insurance report data before generating analysis"
     >
-      <div className="max-w-4xl mx-auto">
+      <div className="w-full">
         <SteppedInsuranceReview
           taskId={taskId}
           roofData={taskDetails.roofData}
           insuranceData={taskDetails.insuranceData}
+          files={taskDetails.files}
           onNext={handleContinue}
           onBack={handleBack}
         />

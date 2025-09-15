@@ -10,14 +10,18 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { Loader2, Save, ArrowRight } from 'lucide-react';
+import { Loader2, Save, ArrowRight, Eye, EyeOff, Check } from 'lucide-react';
+import { BsFilePdfFill } from 'react-icons/bs';
 import { RoofDataEditor } from './roof-data-editor';
 import { RoofReportData } from '@/lib/schemas/extraction';
 import { saveRoofReviewData } from '@/lib/server/actions';
+import { FileData } from '@/lib/schemas/files';
+import { PDFViewer } from '@/components/ui/pdf-viewer';
 
 interface SteppedRoofReviewProps {
   taskId: string;
   roofData: RoofReportData;
+  files: FileData[];
   onNext: () => void;
   onBack: () => void;
 }
@@ -25,12 +29,19 @@ interface SteppedRoofReviewProps {
 export function SteppedRoofReview({
   taskId,
   roofData,
+  files,
   onNext,
   onBack,
 }: SteppedRoofReviewProps) {
   const [currentRoofData, setCurrentRoofData] =
     useState<RoofReportData>(roofData);
   const [isSaving, setIsSaving] = useState(false);
+  const [showPdfPreview, setShowPdfPreview] = useState(false);
+
+  // Find the roof report PDF
+  const roofPdfFile = files.find(
+    (file) => file.name.includes('roofReport') && file.name.endsWith('.pdf')
+  );
 
   const handleSave = async () => {
     if (!taskId) {
@@ -64,51 +75,84 @@ export function SteppedRoofReview({
   };
 
   return (
-    <div className="space-y-8">
-      <Card className="shadow-sm border-slate-200 pt-0">
-        <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100/50 border-b border-blue-200 rounded-t-xl pt-6">
-          <CardTitle className="text-slate-800 text-xl">
-            Review Roof Data
-          </CardTitle>
-          <CardDescription className="text-slate-600 mt-2">
-            Review and modify the extracted roof data. Make any necessary
-            corrections before proceeding to the insurance upload.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-6">
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
-            <div className="flex items-start gap-4">
-              <div className="p-2 bg-blue-200 rounded-lg flex-shrink-0">
-                <svg
-                  className="h-5 w-5 text-blue-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
+    <div className="space-y-6">
+      {/* Status Banner */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 border border-emerald-200/60">
+        <div className="absolute inset-0 bg-gradient-to-r from-emerald-100/20 to-transparent"></div>
+        <div className="relative p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="flex-shrink-0">
+                <div className="w-12 h-12 rounded-full bg-emerald-500 flex items-center justify-center shadow-lg">
+                  <Check className="w-6 h-6 text-white" />
+                </div>
               </div>
               <div>
-                <h4 className="text-sm font-semibold text-blue-800 mb-2">
+                <h3 className="text-lg font-semibold text-emerald-900 mb-1">
                   Data Extraction Complete
-                </h4>
-                <p className="text-sm text-blue-700 leading-relaxed">
-                  The roof document has been processed and data extracted.
-                  Please review the information below and make any necessary
-                  corrections to ensure accuracy.
+                </h3>
+                <p className="text-emerald-700 text-sm leading-relaxed max-w-md">
+                  Your roof document has been successfully processed. Review and
+                  edit the extracted data below to ensure accuracy.
                 </p>
               </div>
             </div>
+            {roofPdfFile && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowPdfPreview(!showPdfPreview)}
+                className="flex items-center gap-2 bg-white/80 hover:bg-white border-emerald-200 text-emerald-700 hover:text-emerald-800 shadow-sm"
+              >
+                {showPdfPreview ? (
+                  <>
+                    <EyeOff className="h-4 w-4" />
+                    Hide PDF Preview
+                  </>
+                ) : (
+                  <>
+                    <Eye className="h-4 w-4" />
+                    Show PDF Preview
+                  </>
+                )}
+              </Button>
+            )}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      <RoofDataEditor data={currentRoofData} onChange={setCurrentRoofData} />
+      <div
+        className={`${showPdfPreview && roofPdfFile ? 'grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6' : ''}`}
+      >
+        <div className={showPdfPreview && roofPdfFile ? 'xl:col-span-1' : ''}>
+          <RoofDataEditor
+            data={currentRoofData}
+            onChange={setCurrentRoofData}
+          />
+        </div>
+        {showPdfPreview && roofPdfFile && (
+          <div className="xl:col-span-1">
+            <Card className="shadow-sm border-slate-200 sticky top-2 pb-0">
+              <CardHeader className="py-0">
+                <CardTitle className="text-base font-medium py-0 flex items-center gap-2">
+                  <div className="p-2 bg-muted rounded-lg">
+                    <BsFilePdfFill className="w-5 h-5 text-primary" />
+                  </div>
+                  PDF Preview
+                </CardTitle>
+                <CardDescription className="text-sm py-0">
+                  Original roof report document
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="h-[calc(100vh-130px)] min-h-[600px]">
+                  <PDFViewer pdfUrl={roofPdfFile.url} className="h-full" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+      </div>
 
       <Card className="shadow-sm border-slate-200">
         <CardContent className="p-6">
