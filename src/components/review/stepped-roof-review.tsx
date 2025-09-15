@@ -38,8 +38,8 @@ export function SteppedRoofReview({
   const [showPdfPreview, setShowPdfPreview] = useState(false);
 
   // Find the roof report PDF
-  const roofPdfFile = files.find(file => 
-    file.name.includes('roofReport') && file.name.endsWith('.pdf')
+  const roofPdfFile = files.find(
+    (file) => file.name.includes('roofReport') && file.name.endsWith('.pdf')
   );
 
   const handleSave = async () => {
@@ -142,16 +142,23 @@ export function SteppedRoofReview({
         </CardContent>
       </Card>
 
-      <div className={`${showPdfPreview && roofPdfFile ? 'grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6' : ''}`}>
+      <div
+        className={`${showPdfPreview && roofPdfFile ? 'grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6' : ''}`}
+      >
         <div className={showPdfPreview && roofPdfFile ? 'xl:col-span-1' : ''}>
-          <RoofDataEditor data={currentRoofData} onChange={setCurrentRoofData} />
+          <RoofDataEditor
+            data={currentRoofData}
+            onChange={setCurrentRoofData}
+          />
         </div>
         {showPdfPreview && roofPdfFile && (
           <div className="xl:col-span-1">
-            <Card className="shadow-sm border-slate-200 sticky top-4">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base font-medium">PDF Preview</CardTitle>
-                <CardDescription className="text-sm">
+            <Card className="shadow-sm border-slate-200 sticky top-4 pb-0">
+              <CardHeader className="py-0">
+                <CardTitle className="text-base font-medium py-0">
+                  PDF Preview
+                </CardTitle>
+                <CardDescription className="text-sm py-0">
                   Original roof report document
                 </CardDescription>
               </CardHeader>
