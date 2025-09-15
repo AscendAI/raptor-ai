@@ -302,6 +302,7 @@ export async function getUserReviewData(taskId: string) {
       data: {
         roofData: t.roofData as RoofReportData,
         insuranceData: t.insuranceData as InsuranceReportData | undefined,
+        files: t.files || [],
         createdAt: t.createdAt!,
         updatedAt: t.updatedAt!,
       },

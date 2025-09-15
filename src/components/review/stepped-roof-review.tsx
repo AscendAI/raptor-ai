@@ -10,14 +10,17 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { Loader2, Save, ArrowRight } from 'lucide-react';
+import { Loader2, Save, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import { RoofDataEditor } from './roof-data-editor';
 import { RoofReportData } from '@/lib/schemas/extraction';
 import { saveRoofReviewData } from '@/lib/server/actions';
+import { FileData } from '@/lib/schemas/files';
+import { PDFViewer } from '@/components/ui/pdf-viewer';
 
 interface SteppedRoofReviewProps {
   taskId: string;
   roofData: RoofReportData;
+  files: FileData[];
   onNext: () => void;
   onBack: () => void;
 }
@@ -25,12 +28,19 @@ interface SteppedRoofReviewProps {
 export function SteppedRoofReview({
   taskId,
   roofData,
+  files,
   onNext,
   onBack,
 }: SteppedRoofReviewProps) {
   const [currentRoofData, setCurrentRoofData] =
     useState<RoofReportData>(roofData);
   const [isSaving, setIsSaving] = useState(false);
+  const [showPdfPreview, setShowPdfPreview] = useState(false);
+
+  // Find the roof report PDF
+  const roofPdfFile = files.find(file => 
+    file.name.includes('roofReport') && file.name.endsWith('.pdf')
+  );
 
   const handleSave = async () => {
     if (!taskId) {
@@ -67,13 +77,37 @@ export function SteppedRoofReview({
     <div className="space-y-8">
       <Card className="shadow-sm border-slate-200 pt-0">
         <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100/50 border-b border-blue-200 rounded-t-xl pt-6">
-          <CardTitle className="text-slate-800 text-xl">
-            Review Roof Data
-          </CardTitle>
-          <CardDescription className="text-slate-600 mt-2">
-            Review and modify the extracted roof data. Make any necessary
-            corrections before proceeding to the insurance upload.
-          </CardDescription>
+          <div className="flex justify-between items-start">
+            <div>
+              <CardTitle className="text-slate-800 text-xl">
+                Review Roof Data
+              </CardTitle>
+              <CardDescription className="text-slate-600 mt-2">
+                Review and modify the extracted roof data. Make any necessary
+                corrections before proceeding to the insurance upload.
+              </CardDescription>
+            </div>
+            {roofPdfFile && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowPdfPreview(!showPdfPreview)}
+                className="flex items-center gap-2"
+              >
+                {showPdfPreview ? (
+                  <>
+                    <EyeOff className="h-4 w-4" />
+                    Hide PDF
+                  </>
+                ) : (
+                  <>
+                    <Eye className="h-4 w-4" />
+                    Show PDF
+                  </>
+                )}
+              </Button>
+            )}
+          </div>
         </CardHeader>
         <CardContent className="p-6">
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
@@ -108,7 +142,28 @@ export function SteppedRoofReview({
         </CardContent>
       </Card>
 
-      <RoofDataEditor data={currentRoofData} onChange={setCurrentRoofData} />
+      <div className={`${showPdfPreview && roofPdfFile ? 'grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6' : ''}`}>
+        <div className={showPdfPreview && roofPdfFile ? 'xl:col-span-1' : ''}>
+          <RoofDataEditor data={currentRoofData} onChange={setCurrentRoofData} />
+        </div>
+        {showPdfPreview && roofPdfFile && (
+          <div className="xl:col-span-1">
+            <Card className="shadow-sm border-slate-200 sticky top-4">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base font-medium">PDF Preview</CardTitle>
+                <CardDescription className="text-sm">
+                  Original roof report document
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="h-[calc(100vh-200px)] min-h-[600px]">
+                  <PDFViewer pdfUrl={roofPdfFile.url} className="h-full" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+      </div>
 
       <Card className="shadow-sm border-slate-200">
         <CardContent className="p-6">
