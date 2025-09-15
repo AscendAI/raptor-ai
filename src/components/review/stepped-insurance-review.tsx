@@ -11,6 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Loader2, Save, ArrowRight, Eye, EyeOff, Check } from 'lucide-react';
+import { BsFilePdfFill } from 'react-icons/bs';
 import { InsuranceDataEditor } from './insurance-data-editor';
 import { InsuranceReportData, RoofReportData } from '@/lib/schemas/extraction';
 import { saveUserReviewData } from '@/lib/server/actions';
@@ -113,7 +114,8 @@ export function SteppedInsuranceReview({
                   Data Extraction Complete
                 </h3>
                 <p className="text-emerald-700 text-sm leading-relaxed max-w-md">
-                  Your insurance document has been successfully processed. Review and edit the extracted data below to ensure accuracy.
+                  Your insurance document has been successfully processed.
+                  Review and edit the extracted data below to ensure accuracy.
                 </p>
               </div>
             </div>
@@ -127,12 +129,12 @@ export function SteppedInsuranceReview({
                 {showPdfPreview ? (
                   <>
                     <EyeOff className="h-4 w-4" />
-                    Hide PDF
+                    Hide PDF Preview
                   </>
                 ) : (
                   <>
                     <Eye className="h-4 w-4" />
-                    Show PDF
+                    Show PDF Preview
                   </>
                 )}
               </Button>
@@ -156,7 +158,8 @@ export function SteppedInsuranceReview({
           <div className="xl:col-span-1">
             <Card className="shadow-sm border-slate-200 sticky top-2 pb-0">
               <CardHeader className="py-0">
-                <CardTitle className="text-base font-medium py-0">
+                <CardTitle className="text-base font-medium py-0 flex items-center gap-2">
+                  <BsFilePdfFill className="w-5 h-5 text-primary" />
                   PDF Preview
                 </CardTitle>
                 <CardDescription className="text-sm py-0">

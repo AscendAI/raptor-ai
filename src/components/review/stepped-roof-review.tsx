@@ -11,6 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Loader2, Save, ArrowRight, Eye, EyeOff, Check } from 'lucide-react';
+import { BsFilePdfFill } from 'react-icons/bs';
 import { RoofDataEditor } from './roof-data-editor';
 import { RoofReportData } from '@/lib/schemas/extraction';
 import { saveRoofReviewData } from '@/lib/server/actions';
@@ -91,7 +92,8 @@ export function SteppedRoofReview({
                   Data Extraction Complete
                 </h3>
                 <p className="text-emerald-700 text-sm leading-relaxed max-w-md">
-                  Your roof document has been successfully processed. Review and edit the extracted data below to ensure accuracy.
+                  Your roof document has been successfully processed. Review and
+                  edit the extracted data below to ensure accuracy.
                 </p>
               </div>
             </div>
@@ -105,12 +107,12 @@ export function SteppedRoofReview({
                 {showPdfPreview ? (
                   <>
                     <EyeOff className="h-4 w-4" />
-                    Hide PDF
+                    Hide PDF Preview
                   </>
                 ) : (
                   <>
                     <Eye className="h-4 w-4" />
-                    Show PDF
+                    Show PDF Preview
                   </>
                 )}
               </Button>
@@ -132,11 +134,12 @@ export function SteppedRoofReview({
           <div className="xl:col-span-1">
             <Card className="shadow-sm border-slate-200 sticky top-2 pb-0">
               <CardHeader className="py-0">
-                <CardTitle className="text-base font-medium py-0">
+                <CardTitle className="text-base font-medium py-0 flex items-center gap-2">
+                  <BsFilePdfFill className="w-5 h-5 text-primary" />
                   PDF Preview
                 </CardTitle>
                 <CardDescription className="text-sm py-0">
-                  Original insurance report document
+                  Original roof report document
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-0">
