@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/card';
 import { FileText, ClipboardList, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
+import { listUserTasks } from '@/lib/server/db/model/task';
 
 export default async function DashboardPage() {
   const session = await getAuthSession();
@@ -17,30 +18,7 @@ export default async function DashboardPage() {
     return redirect('/auth');
   }
 
-  // Mock recent tasks data - replace with actual data fetching later
-  const recentTasks = [
-    {
-      id: 1,
-      title: 'Property Damage Analysis - 123 Main St',
-      type: 'Analysis',
-      date: '2024-01-15',
-      status: 'Completed',
-    },
-    {
-      id: 2,
-      title: 'Water Damage Supplement - Oak Avenue',
-      type: 'Supplement',
-      date: '2024-01-14',
-      status: 'In Progress',
-    },
-    {
-      id: 3,
-      title: 'Fire Damage Assessment - Pine Street',
-      type: 'Analysis',
-      date: '2024-01-12',
-      status: 'Completed',
-    },
-  ];
+  const tasks = await listUserTasks(session.user.id);
 
   return (
     <>
@@ -89,42 +67,54 @@ export default async function DashboardPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {recentTasks.length > 0 ? (
+          {tasks.length > 0 ? (
             <div className="space-y-4">
-              {recentTasks.map((task) => (
-                <div
-                  key={task.id}
-                  className="flex items-center justify-between p-4 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-                >
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-slate-900 dark:text-slate-100">
-                      {task.title}
-                    </h3>
-                    <div className="flex items-center space-x-4 mt-1">
-                      <span className="text-sm text-slate-600 dark:text-slate-400">
-                        {task.type}
+              {tasks.map((t) => {
+                const isCompleted = !!t.comparison;
+                const statusLabel = isCompleted ? 'Completed' : 'In Progress';
+                const statusClass = isCompleted
+                  ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                  : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400';
+                const primaryHref = isCompleted
+                  ? `/dashboard/${t.id}/results`
+                  : !t.roofData
+                  ? `/dashboard/${t.id}/roof-report-upload`
+                  : !t.insuranceData
+                  ? `/dashboard/${t.id}/insurance-report-upload`
+                  : `/dashboard/${t.id}/analysis`;
+                const actionLabel = isCompleted ? 'View' : 'Resume';
+                const displayTitle = t.name || `Task ${t.id.slice(-8)}`;
+                const updatedDate =
+                  t.updatedAt instanceof Date
+                    ? t.updatedAt
+                    : new Date(t.updatedAt as unknown as string);
+
+                return (
+                  <div
+                    key={t.id}
+                    className="flex items-center justify-between p-4 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                  >
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-slate-900 dark:text-slate-100">
+                        {displayTitle}
+                      </h3>
+                      <div className="flex items-center space-x-4 mt-1">
+                        <span className="text-sm text-slate-600 dark:text-slate-400">
+                          Updated {updatedDate.toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className={`text-xs px-2 py-1 rounded-full ${statusClass}`}>
+                        {statusLabel}
                       </span>
-                      <span className="text-sm text-slate-600 dark:text-slate-400">
-                        {new Date(task.date).toLocaleDateString()}
-                      </span>
+                      <Button asChild variant="ghost" size="sm">
+                        <Link href={primaryHref}>{actionLabel}</Link>
+                      </Button>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-3">
-                    <span
-                      className={`text-xs px-2 py-1 rounded-full ${
-                        task.status === 'Completed'
-                          ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-                          : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
-                      }`}
-                    >
-                      {task.status}
-                    </span>
-                    <Button variant="ghost" size="sm">
-                      View
-                    </Button>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <div className="text-center text-slate-500 dark:text-slate-400 py-8">

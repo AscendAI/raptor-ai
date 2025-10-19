@@ -1,6 +1,6 @@
 import { db } from "@/lib/server/db";
 import { task } from "@/lib/server/db/schema";
-import { and, eq } from "drizzle-orm";
+import { and, eq, desc } from "drizzle-orm";
 import type { TaskInsert, TaskSelect } from "@/lib/server/db/schema/task";
 
 type TaskUpsertData = Partial<
@@ -36,6 +36,16 @@ export async function getTaskData(
     where: (tbl, { and, eq }) =>
       and(eq(tbl.id, taskId), eq(tbl.userId, userId)),
   });
+}
+
+// List all tasks for a user, newest first
+export async function listUserTasks(userId: string): Promise<TaskSelect[]> {
+  const rows = await db
+    .select()
+    .from(task)
+    .where(eq(task.userId, userId))
+    .orderBy(desc(task.updatedAt));
+  return rows as TaskSelect[];
 }
 
 // Optional: delete a task (currently a no-op to preserve history)
