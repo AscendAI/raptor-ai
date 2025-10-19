@@ -5,16 +5,21 @@ import { getAuthSession } from '@/lib/server/auth';
 import { revalidateTaskData } from '../cache';
 import { upsertTaskData } from '@/lib/server/db/services/tasksService';
 
-// Create a new empty task and return a server-generated taskId
-export async function startNewTask() {
+// Create a new task with a name and return a server-generated taskId
+export async function startNewTask(name: string) {
   try {
     const session = await getAuthSession();
     if (!session?.user?.id) {
       return { success: false, error: 'Not authenticated' } as const;
     }
 
+    const trimmedName = (name ?? '').trim();
+    if (!trimmedName) {
+      return { success: false, error: 'Task name is required' } as const;
+    }
+
     const taskId = randomUUID();
-    await upsertTaskData(session.user.id, taskId, {});
+    await upsertTaskData(session.user.id, taskId, { name: trimmedName });
     revalidateTaskData(taskId);
 
     return { success: true, taskId } as const;

@@ -12,7 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Loader2, CheckCircle, AlertCircle, BarChart3 } from 'lucide-react';
 import { toast } from 'sonner';
-import { completeAnalysisWorkflow } from '@/lib/server/actions';
+import { completeAnalysisWorkflow } from '@/lib/server/actions/completeAnalysisWorkflow';
 import { WorkflowLayout } from '@/components/common/workflow-layout';
 
 interface AnalysisStep {
@@ -85,7 +85,7 @@ export default function AnalysisPage() {
       updateStepStatus(0, 'running');
 
       // First, verify the task exists and has required data
-      const { getUserReviewData } = await import('@/lib/server/actions');
+      const { getUserReviewData } = await import('@/lib/server/actions/getUserReviewData');
       const taskData = await getUserReviewData(taskId);
 
       console.log('Task data retrieved:', taskData);

@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
-import { getUserReviewData } from '@/lib/server/actions';
+import { getUserReviewData } from '@/lib/server/actions/getUserReviewData';
 import { SteppedRoofReview } from '@/components/review/stepped-roof-review';
 import { RoofReportData, InsuranceReportData } from '@/lib/types/extraction';
 import { WorkflowLayout } from '@/components/common/workflow-layout';

@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import { RoofReportData, InsuranceReportData } from '@/lib/types/extraction';
 import { ComparisonResult } from '@/lib/types/comparison';
-import { getAnalysisResults } from '@/lib/server/actions';
+import { getAnalysisResults } from '@/lib/server/actions/getAnalysisResults';
 import { ComparisonResults } from '@/components/results/comparison-results';
 import { toast } from 'sonner';
 import { WorkflowLayout } from '@/components/common/workflow-layout';

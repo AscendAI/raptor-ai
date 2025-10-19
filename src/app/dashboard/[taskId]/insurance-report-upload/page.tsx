@@ -13,10 +13,8 @@ import { Button } from '@/components/ui/button';
 import { FileUpload } from '@/components/ui/file-upload';
 import { Loader2, Upload, FileText, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
-import {
-  extractAndSaveInsuranceData,
-  getUserReviewData,
-} from '@/lib/server/actions';
+import { extractAndSaveInsuranceData } from '@/lib/server/actions/extractAndSaveInsuranceData';
+import { getUserReviewData } from '@/lib/server/actions/getUserReviewData';
 import { convertPdfToImages } from '@/lib/utils/pdf';
 import { WorkflowLayout } from '@/components/common/workflow-layout';
 
