@@ -63,12 +63,12 @@ export default function RoofReportReviewPage() {
 
   const handleContinue = () => {
     // Navigate to insurance upload page
-    router.push(`/dashboard/insurance-report-upload/${taskId}`);
+    router.push(`/dashboard/${taskId}/insurance-report-upload`);
   };
 
   const handleBack = () => {
     // Navigate back to roof upload page
-    router.push(`/dashboard/roof-report-upload/${taskId}`);
+    router.push(`/dashboard/${taskId}/roof-report-upload`);
   };
 
   if (loading) {

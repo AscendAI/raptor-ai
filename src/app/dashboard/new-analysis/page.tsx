@@ -22,7 +22,7 @@ export default function NewAnalysisPage() {
       if (!res.success || !res.taskId) {
         throw new Error(res.error || 'Failed to start a new task');
       }
-      router.push(`/dashboard/roof-report-upload/${res.taskId}`);
+      router.push(`/dashboard/${res.taskId}/roof-report-upload`);
     } catch (e) {
       console.error(e);
       // Fallback: send to dashboard on failure

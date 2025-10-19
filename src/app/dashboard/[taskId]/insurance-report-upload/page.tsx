@@ -91,35 +91,47 @@ export default function InsuranceReportUploadPage() {
       }
 
       toast.success('Insurance document processed successfully!');
-      
+
       // Verify data exists before navigation with retry mechanism
       const maxRetries = 3;
       let retryCount = 0;
       let verificationResult;
-      
+
       while (retryCount < maxRetries) {
-         console.log(`Verifying insurance data${retryCount > 0 ? ` (attempt ${retryCount + 1}/${maxRetries})` : ''}...`);
-         verificationResult = await getUserReviewData(taskId);
-         
-         if (verificationResult.success && verificationResult.data?.insuranceData) {
-           break;
-         }
-         
-         retryCount++;
-         if (retryCount < maxRetries) {
-           // Wait before retry with exponential backoff
-           console.log(`Retrying in ${retryCount} second(s)...`);
-           await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
-         }
-       }
-       
-       if (!verificationResult?.success || !verificationResult.data?.insuranceData) {
-         throw new Error('Data verification failed after multiple attempts - insurance data not found in database');
-       }
-       
-       console.log('Insurance data verified successfully!');
+        console.log(
+          `Verifying insurance data${retryCount > 0 ? ` (attempt ${retryCount + 1}/${maxRetries})` : ''}...`
+        );
+        verificationResult = await getUserReviewData(taskId);
+
+        if (
+          verificationResult.success &&
+          verificationResult.data?.insuranceData
+        ) {
+          break;
+        }
+
+        retryCount++;
+        if (retryCount < maxRetries) {
+          // Wait before retry with exponential backoff
+          console.log(`Retrying in ${retryCount} second(s)...`);
+          await new Promise((resolve) =>
+            setTimeout(resolve, 1000 * retryCount)
+          );
+        }
+      }
+
+      if (
+        !verificationResult?.success ||
+        !verificationResult.data?.insuranceData
+      ) {
+        throw new Error(
+          'Data verification failed after multiple attempts - insurance data not found in database'
+        );
+      }
+
+      console.log('Insurance data verified successfully!');
       // Navigate to insurance review page
-      router.push(`/dashboard/insurance-report-review/${taskId}`);
+      router.push(`/dashboard/${taskId}/insurance-report-review`);
     } catch (error) {
       console.error('Error processing insurance document:', error);
       toast.error('Failed to process insurance document');
@@ -128,7 +140,7 @@ export default function InsuranceReportUploadPage() {
   };
 
   const handleBack = () => {
-    router.push(`/dashboard/roof-report-review/${taskId}`);
+    router.push(`/dashboard/${taskId}/roof-report-review`);
   };
 
   if (loading) {
