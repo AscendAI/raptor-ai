@@ -69,11 +69,11 @@ export default function InsuranceReportReviewPage() {
 
   const handleContinue = () => {
     // Navigate directly to analysis page
-    router.push(`/dashboard/analysis/${taskId}`);
+    router.push(`/dashboard/${taskId}/analysis`);
   };
   const handleBack = () => {
     // Navigate back to insurance upload page
-    router.push(`/dashboard/insurance-report-upload/${taskId}`);
+    router.push(`/dashboard/${taskId}/insurance-report-upload`);
   };
 
   if (loading) {

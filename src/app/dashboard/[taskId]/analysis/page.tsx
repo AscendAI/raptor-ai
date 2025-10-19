@@ -106,7 +106,7 @@ export default function AnalysisPage() {
         if (!taskData.data?.roofData) {
           toast.error('Roof data not found. Redirecting to roof upload...');
           setTimeout(
-            () => router.push(`/dashboard/roof-report-upload/${taskId}`),
+            () => router.push(`/dashboard/${taskId}/roof-report-upload`),
             2000
           );
         } else if (!taskData.data?.insuranceData) {
@@ -114,7 +114,7 @@ export default function AnalysisPage() {
             'Insurance data not found. Redirecting to insurance upload...'
           );
           setTimeout(
-            () => router.push(`/dashboard/insurance-report-upload/${taskId}`),
+            () => router.push(`/dashboard/${taskId}/insurance-report-upload`),
             2000
           );
         }
@@ -161,7 +161,7 @@ export default function AnalysisPage() {
 
       // Redirect to results page after a brief delay
       setTimeout(() => {
-        router.push(`/dashboard/results/${taskId}`);
+        router.push(`/dashboard/${taskId}/results`);
       }, 1500);
     } catch (err) {
       console.error('Error during analysis:', err);
@@ -197,7 +197,7 @@ export default function AnalysisPage() {
   };
 
   const handleGoBack = () => {
-    router.push(`/dashboard/insurance-report-review/${taskId}`);
+    router.push(`/dashboard/${taskId}/insurance-report-review`);
   };
 
   return (
