@@ -1,4 +1,4 @@
-import { getTaskData } from "../db/model/task";
+import { getTaskData } from "../db/services/tasksService";
 import { unstable_cache as cache , revalidateTag} from "next/cache";
 
 export const getCachedTaskData = (userId: string, taskId: string) => {

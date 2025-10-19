@@ -1,10 +1,10 @@
-import { db } from "@/lib/server/db";
-import { task } from "@/lib/server/db/schema";
-import { and, eq, desc } from "drizzle-orm";
-import type { TaskInsert, TaskSelect } from "@/lib/server/db/schema/task";
+import { db } from '@/lib/server/db';
+import { task } from '@/lib/server/db/schema';
+import { and, eq, desc } from 'drizzle-orm';
+import type { TaskInsert, TaskSelect } from '@/lib/server/db/schema/task';
 
 type TaskUpsertData = Partial<
-  Omit<TaskInsert, "id" | "userId" | "createdAt" | "updatedAt">
+  Omit<TaskInsert, 'id' | 'userId' | 'createdAt' | 'updatedAt'>
 >;
 
 export async function upsertTaskData(
@@ -28,10 +28,7 @@ export async function upsertTaskData(
     });
 }
 
-export async function getTaskData(
-  userId: string,
-  taskId: string
-) {
+export async function getTaskData(userId: string, taskId: string) {
   return db.query.task.findFirst({
     where: (tbl, { and, eq }) =>
       and(eq(tbl.id, taskId), eq(tbl.userId, userId)),
