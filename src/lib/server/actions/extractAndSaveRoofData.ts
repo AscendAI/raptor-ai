@@ -2,7 +2,7 @@
 
 import { analyseRoofReport } from '../ai/openai';
 import { parseRoofReportData } from '../../types/extraction';
-import { uploadFile } from '../uploadthing';
+import { uploadFile, deleteFiles } from '../uploadthing';
 import { getAuthSession } from '@/lib/server/auth';
 import { getCachedTaskData, revalidateTaskData } from '../cache';
 import { upsertTaskData } from '@/lib/server/db/services/tasksService';
@@ -44,30 +44,35 @@ export async function extractAndSaveRoofData(
     }
 
     const filePdfName = `task_${taskId}_roofReport.pdf`;
-    const fileExists = task.files?.some((f) => f.name === filePdfName);
+const existingFile = task.files?.find((f) => f.name === filePdfName);
+if (existingFile) {
+  await deleteFiles([existingFile.id]);
+  task.files = (task.files || []).filter((f) => f.name !== filePdfName);
+}
 
-    if (!fileExists) {
-      const updatedFile = new File(
-        [await roofReport.arrayBuffer()],
-        filePdfName,
-        { type: 'application/pdf' }
-      );
+const updatedFile = new File(
+  [await roofReport.arrayBuffer()],
+  filePdfName,
+  { type: 'application/pdf' }
+);
 
-      const uploadedFiles = await uploadFile(updatedFile);
-      const roofReportFiles = uploadedFiles
-        .filter((res) => ('data' in res ? true : false))
-        .map((file) => ({
-          id: file.data!.key,
-          name: file.data!.name,
-          url: file.data!.ufsUrl,
-        }));
-      task.files = [...roofReportFiles, ...(task.files || [])];
-    }
+const uploadedFiles = await uploadFile(updatedFile);
+const roofReportFiles = uploadedFiles
+  .filter((res) => ('data' in res ? true : false))
+  .map((file) => ({
+    id: file.data!.key,
+    name: file.data!.name,
+    url: file.data!.ufsUrl,
+  }));
+
+// Prepend newest roof file and keep other files (e.g., insurance) intact
+task.files = [...roofReportFiles, ...(task.files || [])];
 
     await upsertTaskData(session.user.id, taskId, {
-      roofData: roofResult.data,
-      files: task.files,
-    });
+  roofData: roofResult.data,
+  files: task.files,
+  comparison: null,
+});
     revalidateTaskData(taskId);
 
     return {

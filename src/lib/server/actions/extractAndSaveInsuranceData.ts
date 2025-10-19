@@ -2,7 +2,7 @@
 
 import { analyseInsuranceReport } from '../ai/openai';
 import { parseInsuranceReportData } from '../../types/extraction';
-import { uploadFile } from '../uploadthing';
+import { uploadFile, deleteFiles } from '../uploadthing';
 import { getAuthSession } from '@/lib/server/auth';
 import { getCachedTaskData, revalidateTaskData } from '../cache';
 import { upsertTaskData } from '@/lib/server/db/services/tasksService';
@@ -46,30 +46,36 @@ export async function extractAndSaveInsuranceData(
     }
 
     const filePdfName = `task_${taskId}_insuranceReport.pdf`;
-    const fileExists = task.files?.some((f) => f.name === filePdfName);
+const existingFile = task.files?.find((f) => f.name === filePdfName);
+if (existingFile) {
+  await deleteFiles([existingFile.id]);
+  task.files = (task.files || []).filter((f) => f.name !== filePdfName);
+}
 
-    if (!fileExists) {
-      const updatedFile = new File(
-        [await insuranceReport.arrayBuffer()],
-        filePdfName,
-        { type: 'application/pdf' }
-      );
+const updatedFile = new File(
+  [await insuranceReport.arrayBuffer()],
+  filePdfName,
+  { type: 'application/pdf' }
+);
 
-      const uploadedFiles = await uploadFile(updatedFile);
-      const insuranceReportFiles = uploadedFiles
-        .filter((res) => ('data' in res ? true : false))
-        .map((file) => ({
-          id: file.data!.key,
-          name: file.data!.name,
-          url: file.data!.ufsUrl,
-        }));
-      task.files = [...insuranceReportFiles, ...(task.files || [])];
-    }
+const uploadedFiles = await uploadFile(updatedFile);
+const insuranceReportFiles = uploadedFiles
+  .filter((res) => ('data' in res ? true : false))
+  .map((file) => ({
+    id: file.data!.key,
+    name: file.data!.name,
+    url: file.data!.ufsUrl,
+  }));
+
+// Prepend newest insurance file and keep other files (e.g., roof) intact
+task.files = [...insuranceReportFiles, ...(task.files || [])];
 
     await upsertTaskData(session.user.id, taskId, {
       files: task.files,
       insuranceData: insuranceResult.data,
+      comparison: null,
     });
+
     revalidateTaskData(taskId);
 
     return {

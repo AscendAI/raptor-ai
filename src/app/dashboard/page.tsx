@@ -45,7 +45,11 @@ export default async function DashboardPage() {
                 const status = getStatusLabel(t);
                 const actionHref = t.comparison
                   ? `/dashboard/${t.id}/results`
-                  : `/dashboard/${t.id}/review`;
+                  : t.roofData && t.insuranceData
+                  ? `/dashboard/${t.id}/analysis`
+                  : t.roofData
+                  ? `/dashboard/${t.id}/roof-report-review`
+                  : `/dashboard/${t.id}/roof-report-upload`;
                 const actionLabel = t.comparison ? 'View' : 'Resume';
                 return (
                   <div
@@ -64,13 +68,15 @@ export default async function DashboardPage() {
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
-                      {t.comparison ? (
-                        <TrendingUp className="h-4 w-4 text-primary" />
-                      ) : (
-                        <ClipboardList className="h-4 w-4 text-primary" />
-                      )}
                       <Button asChild variant="outline" size="sm">
-                        <Link href={actionHref}>{actionLabel}</Link>
+                        <Link href={actionHref} className="inline-flex items-center">
+                          {t.comparison ? (
+                            <TrendingUp className="mr-2 h-4 w-4" />
+                          ) : (
+                            <ClipboardList className="mr-2 h-4 w-4" />
+                          )}
+                          <span>{actionLabel}</span>
+                        </Link>
                       </Button>
                     </div>
                   </div>
