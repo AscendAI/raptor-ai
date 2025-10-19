@@ -13,9 +13,9 @@ import { toast } from 'sonner';
 import { Loader2, Save, ArrowRight, Eye, EyeOff, Check } from 'lucide-react';
 import { BsFilePdfFill } from 'react-icons/bs';
 import { InsuranceDataEditor } from './insurance-data-editor';
-import { InsuranceReportData, RoofReportData } from '@/lib/schemas/extraction';
+import { InsuranceReportData, RoofReportData } from '@/lib/types/extraction';
 import { saveUserReviewData } from '@/lib/server/actions';
-import { FileData } from '@/lib/schemas/files';
+import { FileData } from '@/lib/types/files';
 import { PDFViewer } from '@/components/ui/pdf-viewer';
 
 interface SteppedInsuranceReviewProps {

@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Trash2 } from 'lucide-react';
-import { InsuranceReportData } from '@/lib/schemas/extraction';
+import { InsuranceReportData } from '@/lib/types/extraction';
 
 interface InsuranceDataEditorProps {
   data: InsuranceReportData;

@@ -13,9 +13,9 @@ import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { getUserReviewData } from '@/lib/server/actions';
 import { SteppedRoofReview } from '@/components/review/stepped-roof-review';
-import { RoofReportData, InsuranceReportData } from '@/lib/schemas/extraction';
+import { RoofReportData, InsuranceReportData } from '@/lib/types/extraction';
 import { WorkflowLayout } from '@/components/common/workflow-layout';
-import { FileData } from '@/lib/schemas/files';
+import { FileData } from '@/lib/types/files';
 
 interface TaskDetails {
   roofData: RoofReportData;

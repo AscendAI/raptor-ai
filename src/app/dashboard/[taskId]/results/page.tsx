@@ -18,8 +18,8 @@ import {
   FileText,
   TrendingUp,
 } from 'lucide-react';
-import { RoofReportData, InsuranceReportData } from '@/lib/schemas/extraction';
-import { ComparisonResult } from '@/lib/schemas/comparison';
+import { RoofReportData, InsuranceReportData } from '@/lib/types/extraction';
+import { ComparisonResult } from '@/lib/types/comparison';
 import { getAnalysisResults } from '@/lib/server/actions';
 import { ComparisonResults } from '@/components/results/comparison-results';
 import { toast } from 'sonner';

@@ -1,5 +1,5 @@
 import OpenAI from 'openai';
-import { ComparisonResult } from '../../schemas/comparison';
+import { ComparisonResult } from '../../types/comparison';
 
 const client = new OpenAI({
   apiKey: process.env['OPENAI_API_KEY'], // This is the default and can be omitted
@@ -228,16 +228,16 @@ export async function analyseComparison(
 ): Promise<ComparisonResult>;
 
 export async function analyseComparison(
-  roofReportData: import('../../schemas/extraction').RoofReportData,
-  insuranceReportData: import('../../schemas/extraction').InsuranceReportData
+  roofReportData: import('../../types/extraction').RoofReportData,
+  insuranceReportData: import('../../types/extraction').InsuranceReportData
 ): Promise<ComparisonResult>;
 
 // Implementation
 export async function analyseComparison(
-  roofReportInput: string | import('../../schemas/extraction').RoofReportData,
+  roofReportInput: string | import('../../types/extraction').RoofReportData,
   insuranceReportInput:
     | string
-    | import('../../schemas/extraction').InsuranceReportData
+    | import('../../types/extraction').InsuranceReportData
 ): Promise<ComparisonResult> {
   // Convert inputs to string format for AI processing
   let roofReportText: string;

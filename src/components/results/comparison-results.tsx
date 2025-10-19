@@ -20,7 +20,7 @@ import {
   type ComparisonResult,
   type ComparisonCheckpoint,
   statusConfig,
-} from '@/lib/schemas/comparison';
+} from '@/lib/types/comparison';
 import { cn } from '@/lib/utils';
 
 interface ComparisonResultsProps {

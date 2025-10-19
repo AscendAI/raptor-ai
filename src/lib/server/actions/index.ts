@@ -12,8 +12,8 @@ import {
   stringifyForComparison,
   type RoofReportData,
   type InsuranceReportData,
-} from '../../schemas/extraction';
-import { type ComparisonResult } from '../../schemas/comparison';
+} from '../../types/extraction';
+import { type ComparisonResult } from '../../types/comparison';
 import {
   upsertTaskData,
   getTaskData,

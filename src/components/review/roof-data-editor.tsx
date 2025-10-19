@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Trash2, Edit3 } from 'lucide-react';
-import { RoofReportData } from '@/lib/schemas/extraction';
+import { RoofReportData } from '@/lib/types/extraction';
 
 interface RoofDataEditorProps {
   data: RoofReportData;
@@ -84,7 +84,7 @@ export function RoofDataEditor({ data, onChange }: RoofDataEditorProps) {
     value: string | boolean
   ) => {
     let updated;
-    
+
     // If updating the 'recommended' field and setting it to true,
     // ensure all other items have recommended set to false
     if (field === 'recommended' && value === true) {
@@ -100,7 +100,7 @@ export function RoofDataEditor({ data, onChange }: RoofDataEditorProps) {
         i === index ? { ...item, [field]: value } : item
       );
     }
-    
+
     onChange({
       ...data,
       waste_table: updated,
