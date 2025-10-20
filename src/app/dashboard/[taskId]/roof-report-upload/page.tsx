@@ -1,159 +1,90 @@
-'use client';
-
-import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { FileUpload } from '@/components/ui/file-upload';
-import { Loader2, Upload, FileText } from 'lucide-react';
-import { toast } from 'sonner';
-import {
-  extractAndSaveRoofData,
-  getUserReviewData,
-} from '@/lib/server/actions';
-import { convertPdfToImages } from '@/lib/utils/pdf';
+import React from 'react';
+import { notFound, redirect } from 'next/navigation';
+import { getAuthSession } from '@/lib/server/auth';
+import { getTaskData } from '@/lib/server/db/services/tasksService';
 import { WorkflowLayout } from '@/components/common/workflow-layout';
+import { RoofReportUpload } from '@/components/upload-reports/roof-report-upload';
+import { getStepRoutesForTask, getStepsForIndicator } from '@/lib/constants/workflow';
 
-export default function RoofReportUploadPage() {
-  const params = useParams();
-  const router = useRouter();
-  const taskId = params.taskId as string;
+interface PageProps {
+  params: Promise<{ taskId: string }>;
+}
 
-  const [roofFile, setRoofFile] = useState<File | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
+export default async function Page({ params }: PageProps) {
+  const { taskId } = await params;
+  const session = await getAuthSession();
+  if (!session?.user?.id) {
+    redirect('/api/auth/signin');
+  }
+  const task = await getTaskData(session.user.id, taskId);
 
-  useEffect(() => {
-    // Validate that we have a task ID
-    if (!taskId) {
-      toast.error('Invalid task ID');
-      router.push('/dashboard');
-      return;
+  if (!task) {
+    notFound();
+  }
+
+  const currentStep = 1;
+  const steps = getStepsForIndicator();
+  const baseHrefs = getStepRoutesForTask(taskId);
+  const hrefMap = { ...baseHrefs };
+  const tooltipMap: Record<string, string> = {};
+
+  const isRoofDone = !!task.roofData;
+  const isInsuranceDone = !!task.insuranceData;
+  const isAnalysisDone = !!task.comparison;
+
+  steps.forEach((step, idx) => {
+    const num = idx + 1;
+    const isFuture = num > currentStep;
+    let done = false;
+    switch (step.id) {
+      case 'roof-upload':
+      case 'roof-review':
+        done = isRoofDone;
+        break;
+      case 'insurance-upload':
+      case 'insurance-review':
+        done = isInsuranceDone;
+        break;
+      case 'analysis-results':
+        done = isAnalysisDone;
+        break;
+      default:
+        done = false;
     }
-  }, [taskId, router]);
-
-  const handleRoofFileChange = (file: File | null) => {
-    setRoofFile(file);
-  };
-
-  const processRoofDocument = async () => {
-    if (!roofFile) return;
-
-    setIsProcessing(true);
-    try {
-      toast.info('Processing roof document...');
-
-      // Convert PDF to images
-      const roofImages = await convertPdfToImages(roofFile);
-
-      // Extract roof data
-      toast.info('Extracting roof data...');
-      const extractionResult = await extractAndSaveRoofData(
-        roofImages,
-        taskId,
-        roofFile
-      );
-
-      console.log('Roof extraction result:', extractionResult);
-
-      if (!extractionResult.success || !extractionResult.data) {
-        throw new Error(
-          extractionResult.error || 'Failed to extract roof data'
-        );
-      }
-
-      toast.success('Roof document processed successfully!');
-
-      // Verify data exists before navigation with retry mechanism
-      const maxRetries = 3;
-      let retryCount = 0;
-      let verificationResult;
-
-      while (retryCount < maxRetries) {
-        console.log(
-          `Verifying roof data${retryCount > 0 ? ` (attempt ${retryCount + 1}/${maxRetries})` : ''}...`
-        );
-        verificationResult = await getUserReviewData(taskId);
-
-        if (verificationResult.success && verificationResult.data?.roofData) {
-          break;
-        }
-
-        retryCount++;
-        if (retryCount < maxRetries) {
-          // Wait before retry with exponential backoff
-          console.log(`Retrying in ${retryCount} second(s)...`);
-          await new Promise((resolve) =>
-            setTimeout(resolve, 1000 * retryCount)
-          );
-        }
-      }
-
-      if (!verificationResult?.success || !verificationResult.data?.roofData) {
-        throw new Error(
-          'Data verification failed after multiple attempts - roof data not found in database'
-        );
-      }
-
-      console.log('Roof data verified successfully!');
-      // Navigate to roof review page with the same taskId
-      router.push(`/dashboard/${taskId}/roof-report-review`);
-    } catch (error) {
-      console.error('Error processing roof document:', error);
-      toast.error('Failed to process roof document');
+    if (isFuture && !done) {
+      delete hrefMap[step.id];
+      tooltipMap[step.id] =
+        step.id === 'roof-review'
+          ? 'Upload roof report to review data.'
+          : step.id === 'insurance-upload'
+          ? 'Complete roof review first to upload insurance report.'
+          : step.id === 'insurance-review'
+          ? 'Upload insurance report to review its data.'
+          : step.id === 'analysis-results'
+          ? 'Results not generated yet. Finish reviews and start analysis.'
+          : 'Complete previous steps first.';
     }
-    setIsProcessing(false);
-  };
+  });
+
+  if (isAnalysisDone) {
+    hrefMap['analysis-results'] = `/dashboard/${taskId}/results`;
+    delete tooltipMap['analysis-results'];
+  } else {
+    delete hrefMap['analysis-results'];
+    tooltipMap['analysis-results'] = 'Results not generated yet. Complete uploads and reviews first.';
+  }
 
   return (
     <WorkflowLayout
       title="Upload Roof Report"
-      description="Upload your roofing document to begin the analysis process"
+      description="Provide your roof inspection report to begin analysis"
+      taskId={taskId}
+      taskName={task?.name ?? undefined}
+      currentStep={1}
+      hrefMap={hrefMap}
+      tooltipMap={tooltipMap}
     >
-      <Card className="max-w-2xl mx-auto">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Roof Report Document
-          </CardTitle>
-          <CardDescription>
-            Please upload your roof inspection report (PDF format)
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <FileUpload
-            id="roof-file"
-            accept=".pdf"
-            selectedFile={roofFile}
-            onFileSelect={handleRoofFileChange}
-            disabled={isProcessing}
-          />
-
-          <Button
-            onClick={processRoofDocument}
-            disabled={!roofFile || isProcessing}
-            className="w-full"
-            size="lg"
-          >
-            {isProcessing ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Processing Document...
-              </>
-            ) : (
-              <>
-                <Upload className="h-4 w-4 mr-2" />
-                Upload and Process
-              </>
-            )}
-          </Button>
-        </CardContent>
-      </Card>
+      <RoofReportUpload taskId={taskId} />
     </WorkflowLayout>
   );
 }

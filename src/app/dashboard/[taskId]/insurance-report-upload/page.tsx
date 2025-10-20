@@ -1,232 +1,99 @@
-'use client';
-
-import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { FileUpload } from '@/components/ui/file-upload';
-import { Loader2, Upload, FileText, ArrowLeft } from 'lucide-react';
-import { toast } from 'sonner';
-import {
-  extractAndSaveInsuranceData,
-  getUserReviewData,
-} from '@/lib/server/actions';
-import { convertPdfToImages } from '@/lib/utils/pdf';
+import React from 'react';
+import { redirect } from 'next/navigation';
+import { getAuthSession } from '@/lib/server/auth';
+import { getTaskData } from '@/lib/server/db/services/tasksService';
 import { WorkflowLayout } from '@/components/common/workflow-layout';
+import { InsuranceReportUpload } from '@/components/upload-reports/insurance-report-upload';
+import { getStepRoutesForTask, getStepsForIndicator } from '@/lib/constants/workflow';
+import { RedirectWithNotice } from '@/components/common/redirect-with-notice';
 
-export default function InsuranceReportUploadPage() {
-  const params = useParams();
-  const router = useRouter();
-  const taskId = params.taskId as string;
+interface PageProps {
+  params: Promise<{ taskId: string }>; 
+}
 
-  const [insuranceFile, setInsuranceFile] = useState<File | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [taskExists, setTaskExists] = useState(false);
-  const [loading, setLoading] = useState(true);
+export default async function Page({ params }: PageProps) {
+  const { taskId } = await params;
+  const session = await getAuthSession();
+  if (!session?.user?.id) {
+    redirect('/api/auth/signin');
+  }
 
-  useEffect(() => {
-    const checkTask = async () => {
-      if (!taskId) {
-        toast.error('Invalid task ID');
-        router.push('/dashboard');
-        return;
-      }
+  const task = await getTaskData(session.user.id, taskId);
 
-      try {
-        const result = await getUserReviewData(taskId);
-        if (result.success && result.data?.roofData) {
-          setTaskExists(true);
-        } else {
-          toast.error('Task not found or roof data missing');
-          router.push('/dashboard');
-          return;
-        }
-      } catch (error) {
-        console.error('Error checking task:', error);
-        toast.error('Failed to verify task');
-        router.push('/dashboard');
-        return;
-      } finally {
-        setLoading(false);
-      }
-    };
+  if (!task) {
+    redirect('/dashboard');
+  }
 
-    checkTask();
-  }, [taskId, router]);
-
-  const handleInsuranceFileChange = (file: File | null) => {
-    setInsuranceFile(file);
-  };
-
-  const processInsuranceDocument = async () => {
-    if (!insuranceFile) return;
-
-    setIsProcessing(true);
-    try {
-      toast.info('Processing insurance document...');
-
-      // Convert PDF to images
-      const insuranceImages = await convertPdfToImages(insuranceFile);
-
-      // Extract insurance data
-      toast.info('Extracting insurance data...');
-      const extractionResult = await extractAndSaveInsuranceData(
-        insuranceImages,
-        taskId,
-        insuranceFile
-      );
-
-      console.log('Insurance extraction result:', extractionResult);
-
-      if (!extractionResult.success || !extractionResult.data) {
-        throw new Error(
-          extractionResult.error || 'Failed to extract insurance data'
-        );
-      }
-
-      toast.success('Insurance document processed successfully!');
-
-      // Verify data exists before navigation with retry mechanism
-      const maxRetries = 3;
-      let retryCount = 0;
-      let verificationResult;
-
-      while (retryCount < maxRetries) {
-        console.log(
-          `Verifying insurance data${retryCount > 0 ? ` (attempt ${retryCount + 1}/${maxRetries})` : ''}...`
-        );
-        verificationResult = await getUserReviewData(taskId);
-
-        if (
-          verificationResult.success &&
-          verificationResult.data?.insuranceData
-        ) {
-          break;
-        }
-
-        retryCount++;
-        if (retryCount < maxRetries) {
-          // Wait before retry with exponential backoff
-          console.log(`Retrying in ${retryCount} second(s)...`);
-          await new Promise((resolve) =>
-            setTimeout(resolve, 1000 * retryCount)
-          );
-        }
-      }
-
-      if (
-        !verificationResult?.success ||
-        !verificationResult.data?.insuranceData
-      ) {
-        throw new Error(
-          'Data verification failed after multiple attempts - insurance data not found in database'
-        );
-      }
-
-      console.log('Insurance data verified successfully!');
-      // Navigate to insurance review page
-      router.push(`/dashboard/${taskId}/insurance-report-review`);
-    } catch (error) {
-      console.error('Error processing insurance document:', error);
-      toast.error('Failed to process insurance document');
-    }
-    setIsProcessing(false);
-  };
-
-  const handleBack = () => {
-    router.push(`/dashboard/${taskId}/roof-report-review`);
-  };
-
-  if (loading) {
+  if (!task.roofData) {
     return (
-      <WorkflowLayout>
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-center">
-            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-            <p className="text-muted-foreground">Verifying task...</p>
-          </div>
-        </div>
-      </WorkflowLayout>
+      <RedirectWithNotice
+        to={`/dashboard/${taskId}/roof-report-review`}
+        message="Please review roof data before uploading insurance report."
+        title="Prerequisite Not Met"
+      />
     );
   }
 
-  if (!taskExists) {
-    return (
-      <WorkflowLayout>
-        <Card className="max-w-2xl mx-auto">
-          <CardHeader>
-            <CardTitle>Task Not Found</CardTitle>
-            <CardDescription>
-              The specified task could not be found or does not have roof data.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button onClick={() => router.push('/dashboard')} variant="outline">
-              Return to Dashboard
-            </Button>
-          </CardContent>
-        </Card>
-      </WorkflowLayout>
-    );
+  const currentStep = 3;
+  const steps = getStepsForIndicator();
+  const baseHrefs = getStepRoutesForTask(taskId);
+  const hrefMap = { ...baseHrefs };
+  const tooltipMap: Record<string, string> = {};
+
+  const isRoofDone = !!task.roofData;
+  const isInsuranceDone = !!task.insuranceData;
+  const isAnalysisDone = !!task.comparison;
+
+  steps.forEach((step, idx) => {
+    const num = idx + 1;
+    const isFuture = num > currentStep;
+    let done = false;
+    switch (step.id) {
+      case 'roof-upload':
+      case 'roof-review':
+        done = isRoofDone;
+        break;
+      case 'insurance-upload':
+      case 'insurance-review':
+        done = isInsuranceDone;
+        break;
+      case 'analysis-results':
+        done = isAnalysisDone;
+        break;
+      default:
+        done = false;
+    }
+    if (isFuture && !done) {
+      delete hrefMap[step.id];
+      tooltipMap[step.id] =
+        step.id === 'insurance-review'
+          ? 'Upload insurance report to review its data.'
+          : step.id === 'analysis-results'
+          ? 'Results not generated yet. Complete uploads and reviews first.'
+          : 'Complete previous steps first.';
+    }
+  });
+
+  if (isAnalysisDone) {
+    hrefMap['analysis-results'] = `/dashboard/${taskId}/results`;
+    delete tooltipMap['analysis-results'];
+  } else {
+    // Ensure last step is disabled until analysis is complete
+    delete hrefMap['analysis-results'];
+    tooltipMap['analysis-results'] = 'Results not generated yet. Complete uploads and reviews first.';
   }
 
   return (
     <WorkflowLayout
       title="Upload Insurance Report"
       description="Upload your insurance document to continue the analysis process"
+      taskId={taskId}
+      taskName={task?.name ?? undefined}
+      currentStep={currentStep}
+      hrefMap={hrefMap}
+      tooltipMap={Object.keys(tooltipMap).length ? tooltipMap : undefined}
     >
-      <Card className="max-w-2xl mx-auto">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Insurance Report Document
-          </CardTitle>
-          <CardDescription>
-            Please upload your insurance claim report (PDF format)
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <FileUpload
-            id="insurance-file"
-            accept=".pdf"
-            selectedFile={insuranceFile}
-            onFileSelect={handleInsuranceFileChange}
-            disabled={isProcessing}
-          />
-
-          <div className="flex gap-4">
-            <Button onClick={handleBack} variant="outline" className="flex-1">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Roof Review
-            </Button>
-
-            <Button
-              onClick={processInsuranceDocument}
-              disabled={!insuranceFile || isProcessing}
-              className="flex-1"
-              size="lg"
-            >
-              {isProcessing ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Processing Document...
-                </>
-              ) : (
-                <>
-                  <Upload className="h-4 w-4 mr-2" />
-                  Upload and Process
-                </>
-              )}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <InsuranceReportUpload taskId={taskId} />
     </WorkflowLayout>
   );
 }

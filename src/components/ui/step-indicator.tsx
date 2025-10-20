@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { Check } from 'lucide-react';
 
@@ -13,13 +14,11 @@ interface StepIndicatorProps {
   steps: Step[];
   currentStep: number;
   className?: string;
+  hrefs?: Record<string, string>;
+  tooltips?: Record<string, string>;
 }
 
-export function StepIndicator({
-  steps,
-  currentStep,
-  className,
-}: StepIndicatorProps) {
+export function StepIndicator({ steps, currentStep, className, hrefs, tooltips }: StepIndicatorProps) {
   return (
     <div className={cn('w-full', className)}>
       {/* Desktop View */}
@@ -29,44 +28,60 @@ export function StepIndicator({
           const isCompleted = stepNumber < currentStep;
           const isCurrent = stepNumber === currentStep;
           const isUpcoming = stepNumber > currentStep;
+          const href = hrefs?.[step.id];
+          const isClickable = !!href;
+          const tooltip = !isClickable ? tooltips?.[step.id] : undefined;
+
+          const inner = (
+            <div
+              className={cn('flex flex-col items-center select-none', {
+                'cursor-pointer': isClickable,
+                'pointer-events-none opacity-70': !isClickable,
+              })}
+              aria-current={isCurrent ? 'step' : undefined}
+              title={tooltip}
+            >
+              <div
+                className={cn(
+                  'flex items-center justify-center w-8 h-8 rounded-full border-2 transition-all duration-300',
+                  {
+                    'bg-green-500 border-green-500 text-white': isCompleted,
+                    'bg-blue-500 border-blue-500 text-white': isCurrent,
+                    'bg-gray-100 border-gray-300 text-gray-400': isUpcoming,
+                  }
+                )}
+              >
+                {isCompleted ? (
+                  <Check className="w-4 h-4" />
+                ) : (
+                  <span className="text-xs font-medium">{stepNumber}</span>
+                )}
+              </div>
+
+              {/* Step Title */}
+              <div className="mt-1 text-center max-w-20">
+                <p
+                  className={cn('text-xs font-medium transition-colors duration-300', {
+                    'text-green-600': isCompleted,
+                    'text-blue-600': isCurrent,
+                    'text-gray-400': isUpcoming,
+                  })}
+                >
+                  {step.title}
+                </p>
+              </div>
+            </div>
+          );
 
           return (
             <div key={step.id} className="flex items-center flex-1">
-              {/* Step Circle */}
-              <div className="flex flex-col items-center">
-                <div
-                  className={cn(
-                    'flex items-center justify-center w-8 h-8 rounded-full border-2 transition-all duration-300',
-                    {
-                      'bg-green-500 border-green-500 text-white': isCompleted,
-                      'bg-blue-500 border-blue-500 text-white': isCurrent,
-                      'bg-gray-100 border-gray-300 text-gray-400': isUpcoming,
-                    }
-                  )}
-                >
-                  {isCompleted ? (
-                    <Check className="w-4 h-4" />
-                  ) : (
-                    <span className="text-xs font-medium">{stepNumber}</span>
-                  )}
-                </div>
-
-                {/* Step Title */}
-                <div className="mt-1 text-center max-w-20">
-                  <p
-                    className={cn(
-                      'text-xs font-medium transition-colors duration-300',
-                      {
-                        'text-green-600': isCompleted,
-                        'text-blue-600': isCurrent,
-                        'text-gray-400': isUpcoming,
-                      }
-                    )}
-                  >
-                    {step.title}
-                  </p>
-                </div>
-              </div>
+              {isClickable ? (
+                <Link href={href!} className="focus:outline-none">
+                  {inner}
+                </Link>
+              ) : (
+                inner
+              )}
 
               {/* Connector Line */}
               {index < steps.length - 1 && (
@@ -100,9 +115,53 @@ export function StepIndicator({
           </div>
         </div>
 
+        {/* Tap targets for steps */}
+        <div className="flex items-center justify-center gap-2">
+          {steps.map((step, index) => {
+            const stepNumber = index + 1;
+            const isCompleted = stepNumber < currentStep;
+            const isCurrent = stepNumber === currentStep;
+            const isUpcoming = stepNumber > currentStep;
+            const href = hrefs?.[step.id];
+            const isClickable = !!href;
+            const tooltip = !isClickable ? tooltips?.[step.id] : undefined;
+
+            const circle = (
+              <div
+                className={cn(
+                  'w-6 h-6 rounded-full border-2 flex items-center justify-center text-xs',
+                  {
+                    'bg-green-500 border-green-500 text-white': isCompleted,
+                    'bg-blue-500 border-blue-500 text-white': isCurrent,
+                    'bg-gray-100 border-gray-300 text-gray-400': isUpcoming,
+                    'cursor-pointer': isClickable,
+                    'pointer-events-none opacity-70': !isClickable,
+                  }
+                )}
+                aria-current={isCurrent ? 'step' : undefined}
+                title={tooltip}
+              >
+                {isCompleted ? <Check className="w-3 h-3" /> : stepNumber}
+              </div>
+            );
+
+            return (
+              <div key={step.id}>
+                {isClickable ? (
+                  <Link href={href!} className="focus:outline-none">
+                    {circle}
+                  </Link>
+                ) : (
+                  circle
+                )}
+              </div>
+            );
+          })}
+        </div>
+
         {/* Current Step Info */}
         {steps[currentStep - 1] && (
-          <div className="text-center">
+          <div className="text-center mt-2">
             <h3 className="text-sm font-medium text-blue-600">
               {steps[currentStep - 1].title}
             </h3>

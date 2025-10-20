@@ -1,27 +1,42 @@
-'use client';
-
-import { usePathname } from 'next/navigation';
 import { StepIndicator } from '@/components/ui/step-indicator';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import {
   getStepsForIndicator,
-  getCurrentStepIndex,
+  getStepRoutesForTask,
+  WORKFLOW_STEPS,
 } from '@/lib/constants/workflow';
-import { Card } from '@/components/ui/card';
+import { FileText, Hash, ChartNoAxesGantt } from 'lucide-react';
 
 interface WorkflowLayoutProps {
-  children: React.ReactNode;
   title?: string;
   description?: string;
+  children?: React.ReactNode;
+  taskId?: string;
+  taskName?: string;
+  currentStep?: number;
+  hrefMap?: Record<string, string>;
+  tooltipMap?: Record<string, string>;
 }
 
 export function WorkflowLayout({
+  title = '',
+  description = '',
   children,
-  title,
-  description,
+  taskId,
+  taskName,
+  currentStep = 1,
+  hrefMap = {},
+  tooltipMap = {},
 }: WorkflowLayoutProps) {
-  const pathname = usePathname();
-  const currentStep = getCurrentStepIndex(pathname);
   const steps = getStepsForIndicator();
+  const hrefs = hrefMap ?? (taskId ? getStepRoutesForTask(taskId) : undefined);
+
+  const nameText = taskName ?? 'Analysis Workflow';
+  const Icon =
+    WORKFLOW_STEPS[
+      Math.max(0, Math.min(currentStep - 1, WORKFLOW_STEPS.length - 1))
+    ]?.icon ?? FileText;
 
   return (
     <div className="min-h-screen bg-gray-50/30">
@@ -30,10 +45,21 @@ export function WorkflowLayout({
         <div className="mb-4">
           <Card className="p-3">
             <div className="mb-2">
-              <h1 className="text-base md:text-lg font-semibold text-center mb-1">
-                Analysis Workflow
+              <h1 className="text-base md:text-lg font-semibold mb-1">
+                <div className="flex items-center gap-2 justify-center md:justify-start">
+                  <ChartNoAxesGantt className="size-5 text-muted-foreground" />
+                  <span className="text-base md:text-lg font-semibold">
+                    {nameText}
+                  </span>
+                  {taskId && (
+                    <Badge variant="outline" className="text-xs">
+                      <Hash className="size-3" />
+                      {taskId}
+                    </Badge>
+                  )}
+                </div>
               </h1>
-              <p className="text-muted-foreground text-center text-xs">
+              <p className="text-muted-foreground text-center md:text-left text-xs">
                 Follow these steps to complete your document analysis
               </p>
             </div>
@@ -41,13 +67,15 @@ export function WorkflowLayout({
               steps={steps}
               currentStep={currentStep}
               className="w-full"
+              hrefs={hrefs}
+              tooltips={tooltipMap}
             />
           </Card>
         </div>
 
         {/* Page Title */}
         {(title || description) && (
-          <div className="mb-4 text-center">
+          <div className="mb-4 text-center md:text-left">
             {title && (
               <h2 className="text-xl md:text-2xl font-bold">{title}</h2>
             )}

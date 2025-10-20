@@ -14,7 +14,7 @@ import { Loader2, Save, ArrowRight, Eye, EyeOff, Check } from 'lucide-react';
 import { BsFilePdfFill } from 'react-icons/bs';
 import { RoofDataEditor } from './roof-data-editor';
 import { RoofReportData } from '@/lib/types/extraction';
-import { saveRoofReviewData } from '@/lib/server/actions';
+import { saveRoofReviewData } from '@/lib/server/actions/saveRoofReviewData';
 import { FileData } from '@/lib/types/files';
 import { PDFViewer } from '@/components/ui/pdf-viewer';
 

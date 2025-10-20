@@ -4,7 +4,7 @@ import type {
   InsuranceReportData,
   RoofReportData,
 } from '@/lib/types/extraction';
-import type { ComparisonResult } from '@/components/results';
+import type { ComparisonResult } from '@/lib/types/comparison';
 import { FileData } from '@/lib/types/files';
 
 export const task = pgTable('task', {

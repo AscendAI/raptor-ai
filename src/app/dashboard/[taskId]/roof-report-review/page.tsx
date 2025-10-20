@@ -1,121 +1,101 @@
-'use client';
-
-import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
-import { getUserReviewData } from '@/lib/server/actions';
-import { SteppedRoofReview } from '@/components/review/stepped-roof-review';
-import { RoofReportData, InsuranceReportData } from '@/lib/types/extraction';
+import React from 'react';
+import { redirect } from 'next/navigation';
+import { getAuthSession } from '@/lib/server/auth';
+import { getTaskData } from '@/lib/server/db/services/tasksService';
 import { WorkflowLayout } from '@/components/common/workflow-layout';
-import { FileData } from '@/lib/types/files';
+import { RoofReviewClientWrapper } from '@/components/review/roof-review-client-wrapper';
+import { type RoofReportData } from '@/lib/types/extraction';
+import { getStepRoutesForTask, getStepsForIndicator } from '@/lib/constants/workflow';
+import { RedirectWithNotice } from '@/components/common/redirect-with-notice';
 
-interface TaskDetails {
-  roofData: RoofReportData;
-  insuranceData?: InsuranceReportData;
-  files: FileData[];
-  createdAt: Date;
-  updatedAt: Date;
+interface PageProps {
+  params: Promise<{ taskId: string }>; 
 }
 
-export default function RoofReportReviewPage() {
-  const params = useParams();
-  const router = useRouter();
-  const taskId = params.taskId as string;
+export default async function Page({ params }: PageProps) {
+  const { taskId } = await params;
+  const session = await getAuthSession();
+  if (!session?.user?.id) {
+    redirect('/api/auth/signin');
+  }
 
-  const [taskDetails, setTaskDetails] = useState<TaskDetails | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const task = await getTaskData(session.user.id, taskId);
+  if (!task) {
+    redirect('/dashboard');
+  }
 
-  useEffect(() => {
-    const loadTaskDetails = async () => {
-      if (!taskId) {
-        setError('Invalid task ID');
-        return;
-      }
-
-      try {
-        setLoading(true);
-        const result = await getUserReviewData(taskId);
-
-        if (result.success && result.data) {
-          setTaskDetails(result.data);
-        } else {
-          setError(result.error || 'Failed to load task details');
-        }
-      } catch (err) {
-        console.error('Error loading task details:', err);
-        setError('Failed to load task details');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadTaskDetails();
-  }, [taskId]);
-
-  const handleContinue = () => {
-    // Navigate to insurance upload page
-    router.push(`/dashboard/${taskId}/insurance-report-upload`);
-  };
-
-  const handleBack = () => {
-    // Navigate back to roof upload page
-    router.push(`/dashboard/${taskId}/roof-report-upload`);
-  };
-
-  if (loading) {
+  if (!task.roofData) {
     return (
-      <WorkflowLayout>
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-center">
-            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-            <p className="text-muted-foreground">Loading task details...</p>
-          </div>
-        </div>
-      </WorkflowLayout>
+      <RedirectWithNotice
+        to={`/dashboard/${taskId}/roof-report-upload`}
+        message="Please upload your roof report before reviewing data."
+        title="Roof Data Missing"
+      />
     );
   }
 
-  if (error || !taskDetails) {
-    return (
-      <WorkflowLayout>
-        <Card className="max-w-2xl mx-auto">
-          <CardHeader>
-            <CardTitle>Error</CardTitle>
-            <CardDescription>
-              {error || 'Failed to load task details'}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button onClick={() => router.push('/dashboard')} variant="outline">
-              Return to Dashboard
-            </Button>
-          </CardContent>
-        </Card>
-      </WorkflowLayout>
-    );
+  const currentStep = 2;
+  const steps = getStepsForIndicator();
+  const baseHrefs = getStepRoutesForTask(taskId);
+  const hrefMap = { ...baseHrefs };
+  const tooltipMap: Record<string, string> = {};
+
+  const isRoofDone = !!task.roofData;
+  const isInsuranceDone = !!task.insuranceData;
+  const isAnalysisDone = !!task.comparison;
+
+  steps.forEach((step, idx) => {
+    const num = idx + 1;
+    const isFuture = num > currentStep;
+    let done = false;
+    switch (step.id) {
+      case 'roof-upload':
+      case 'roof-review':
+        done = isRoofDone;
+        break;
+      case 'insurance-upload':
+      case 'insurance-review':
+        done = isInsuranceDone;
+        break;
+      case 'analysis-results':
+        done = isAnalysisDone;
+        break;
+      default:
+        done = false;
+    }
+    if (isFuture && !done) {
+      delete hrefMap[step.id];
+      tooltipMap[step.id] =
+        step.id === 'insurance-upload'
+          ? 'Complete roof review first to upload insurance report.'
+          : step.id === 'insurance-review'
+          ? 'Upload insurance report to review its data.'
+          : step.id === 'analysis-results'
+          ? 'Results not generated yet. Finish reviews and start analysis.'
+          : 'Complete previous steps first.';
+    }
+  });
+
+  if (isAnalysisDone) {
+    hrefMap['analysis-results'] = `/dashboard/${taskId}/results`;
+    delete tooltipMap['analysis-results'];
   }
 
   return (
     <WorkflowLayout
       title="Review Roof Data"
       description="Review and edit the extracted roof report data before proceeding"
+      taskId={taskId}
+      taskName={task?.name ?? undefined}
+      currentStep={currentStep}
+      hrefMap={hrefMap}
+      tooltipMap={Object.keys(tooltipMap).length ? tooltipMap : undefined}
     >
       <div className="w-full">
-        <SteppedRoofReview
+        <RoofReviewClientWrapper
           taskId={taskId}
-          roofData={taskDetails.roofData}
-          files={taskDetails.files}
-          onNext={handleContinue}
-          onBack={handleBack}
+          roofData={task.roofData as RoofReportData}
+          files={task.files || []}
         />
       </div>
     </WorkflowLayout>

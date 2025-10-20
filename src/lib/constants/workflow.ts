@@ -56,3 +56,15 @@ export function getStepsForIndicator() {
     description: step.description,
   }));
 }
+
+// Map workflow steps to their canonical routes for a given task.
+export function getStepRoutesForTask(taskId: string): Record<string, string> {
+  return {
+    'roof-upload': `/dashboard/${taskId}/roof-report-upload`,
+    'roof-review': `/dashboard/${taskId}/roof-report-review`,
+    'insurance-upload': `/dashboard/${taskId}/insurance-report-upload`,
+    'insurance-review': `/dashboard/${taskId}/insurance-report-review`,
+    // Use analysis page; it will redirect to results when complete.
+    'analysis-results': `/dashboard/${taskId}/analysis`,
+  };
+}

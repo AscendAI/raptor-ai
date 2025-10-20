@@ -1,35 +1,9 @@
-'use client';
-
-import { useRouter } from 'next/navigation';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { startNewTask } from '@/lib/server/actions';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { StepCard } from '@/components/new-analysis/step-card';
 import { FileText, Shield, BarChart3, Eye, Upload } from 'lucide-react';
+import { NewAnalysisForm } from '@/components/new-analysis/new-analysis-form';
 
-export default function NewAnalysisPage() {
-  const router = useRouter();
-
-  const startRoofAnalysis = async () => {
-    try {
-      const res = await startNewTask();
-      if (!res.success || !res.taskId) {
-        throw new Error(res.error || 'Failed to start a new task');
-      }
-      router.push(`/dashboard/${res.taskId}/roof-report-upload`);
-    } catch (e) {
-      console.error(e);
-      // Fallback: send to dashboard on failure
-      router.push('/dashboard');
-    }
-  };
-
+export default async function NewAnalysisPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
@@ -95,26 +69,7 @@ export default function NewAnalysisPage() {
         </Card>
 
         {/* Start Button */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Ready to Begin?</CardTitle>
-            <CardDescription>
-              Click the button below to start a new analysis workflow.
-              You&apos;ll be guided through each step of the process.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button
-              onClick={startRoofAnalysis}
-              size="lg"
-              className="w-full md:w-auto"
-              variant="gradient"
-            >
-              <FileText className="h-4 w-4 mr-2" />
-              Start New Analysis
-            </Button>
-          </CardContent>
-        </Card>
+        <NewAnalysisForm />
       </div>
     </div>
   );
