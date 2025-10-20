@@ -129,12 +129,18 @@ export function ResultsClientWrapper({ taskId, comparison, files }: ResultsClien
                 </div>
               </CardHeader>
               <CardContent className="p-0">
-                <div className="h-[calc(100vh-130px)] min-h-[600px]">
-                  {activeTab === 'roof' && roofPdfFile ? (
-                    <PDFViewer pdfUrl={roofPdfFile.url} className="h-full" />
-                  ) : activeTab === 'insurance' && insurancePdfFile ? (
-                    <PDFViewer pdfUrl={insurancePdfFile.url} className="h-full" />
-                  ) : (
+                <div className="relative h-[calc(100vh-130px)] min-h-[600px]">
+                  {roofPdfFile && (
+                    <div className={`${activeTab === 'roof' ? 'block' : 'hidden'} absolute inset-0`}>
+                      <PDFViewer pdfUrl={roofPdfFile.url} className="h-full" />
+                    </div>
+                  )}
+                  {insurancePdfFile && (
+                    <div className={`${activeTab === 'insurance' ? 'block' : 'hidden'} absolute inset-0`}>
+                      <PDFViewer pdfUrl={insurancePdfFile.url} className="h-full" />
+                    </div>
+                  )}
+                  {!roofPdfFile && !insurancePdfFile && (
                     <div className="p-4 text-sm text-muted-foreground">Selected report file not available.</div>
                   )}
                 </div>
