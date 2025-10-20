@@ -32,6 +32,7 @@ export async function getAnalysisResults(taskId: string) {
         insuranceData: t.insuranceData as InsuranceReportData,
         comparison: t.comparison as ComparisonResult,
         completedAt: t.updatedAt!,
+        files: t.files || [],
       },
     };
   } catch (error) {

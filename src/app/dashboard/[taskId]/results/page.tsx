@@ -50,7 +50,7 @@ export default async function Page({ params }: PageProps) {
       currentStep={5}
       hrefMap={hrefMap}
     >
-      <ResultsClientWrapper taskId={taskId} comparison={comparison} />
+      <ResultsClientWrapper taskId={taskId} comparison={comparison} files={result.data.files || []} />
     </WorkflowLayout>
   );
 }
