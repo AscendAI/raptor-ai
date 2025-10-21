@@ -253,14 +253,14 @@ export function MultiStructureInsuranceEditor({ data, onChange }: MultiStructure
             </div>
           ) : (
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-auto gap-1 bg-slate-100 p-1 rounded-lg">
+              <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(${data.roofSections.length}, 1fr)` }}>
                 {data.roofSections.map((section) => (
                   <TabsTrigger
                     key={`roof-${section.roofNumber}`}
                     value={`roof-${section.roofNumber}`}
-                    className="flex items-center gap-2 px-4 py-2 rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                    className="text-sm"
                   >
-                    <Building2 className="h-4 w-4" />
+                    <Building2 className="h-4 w-4 mr-2" />
                     {section.section_name}
                   </TabsTrigger>
                 ))}

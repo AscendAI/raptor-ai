@@ -99,14 +99,14 @@ export function MultiStructureRoofEditor({ data, onChange }: MultiStructureRoofE
 
       {/* Tabbed Interface */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-auto gap-1 bg-slate-100 p-1 rounded-lg">
+        <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(${data.structures.length}, 1fr)` }}>
           {data.structures.map((structure, index) => (
             <TabsTrigger
               key={`structure-${structure.structureNumber}`}
               value={`structure-${structure.structureNumber}`}
-              className="flex items-center gap-2 px-4 py-2 rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm"
+              className="text-sm"
             >
-              <Building2 className="h-4 w-4" />
+              <Building2 className="h-4 w-4 mr-2" />
               Structure {structure.structureNumber}
             </TabsTrigger>
           ))}
