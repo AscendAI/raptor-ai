@@ -94,9 +94,15 @@ This should be the output format:
 Important: Extract data for exactly ${structureCount} structure(s). Each structure should have its own complete set of measurements, pitch_breakdown, and waste_table.`;
 }
 
-export async function analyseRoofReport(roofReportImages: string[], structureCount: number = 1) {
-  const prompt = structureCount === 1 ? roofReportPrompt : createMultiStructureRoofPrompt(structureCount);
-  
+export async function analyseRoofReport(
+  roofReportImages: string[],
+  structureCount: number = 1
+) {
+  const prompt =
+    structureCount === 1
+      ? roofReportPrompt
+      : createMultiStructureRoofPrompt(structureCount);
+
   const response = await client.responses.create({
     model: 'gpt-5-nano',
     instructions: prompt,
@@ -230,9 +236,15 @@ Extract the structured data for ${structureCount} roof structure(s) according to
 Return only valid JSON.`;
 }
 
-export async function analyseInsuranceReport(insuranceReportImages: string[], structureCount: number = 1) {
-  const prompt = structureCount === 1 ? insuranceReportPrompt : createMultiStructureInsurancePrompt(structureCount);
-  
+export async function analyseInsuranceReport(
+  insuranceReportImages: string[],
+  structureCount: number = 1
+) {
+  const prompt =
+    structureCount === 1
+      ? insuranceReportPrompt
+      : createMultiStructureInsurancePrompt(structureCount);
+
   const response = await client.responses.create({
     model: 'gpt-5-mini',
     instructions: prompt,
@@ -434,10 +446,13 @@ export async function analyseComparison(
     insuranceReportText = JSON.stringify(insuranceReportInput, null, 2);
   }
 
-  const prompt = structureCount === 1 ? reportComparisonPrompt : createMultiStructureComparisonPrompt(structureCount);
+  const prompt =
+    structureCount === 1
+      ? reportComparisonPrompt
+      : createMultiStructureComparisonPrompt(structureCount);
 
   const response = await client.responses.create({
-    model: 'gpt-5-mini',
+    model: 'gpt-5',
     instructions: prompt,
     // reasoning: { effort: 'high' },
     input: [
