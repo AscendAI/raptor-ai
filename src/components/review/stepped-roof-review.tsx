@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Loader2, Save, ArrowRight, Eye, EyeOff, Check } from 'lucide-react';
 import { BsFilePdfFill } from 'react-icons/bs';
-import { RoofDataEditor } from './roof-data-editor';
+import { SingleStructureRoofEditor } from './single-structure-roof-editor';
 import { MultiStructureRoofEditor } from './multi-structure-roof-editor';
 import { RoofReportData } from '@/lib/types/extraction';
 import { saveRoofReviewData } from '@/lib/server/actions/saveRoofReviewData';
@@ -131,9 +131,24 @@ export function SteppedRoofReview({
               onChange={setCurrentRoofData}
             />
           ) : (
-            <RoofDataEditor
-              data={currentRoofData}
-              onChange={setCurrentRoofData}
+            <SingleStructureRoofEditor
+              data={{
+                measurements: currentRoofData.structures[0]?.measurements || {},
+                pitch_breakdown: currentRoofData.structures[0]?.pitch_breakdown || [],
+                waste_table: currentRoofData.structures[0]?.waste_table || [],
+              }}
+              onChange={(singleData) => {
+                const updatedMultiData: RoofReportData = {
+                  structureCount: 1,
+                  structures: [{
+                    structureNumber: 1,
+                    measurements: singleData.measurements,
+                    pitch_breakdown: singleData.pitch_breakdown,
+                    waste_table: singleData.waste_table,
+                  }],
+                };
+                setCurrentRoofData(updatedMultiData);
+              }}
             />
           )}
         </div>

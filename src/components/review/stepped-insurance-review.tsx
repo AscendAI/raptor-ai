@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Loader2, Save, ArrowRight, Eye, EyeOff, Check } from 'lucide-react';
 import { BsFilePdfFill } from 'react-icons/bs';
-import { InsuranceDataEditor } from './insurance-data-editor';
+import { SingleStructureInsuranceEditor } from './single-structure-insurance-editor';
 import { MultiStructureInsuranceEditor } from './multi-structure-insurance-editor';
 import { InsuranceReportData, RoofReportData } from '@/lib/types/extraction';
 import { saveUserReviewData } from '@/lib/server/actions/saveUserReviewData';
@@ -155,7 +155,7 @@ export function SteppedInsuranceReview({
               onChange={setCurrentInsuranceData}
             />
           ) : (
-            <InsuranceDataEditor
+            <SingleStructureInsuranceEditor
               data={currentInsuranceData}
               onChange={setCurrentInsuranceData}
             />

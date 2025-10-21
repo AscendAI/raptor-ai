@@ -158,6 +158,17 @@ export function parseRoofReportData(rawText: string): ExtractionResult<RoofRepor
 }
 
 export function parseInsuranceReportData(rawText: string): ExtractionResult<InsuranceReportData> {
+  console.log('parseInsuranceReportData called with text length:', rawText?.length || 0);
+  
+  if (!rawText || rawText.trim() === '') {
+    console.log('Empty or null raw text provided');
+    return {
+      success: false,
+      error: 'No data to parse',
+      rawText,
+    };
+  }
+
   try {
     // Clean the text - remove any markdown formatting or extra text
     const cleanText = rawText.trim();
@@ -177,10 +188,14 @@ export function parseInsuranceReportData(rawText: string): ExtractionResult<Insu
       jsonText = jsonText.substring(startIndex, lastIndex + 1);
     }
     
+    console.log('Cleaned text preview:', jsonText.substring(0, 200));
+    
     const parsed = JSON.parse(jsonText);
+    console.log('Successfully parsed JSON, keys:', Object.keys(parsed));
     
     // Check if this is legacy single-structure format (has 'sections' instead of 'roofSections')
     if (parsed.sections && !parsed.roofSections && !parsed.structureCount) {
+      console.log('Detected legacy single-structure format, converting...');
       // Convert legacy format to multi-structure format
       const convertedData: InsuranceReportData = {
         claim_id: parsed.claim_id,
@@ -194,6 +209,7 @@ export function parseInsuranceReportData(rawText: string): ExtractionResult<Insu
         }))
       };
       
+      console.log('Converted to multi-structure format');
       return {
         success: true,
         data: convertedData,
@@ -203,8 +219,15 @@ export function parseInsuranceReportData(rawText: string): ExtractionResult<Insu
     
     // Validate multi-structure format
     if (!parsed.claim_id || !parsed.date || !Array.isArray(parsed.roofSections)) {
+      console.log('Missing required fields in multi-structure format');
+      console.log('Has claim_id:', !!parsed.claim_id);
+      console.log('Has date:', !!parsed.date);
+      console.log('Has roofSections:', !!parsed.roofSections);
       throw new Error('Invalid insurance report structure - missing required fields or roofSections array');
     }
+    
+    console.log('Valid multi-structure format detected');
+    console.log('Roof sections count:', parsed.roofSections.length);
     
     return {
       success: true,
@@ -212,6 +235,8 @@ export function parseInsuranceReportData(rawText: string): ExtractionResult<Insu
       rawText
     };
   } catch (error) {
+    console.error('JSON parsing error:', error);
+    console.log('Failed to parse text:', rawText.substring(0, 500));
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown parsing error',

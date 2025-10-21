@@ -2,11 +2,10 @@
 
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Building2, Edit3 } from 'lucide-react';
 import { RoofReportData, SingleRoofReportData } from '@/lib/types/extraction';
 import { SingleStructureRoofEditor } from './single-structure-roof-editor';
+import { SectionCard } from './shared/section-card';
 
 interface MultiStructureRoofEditorProps {
   data: RoofReportData;
@@ -39,19 +38,14 @@ export function MultiStructureRoofEditor({ data, onChange }: MultiStructureRoofE
 
     return (
       <div className="space-y-6">
-        <Card className="shadow-sm border-slate-200">
-          <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-slate-200 rounded-t-xl">
-            <CardTitle className="flex items-center gap-3 text-slate-800">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <Building2 className="h-5 w-5 text-blue-600" />
-              </div>
-              Single Structure Review
-            </CardTitle>
-            <CardDescription className="text-slate-600">
-              Review and edit the roof data for your single structure
-            </CardDescription>
-          </CardHeader>
-        </Card>
+        <SectionCard
+          title="Single Structure Review"
+          description="Review and edit the roof data for your single structure"
+          icon={<Building2 className="h-5 w-5" />}
+          variant="primary"
+        >
+          <div></div>
+        </SectionCard>
         <SingleStructureRoofEditor data={singleStructureData} onChange={handleSingleStructureChange} />
       </div>
     );
