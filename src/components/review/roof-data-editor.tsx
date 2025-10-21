@@ -20,9 +20,20 @@ interface RoofDataEditorProps {
 }
 
 export function RoofDataEditor({ data, onChange }: RoofDataEditorProps) {
+  // Handle multi-structure format by accessing the first structure
+  const currentStructure = data.structures?.[0] || {
+    structureNumber: 1,
+    measurements: {},
+    pitch_breakdown: [],
+    waste_table: []
+  };
+
   const updateMeasurement = (field: string, value: string) => {
-    const updatedMeasurements = { ...data.measurements, [field]: value };
-    onChange({ ...data, measurements: updatedMeasurements });
+    const updatedMeasurements = { ...currentStructure.measurements, [field]: value };
+    const updatedStructure = { ...currentStructure, measurements: updatedMeasurements };
+    const updatedStructures = [...data.structures];
+    updatedStructures[0] = updatedStructure;
+    onChange({ ...data, structures: updatedStructures });
   };
 
   const addPitchBreakdown = () => {
@@ -31,17 +42,23 @@ export function RoofDataEditor({ data, onChange }: RoofDataEditorProps) {
       area_sqft: '',
       squares: '',
     };
-    onChange({
-      ...data,
-      pitch_breakdown: [...data.pitch_breakdown, newPitch],
-    });
+    const updatedStructure = {
+      ...currentStructure,
+      pitch_breakdown: [...currentStructure.pitch_breakdown, newPitch],
+    };
+    const updatedStructures = [...data.structures];
+    updatedStructures[0] = updatedStructure;
+    onChange({ ...data, structures: updatedStructures });
   };
 
   const removePitchBreakdown = (index: number) => {
-    onChange({
-      ...data,
-      pitch_breakdown: data.pitch_breakdown.filter((_, i) => i !== index),
-    });
+    const updatedStructure = {
+      ...currentStructure,
+      pitch_breakdown: currentStructure.pitch_breakdown.filter((_, i) => i !== index),
+    };
+    const updatedStructures = [...data.structures];
+    updatedStructures[0] = updatedStructure;
+    onChange({ ...data, structures: updatedStructures });
   };
 
   const updatePitchBreakdown = (
@@ -49,13 +66,16 @@ export function RoofDataEditor({ data, onChange }: RoofDataEditorProps) {
     field: string,
     value: string
   ) => {
-    const updated = data.pitch_breakdown.map((item, i) =>
+    const updatedPitchBreakdown = currentStructure.pitch_breakdown.map((item, i) =>
       i === index ? { ...item, [field]: value } : item
     );
-    onChange({
-      ...data,
-      pitch_breakdown: updated,
-    });
+    const updatedStructure = {
+      ...currentStructure,
+      pitch_breakdown: updatedPitchBreakdown,
+    };
+    const updatedStructures = [...data.structures];
+    updatedStructures[0] = updatedStructure;
+    onChange({ ...data, structures: updatedStructures });
   };
 
   const addWasteTableRow = () => {
@@ -65,17 +85,23 @@ export function RoofDataEditor({ data, onChange }: RoofDataEditorProps) {
       squares: '',
       recommended: false,
     };
-    onChange({
-      ...data,
-      waste_table: [...data.waste_table, newRow],
-    });
+    const updatedStructure = {
+      ...currentStructure,
+      waste_table: [...currentStructure.waste_table, newRow],
+    };
+    const updatedStructures = [...data.structures];
+    updatedStructures[0] = updatedStructure;
+    onChange({ ...data, structures: updatedStructures });
   };
 
   const removeWasteTableRow = (index: number) => {
-    onChange({
-      ...data,
-      waste_table: data.waste_table.filter((_, i) => i !== index),
-    });
+    const updatedStructure = {
+      ...currentStructure,
+      waste_table: currentStructure.waste_table.filter((_, i) => i !== index),
+    };
+    const updatedStructures = [...data.structures];
+    updatedStructures[0] = updatedStructure;
+    onChange({ ...data, structures: updatedStructures });
   };
 
   const updateWasteTable = (
@@ -88,7 +114,7 @@ export function RoofDataEditor({ data, onChange }: RoofDataEditorProps) {
     // If updating the 'recommended' field and setting it to true,
     // ensure all other items have recommended set to false
     if (field === 'recommended' && value === true) {
-      updated = data.waste_table.map((item, i) => {
+      updated = currentStructure.waste_table.map((item, i) => {
         if (i === index) {
           return { ...item, [field]: value };
         } else {
@@ -96,15 +122,18 @@ export function RoofDataEditor({ data, onChange }: RoofDataEditorProps) {
         }
       });
     } else {
-      updated = data.waste_table.map((item, i) =>
+      updated = currentStructure.waste_table.map((item, i) =>
         i === index ? { ...item, [field]: value } : item
       );
     }
 
-    onChange({
-      ...data,
+    const updatedStructure = {
+      ...currentStructure,
       waste_table: updated,
-    });
+    };
+    const updatedStructures = [...data.structures];
+    updatedStructures[0] = updatedStructure;
+    onChange({ ...data, structures: updatedStructures });
   };
 
   const measurementFields = [
@@ -154,7 +183,7 @@ export function RoofDataEditor({ data, onChange }: RoofDataEditorProps) {
                 </Label>
                 <Input
                   id={field.key}
-                  value={data.measurements[field.key] || ''}
+                  value={currentStructure.measurements[field.key] || ''}
                   onChange={(e) => updateMeasurement(field.key, e.target.value)}
                   placeholder={`Enter ${field.label.toLowerCase()}`}
                   className="h-11 border-slate-300 focus:border-slate-500 focus:ring-slate-500/20 transition-colors"
@@ -192,7 +221,7 @@ export function RoofDataEditor({ data, onChange }: RoofDataEditorProps) {
         </CardHeader>
         <CardContent className="p-6">
           <div className="space-y-6">
-            {data.pitch_breakdown.map((pitch, index) => (
+            {currentStructure.pitch_breakdown.map((pitch, index) => (
               <div
                 key={index}
                 className="bg-slate-50 border border-slate-200 rounded-xl p-6 hover:shadow-sm transition-shadow"
@@ -256,7 +285,7 @@ export function RoofDataEditor({ data, onChange }: RoofDataEditorProps) {
                 </div>
               </div>
             ))}
-            {data.pitch_breakdown.length === 0 && (
+            {currentStructure.pitch_breakdown.length === 0 && (
               <div className="text-center py-12 bg-slate-50 rounded-xl border-2 border-dashed border-slate-300">
                 <div className="p-3 bg-slate-200 rounded-full w-12 h-12 mx-auto mb-4 flex items-center justify-center">
                   <Plus className="h-6 w-6 text-slate-500" />
@@ -301,7 +330,7 @@ export function RoofDataEditor({ data, onChange }: RoofDataEditorProps) {
         </CardHeader>
         <CardContent className="p-6">
           <div className="space-y-6">
-            {data.waste_table.map((item, index) => (
+            {currentStructure.waste_table.map((item, index) => (
               <div
                 key={index}
                 className="bg-slate-50 border border-slate-200 rounded-xl p-6 hover:shadow-sm transition-shadow"
@@ -387,7 +416,7 @@ export function RoofDataEditor({ data, onChange }: RoofDataEditorProps) {
                 </div>
               </div>
             ))}
-            {data.waste_table.length === 0 && (
+            {currentStructure.waste_table.length === 0 && (
               <div className="text-center py-12 bg-slate-50 rounded-xl border-2 border-dashed border-slate-300">
                 <div className="p-3 bg-slate-200 rounded-full w-12 h-12 mx-auto mb-4 flex items-center justify-center">
                   <Plus className="h-6 w-6 text-slate-500" />

@@ -122,16 +122,30 @@ export function parseRoofReportData(rawText: string): ExtractionResult<RoofRepor
       jsonText = jsonText.substring(startIndex, lastIndex + 1);
     }
     
-    const parsed = JSON.parse(jsonText) as RoofReportData;
+    const parsed = JSON.parse(jsonText);
     
-    // Basic validation for multi-structure format
-    if (!parsed.structureCount || !Array.isArray(parsed.structures)) {
+    // Check if this is the legacy single structure format
+    if (parsed.measurements && parsed.pitch_breakdown && parsed.waste_table && !parsed.structureCount) {
+      // Convert legacy format to multi-structure format
+      const legacyData = parsed as SingleRoofReportData;
+      const multiStructureData: RoofReportData = convertLegacyToMultiStructure(legacyData);
+      
+      return {
+        success: true,
+        data: multiStructureData,
+        rawText
+      };
+    }
+    
+    // Validate multi-structure format
+    const multiStructureData = parsed as RoofReportData;
+    if (!multiStructureData.structureCount || !Array.isArray(multiStructureData.structures)) {
       throw new Error('Invalid roof report structure - missing structureCount or structures array');
     }
     
     return {
       success: true,
-      data: parsed,
+      data: multiStructureData,
       rawText
     };
   } catch (error) {
@@ -163,16 +177,38 @@ export function parseInsuranceReportData(rawText: string): ExtractionResult<Insu
       jsonText = jsonText.substring(startIndex, lastIndex + 1);
     }
     
-    const parsed = JSON.parse(jsonText) as InsuranceReportData;
+    const parsed = JSON.parse(jsonText);
     
-    // Basic validation for multi-structure format
+    // Check if this is legacy single-structure format (has 'sections' instead of 'roofSections')
+    if (parsed.sections && !parsed.roofSections && !parsed.structureCount) {
+      // Convert legacy format to multi-structure format
+      const convertedData: InsuranceReportData = {
+        claim_id: parsed.claim_id,
+        date: parsed.date,
+        price_list: parsed.price_list,
+        structureCount: 1,
+        roofSections: parsed.sections.map((section: { section_name?: string; line_items?: unknown[] }, index: number) => ({
+          roofNumber: index + 1,
+          section_name: section.section_name || 'Roof',
+          line_items: section.line_items || []
+        }))
+      };
+      
+      return {
+        success: true,
+        data: convertedData,
+        rawText
+      };
+    }
+    
+    // Validate multi-structure format
     if (!parsed.claim_id || !parsed.date || !Array.isArray(parsed.roofSections)) {
       throw new Error('Invalid insurance report structure - missing required fields or roofSections array');
     }
     
     return {
       success: true,
-      data: parsed,
+      data: parsed as InsuranceReportData,
       rawText
     };
   } catch (error) {
