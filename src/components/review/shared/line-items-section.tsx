@@ -71,12 +71,14 @@ export function LineItemsSection({
             <DataRow
               badge={<Badge variant="secondary">Section {sectionIndex + 1}</Badge>}
               onRemove={() => onRemoveSection(sectionIndex)}
+              gridClassName="grid-cols-1"
             >
               <FormField
                 label="Section Name"
                 value={section.section_name}
                 onChange={(value) => onUpdateSection(sectionIndex, 'section_name', value)}
                 placeholder="Enter section name"
+                className="col-span-4"
               />
             </DataRow>
 
@@ -107,8 +109,9 @@ export function LineItemsSection({
                   <DataRow
                     badge={<Badge variant="outline">Item {itemIndex + 1}</Badge>}
                     onRemove={() => onRemoveLineItem(sectionIndex, itemIndex)}
+                    gridClassName="grid-cols-1"
                   >
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="col-span-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                       <FormField
                         label="Item No."
                         value={item.item_no.toString()}

@@ -11,6 +11,7 @@ interface DataRowProps {
   badge?: ReactNode;
   variant?: 'default' | 'primary' | 'secondary' | 'success';
   className?: string;
+  gridClassName?: string;
 }
 
 export function DataRow({
@@ -19,6 +20,7 @@ export function DataRow({
   badge,
   variant = 'default',
   className = '',
+  gridClassName,
 }: DataRowProps) {
   const getVariantStyles = () => {
     switch (variant) {
@@ -50,7 +52,7 @@ export function DataRow({
           )}
         </div>
       )}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className={`grid ${gridClassName || 'grid-cols-1 md:grid-cols-4'} gap-4`}>
         {children}
         {onRemove && !badge && (
           <div className="flex items-end">

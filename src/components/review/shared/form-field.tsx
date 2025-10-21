@@ -36,17 +36,17 @@ export function FormField({
   };
 
   return (
-    <div className={`space-y-2 ${className}`}>
-      <Label className="text-sm font-medium text-slate-700">
-        {label}
-      </Label>
-      <Input
-        type={type}
-        value={value || ''}
-        onChange={(e) => onChange(e.target.value)}
-        className={`${getVariantStyles()} transition-colors`}
-        placeholder={placeholder || `Enter ${label.toLowerCase()}`}
-      />
-    </div>
-  );
+    <div className={`space-y-2 w-full ${className}`}>
+       <Label className="text-sm font-medium text-slate-700">
+         {label}
+       </Label>
+       <Input
+         type={type}
+         value={value || ''}
+         onChange={(e) => onChange(e.target.value)}
+         className={`${getVariantStyles()} transition-colors`}
+         placeholder={placeholder || `Enter ${label.toLowerCase()}`}
+       />
+     </div>
+   );
 }
