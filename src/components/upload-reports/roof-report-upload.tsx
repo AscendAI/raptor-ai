@@ -254,32 +254,6 @@ export function RoofReportUpload({ taskId }: RoofReportUploadProps) {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <FileUpload
-          id="roof-file"
-          accept=".pdf"
-          selectedFile={roofFile}
-          onFileSelect={handleRoofFileChange}
-          disabled={isProcessing}
-        />
-
-        {roofFile && !isUploaded && (
-          <Button
-            onClick={uploadPdf}
-            disabled={isUploading}
-            className="w-full"
-            size="lg"
-          >
-            {isUploading ? (
-              <>Uploading...</>
-            ) : (
-              <>
-                <Upload className="h-4 w-4 mr-2" />
-                Upload PDF
-              </>
-            )}
-          </Button>
-        )}
-
         {roofFile && isUploaded && (
           <div className="space-y-3">
             <div className="flex items-center justify-between gap-6">
@@ -288,7 +262,6 @@ export function RoofReportUpload({ taskId }: RoofReportUploadProps) {
                 <p className="text-xs text-muted-foreground">
                   Tip: Select only the relevant pages to improve accuracy.
                 </p>
-                {/* tip moved to subtitle */}
               </div>
               <div className="flex gap-2">
                 <Button
@@ -361,6 +334,32 @@ export function RoofReportUpload({ taskId }: RoofReportUploadProps) {
               {selectedPages.length} page(s) selected
             </p>
           </div>
+        )}
+
+        <FileUpload
+          id="roof-file"
+          accept=".pdf"
+          selectedFile={roofFile}
+          onFileSelect={handleRoofFileChange}
+          disabled={isProcessing}
+        />
+
+        {roofFile && !isUploaded && (
+          <Button
+            onClick={uploadPdf}
+            disabled={isUploading}
+            className="w-full"
+            size="lg"
+          >
+            {isUploading ? (
+              <>Uploading...</>
+            ) : (
+              <>
+                <Upload className="h-4 w-4 mr-2" />
+                Upload PDF
+              </>
+            )}
+          </Button>
         )}
 
         {isUploaded && (

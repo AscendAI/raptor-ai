@@ -250,6 +250,88 @@ export function InsuranceReportUpload({ taskId }: InsuranceReportUploadProps) {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
+        {insuranceFile && isUploaded && (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between gap-6">
+              <div>
+                <h3 className="text-sm font-medium">Select Pages to Analyze</h3>
+                <p className="text-xs text-muted-foreground">
+                  Tip: Select only the relevant pages to improve accuracy.
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={selectAllPages}
+                  disabled={isGeneratingPages || pageImages.length === 0}
+                >
+                  Select All
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={clearAllPages}
+                  disabled={isGeneratingPages || pageImages.length === 0}
+                >
+                  Clear All
+                </Button>
+              </div>
+            </div>
+
+            {isGeneratingPages ? (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Generating thumbnails...
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                {pageImages.map((src, idx) => {
+                  const selected = selectedPages.includes(idx);
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => togglePage(idx)}
+                      className={cn(
+                        'relative border rounded-md overflow-hidden group',
+                        selected
+                          ? 'border-primary ring-2 ring-primary'
+                          : 'border-slate-200'
+                      )}
+                    >
+                      <Image
+                        src={src}
+                        alt={`Page ${idx + 1}`}
+                        width={512}
+                        height={128}
+                        unoptimized
+                        className="w-full h-32 object-cover"
+                      />
+                      <div className="absolute top-1 left-1 px-2 py-1 text-xs bg-white/80 rounded-md shadow">
+                        Page {idx + 1}
+                      </div>
+                      {selected && (
+                        <div className="absolute top-1 right-1 bg-primary text-white rounded-full p-1">
+                          <CheckCircle className="h-3 w-3" />
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+                {pageImages.length === 0 && (
+                  <div className="text-sm text-muted-foreground">
+                    No pages detected in the PDF.
+                  </div>
+                )}
+              </div>
+            )}
+            <p className="text-xs text-muted-foreground">
+              {selectedPages.length} page(s) selected
+            </p>
+          </div>
+        )}
+
         <FileUpload
           id="insurance-file"
           accept=".pdf"
@@ -303,7 +385,7 @@ export function InsuranceReportUpload({ taskId }: InsuranceReportUploadProps) {
           )}
         </div>
 
-        {insuranceFile && isUploaded && (
+        {false && insuranceFile && isUploaded && (
           <div className="space-y-3">
             <div className="flex items-center justify-between gap-6">
               <div>
