@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 import { Loader2, Save, ArrowRight, Eye, EyeOff, Check } from 'lucide-react';
 import { BsFilePdfFill } from 'react-icons/bs';
 import { InsuranceDataEditor } from './insurance-data-editor';
+import { MultiStructureInsuranceEditor } from './multi-structure-insurance-editor';
 import { InsuranceReportData, RoofReportData } from '@/lib/types/extraction';
 import { saveUserReviewData } from '@/lib/server/actions/saveUserReviewData';
 import { FileData } from '@/lib/types/files';
@@ -149,10 +150,17 @@ export function SteppedInsuranceReview({
         <div
           className={showPdfPreview && insurancePdfFile ? 'xl:col-span-1' : ''}
         >
-          <InsuranceDataEditor
-            data={currentInsuranceData}
-            onChange={setCurrentInsuranceData}
-          />
+          {currentInsuranceData.structureCount > 1 ? (
+            <MultiStructureInsuranceEditor
+              data={currentInsuranceData}
+              onChange={setCurrentInsuranceData}
+            />
+          ) : (
+            <InsuranceDataEditor
+              data={currentInsuranceData}
+              onChange={setCurrentInsuranceData}
+            />
+          )}
         </div>
         {showPdfPreview && insurancePdfFile && (
           <div className="xl:col-span-1">

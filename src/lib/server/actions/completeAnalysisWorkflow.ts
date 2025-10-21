@@ -29,9 +29,13 @@ export async function completeAnalysisWorkflow(taskId: string) {
       };
     }
 
+    // Get structure count from the task data
+    const structureCount = sessionData.data.roofData.structureCount || 1;
+
     const finalResult = await generateFinalAnalysis(
       sessionData.data.roofData,
-      sessionData.data.insuranceData
+      sessionData.data.insuranceData,
+      structureCount
     );
 
     if (!finalResult.success) {

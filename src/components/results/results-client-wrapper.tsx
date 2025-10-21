@@ -10,7 +10,7 @@ import { BsFilePdfFill } from 'react-icons/bs';
 import { PDFViewer } from '@/components/ui/pdf-viewer';
 import { type FileData } from '@/lib/types/files';
 import { toast } from 'sonner';
-import { ComparisonResults } from '@/components/results/comparison-results';
+import { MultiStructureComparisonResults } from '@/components/results/multi-structure-comparison-results';
 import { type ComparisonResult } from '@/lib/types/comparison';
 
 interface ResultsClientWrapperProps {
@@ -32,12 +32,27 @@ export function ResultsClientWrapper({ taskId, comparison, files }: ResultsClien
   );
 
   const handleDownloadReport = () => {
-    const reportContent = `# Roof vs Insurance Report Analysis\n\n## Summary\n- Total Checkpoints: ${comparison.summary.total}\n- Matching (Pass): ${comparison.summary.pass}\n- Discrepancies (Failed): ${comparison.summary.failed}\n- Missing Data: ${comparison.summary.missing}\n\n## Detailed Comparison\n${comparison.comparisons
-      .map(
-        (item) =>
-          `### ${item.checkpoint}\n**Status:** ${item.status.toUpperCase()}\n**Roof Report:** ${item.roof_report_value || 'N/A'}\n**Insurance Report:** ${item.insurance_report_value || 'N/A'}\n**Notes:** ${item.notes}\n`
-      )
-      .join('\n')}`;
+    const reportContent = `# Roof vs Insurance Report Analysis\n\n## Summary\n- Total Checkpoints: ${comparison.summary.total}\n- Matching (Pass): ${comparison.summary.pass}\n- Discrepancies (Failed): ${comparison.summary.failed}\n- Missing Data: ${comparison.summary.missing}\n\n## Detailed Comparison\n${
+      comparison.comparisons
+        ? comparison.comparisons
+            .map(
+              (item) =>
+                `### ${item.checkpoint}\n**Status:** ${item.status.toUpperCase()}\n**Roof Report:** ${item.roof_report_value || 'N/A'}\n**Insurance Report:** ${item.insurance_report_value || 'N/A'}\n**Notes:** ${item.notes}\n`
+            )
+            .join('\n')
+        : comparison.structures
+        ? comparison.structures
+            .map((structure) =>
+              `## Structure ${structure.structureNumber}\n${structure.comparisons
+                .map(
+                  (item) =>
+                    `### ${item.checkpoint}\n**Status:** ${item.status.toUpperCase()}\n**Roof Report:** ${item.roof_report_value || 'N/A'}\n**Insurance Report:** ${item.insurance_report_value || 'N/A'}\n**Notes:** ${item.notes}\n`
+                )
+                .join('\n')}`
+            )
+            .join('\n\n')
+        : 'No comparison data available'
+    }`;
     const blob = new Blob([reportContent], { type: 'text/markdown' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -94,7 +109,7 @@ export function ResultsClientWrapper({ taskId, comparison, files }: ResultsClien
       {/* Comparison Results + PDF Preview */}
       <div className={`${showPdfPreview && (roofPdfFile || insurancePdfFile) ? 'grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6' : ''}`}>
         <div className={showPdfPreview && (roofPdfFile || insurancePdfFile) ? 'xl:col-span-1' : ''}>
-          <ComparisonResults data={comparison} />
+          <MultiStructureComparisonResults data={comparison} />
         </div>
         {showPdfPreview && (roofPdfFile || insurancePdfFile) && (
           <div className="xl:col-span-1">

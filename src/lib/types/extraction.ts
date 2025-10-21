@@ -1,6 +1,7 @@
 // TypeScript interfaces for extracted data structures
 
-export interface RoofReportData {
+// Single structure data (legacy format for backward compatibility)
+export interface SingleRoofReportData {
   measurements: {
     total_roof_area?: string | null;
     total_pitched_area?: string | null;
@@ -34,12 +35,53 @@ export interface RoofReportData {
   }>;
 }
 
+// Multi-structure roof report data
+export interface RoofReportData {
+  structureCount: number;
+  structures: Array<{
+    structureNumber: number;
+    measurements: {
+      total_roof_area?: string | null;
+      total_pitched_area?: string | null;
+      total_flat_area?: string | null;
+      total_roof_facets?: string | null;
+      predominant_pitch?: string | null;
+      total_eaves?: string | null;
+      total_valleys?: string | null;
+      total_hips?: string | null;
+      total_ridges?: string | null;
+      total_rakes?: string | null;
+      total_wall_flashing?: string | null;
+      total_step_flashing?: string | null;
+      total_transitions?: string | null;
+      total_parapet_wall?: string | null;
+      total_unspecified?: string | null;
+      hips_ridges?: string | null;
+      eaves_rakes?: string | null;
+      [key: string]: string | null | undefined; // Allow additional measurements
+    };
+    pitch_breakdown: Array<{
+      pitch: string;
+      area_sqft: string;
+      squares: string;
+    }>;
+    waste_table: Array<{
+      waste_percent: string;
+      area_sqft: string;
+      squares: string;
+      recommended: boolean;
+    }>;
+  }>;
+}
+
 export interface InsuranceReportData {
   claim_id: string;
   date: string;
   price_list: string;
-  sections: Array<{
-    section_name: string;
+  structureCount: number;
+  roofSections: Array<{
+    roofNumber: number;
+    section_name: string; // e.g., "Roof1", "Roof2", etc.
     line_items: Array<{
       item_no: number;
       description: string;
@@ -82,9 +124,9 @@ export function parseRoofReportData(rawText: string): ExtractionResult<RoofRepor
     
     const parsed = JSON.parse(jsonText) as RoofReportData;
     
-    // Basic validation
-    if (!parsed.measurements || !Array.isArray(parsed.pitch_breakdown) || !Array.isArray(parsed.waste_table)) {
-      throw new Error('Invalid roof report structure');
+    // Basic validation for multi-structure format
+    if (!parsed.structureCount || !Array.isArray(parsed.structures)) {
+      throw new Error('Invalid roof report structure - missing structureCount or structures array');
     }
     
     return {
@@ -123,9 +165,9 @@ export function parseInsuranceReportData(rawText: string): ExtractionResult<Insu
     
     const parsed = JSON.parse(jsonText) as InsuranceReportData;
     
-    // Basic validation
-    if (!parsed.claim_id || !parsed.date || !Array.isArray(parsed.sections)) {
-      throw new Error('Invalid insurance report structure');
+    // Basic validation for multi-structure format
+    if (!parsed.claim_id || !parsed.date || !Array.isArray(parsed.roofSections)) {
+      throw new Error('Invalid insurance report structure - missing required fields or roofSections array');
     }
     
     return {
@@ -150,5 +192,31 @@ export function stringifyForComparison(roofData: RoofReportData, insuranceData: 
   return {
     roofReportText: JSON.stringify(roofData, null, 2),
     insuranceReportText: JSON.stringify(insuranceData, null, 2)
+  };
+}
+
+// Utility functions for backward compatibility
+export function convertLegacyToMultiStructure(legacyData: SingleRoofReportData): RoofReportData {
+  return {
+    structureCount: 1,
+    structures: [{
+      structureNumber: 1,
+      measurements: legacyData.measurements,
+      pitch_breakdown: legacyData.pitch_breakdown,
+      waste_table: legacyData.waste_table
+    }]
+  };
+}
+
+export function convertMultiToLegacyStructure(multiData: RoofReportData): SingleRoofReportData | null {
+  if (multiData.structureCount !== 1 || multiData.structures.length !== 1) {
+    return null; // Cannot convert multi-structure to legacy format
+  }
+  
+  const structure = multiData.structures[0];
+  return {
+    measurements: structure.measurements,
+    pitch_breakdown: structure.pitch_breakdown,
+    waste_table: structure.waste_table
   };
 }

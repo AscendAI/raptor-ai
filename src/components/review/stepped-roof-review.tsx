@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 import { Loader2, Save, ArrowRight, Eye, EyeOff, Check } from 'lucide-react';
 import { BsFilePdfFill } from 'react-icons/bs';
 import { RoofDataEditor } from './roof-data-editor';
+import { MultiStructureRoofEditor } from './multi-structure-roof-editor';
 import { RoofReportData } from '@/lib/types/extraction';
 import { saveRoofReviewData } from '@/lib/server/actions/saveRoofReviewData';
 import { FileData } from '@/lib/types/files';
@@ -125,10 +126,17 @@ export function SteppedRoofReview({
         className={`${showPdfPreview && roofPdfFile ? 'grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6' : ''}`}
       >
         <div className={showPdfPreview && roofPdfFile ? 'xl:col-span-1' : ''}>
-          <RoofDataEditor
-            data={currentRoofData}
-            onChange={setCurrentRoofData}
-          />
+          {currentRoofData.structureCount > 1 ? (
+            <MultiStructureRoofEditor
+              data={currentRoofData}
+              onChange={setCurrentRoofData}
+            />
+          ) : (
+            <RoofDataEditor
+              data={currentRoofData}
+              onChange={setCurrentRoofData}
+            />
+          )}
         </div>
         {showPdfPreview && roofPdfFile && (
           <div className="xl:col-span-1">

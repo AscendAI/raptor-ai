@@ -31,7 +31,8 @@ export async function extractAndSaveRoofData(
       };
     }
 
-    const roofAnalysisRaw = await analyseRoofReport(roofReportImages);
+    const structureCount = task.structureCount || 1;
+    const roofAnalysisRaw = await analyseRoofReport(roofReportImages, structureCount);
     const roofResult = parseRoofReportData(roofAnalysisRaw);
 
     if (!roofResult.success) {

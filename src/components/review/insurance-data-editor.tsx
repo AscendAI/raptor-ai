@@ -26,55 +26,58 @@ export function InsuranceDataEditor({
 }: InsuranceDataEditorProps) {
   const addSection = () => {
     const newSection = {
+      roofNumber: data.roofSections.length + 1,
       section_name: '',
       line_items: [],
     };
     onChange({
       ...data,
-      sections: [...data.sections, newSection],
+      roofSections: [...data.roofSections, newSection],
     });
   };
 
   const removeSection = (index: number) => {
     onChange({
       ...data,
-      sections: data.sections.filter((_, i) => i !== index),
+      roofSections: data.roofSections.filter((_, i) => i !== index),
     });
   };
 
   const updateSection = (index: number, field: string, value: string) => {
-    const updated = data.sections.map((section, i) =>
+    const updated = data.roofSections.map((section, i) =>
       i === index ? { ...section, [field]: value } : section
     );
     onChange({
       ...data,
-      sections: updated,
+      roofSections: updated,
     });
   };
 
   const addLineItem = (sectionIndex: number) => {
-    const newLineItem = {
-      item_no: data.sections[sectionIndex].line_items.length + 1,
-      description: '',
-      quantity: {
-        value: null,
-        unit: null,
-      },
-      options_text: null,
-    };
-    const updated = data.sections.map((section, i) =>
+    const updated = data.roofSections.map((section, i) =>
       i === sectionIndex
-        ? { ...section, line_items: [...section.line_items, newLineItem] }
+        ? {
+            ...section,
+            line_items: [
+              ...section.line_items,
+              {
+                item_no: section.line_items.length + 1,
+                description: '',
+                quantity: { value: null, unit: null },
+                options_text: null,
+              },
+            ],
+          }
         : section
     );
     onChange({
       ...data,
-      sections: updated,
+      roofSections: updated,
     });
   };
 
   const removeLineItem = (sectionIndex: number, itemIndex: number) => {
-    const updated = data.sections.map((section, i) =>
+    const updated = data.roofSections.map((section, i) =>
       i === sectionIndex
         ? {
             ...section,
@@ -84,7 +87,7 @@ export function InsuranceDataEditor({
     );
     onChange({
       ...data,
-      sections: updated,
+      roofSections: updated,
     });
   };
 
@@ -92,42 +95,38 @@ export function InsuranceDataEditor({
     sectionIndex: number,
     itemIndex: number,
     field: string,
-    value: string | number
+    value: string | number | null
   ) => {
-    const updated = data.sections.map((section, i) =>
-      i === sectionIndex
-        ? {
-            ...section,
-            line_items: section.line_items.map((item, j) => {
-              if (j === itemIndex) {
-                if (field === 'quantity_value') {
-                  return {
-                    ...item,
-                    quantity: {
-                      ...item.quantity,
-                      value: Number(value) || null,
-                    },
-                  };
-                } else if (field === 'quantity_unit') {
-                  return {
-                    ...item,
-                    quantity: {
-                      ...item.quantity,
-                      unit: (value as string) || null,
-                    },
-                  };
-                } else {
-                  return { ...item, [field]: value };
-                }
-              }
-              return item;
-            }),
+    const updatedSections = data.roofSections.map((section, i) => {
+      if (i !== sectionIndex) return section;
+      
+      return {
+        ...section,
+        line_items: section.line_items.map((item, j) => {
+          if (j !== itemIndex) return item;
+          
+          if (field === 'quantity.value') {
+            return {
+              ...item,
+              quantity: { ...item.quantity, value: value as number | null },
+            };
           }
-        : section
-    );
+          
+          if (field === 'quantity.unit') {
+            return {
+              ...item,
+              quantity: { ...item.quantity, unit: value as string | null },
+            };
+          }
+          
+          return { ...item, [field]: value as string };
+        }),
+      };
+    });
+    
     onChange({
       ...data,
-      sections: updated,
+      roofSections: updatedSections,
     });
   };
 
@@ -204,7 +203,7 @@ export function InsuranceDataEditor({
         </CardHeader>
         <CardContent className="p-6">
           <div className="space-y-8">
-            {data.sections.map((section, sectionIndex) => (
+            {data.roofSections.map((section, sectionIndex) => (
               <div
                 key={sectionIndex}
                 className="bg-slate-50 border border-slate-200 rounded-xl p-6 hover:shadow-sm transition-shadow"
@@ -340,8 +339,8 @@ export function InsuranceDataEditor({
                                 updateLineItem(
                                   sectionIndex,
                                   itemIndex,
-                                  'quantity_value',
-                                  e.target.value
+                                  'quantity.value',
+                                  Number(e.target.value) || null
                                 )
                               }
                               placeholder="Quantity value"
@@ -359,7 +358,7 @@ export function InsuranceDataEditor({
                                 updateLineItem(
                                   sectionIndex,
                                   itemIndex,
-                                  'quantity_unit',
+                                  'quantity.unit',
                                   e.target.value
                                 )
                               }
@@ -408,7 +407,7 @@ export function InsuranceDataEditor({
               </div>
             ))}
 
-            {data.sections.length === 0 && (
+            {data.roofSections.length === 0 && (
               <div className="text-center py-12 bg-slate-50 rounded-xl border-2 border-dashed border-slate-300">
                 <div className="p-3 bg-slate-200 rounded-full w-12 h-12 mx-auto mb-4 flex items-center justify-center">
                   <Plus className="h-6 w-6 text-slate-500" />

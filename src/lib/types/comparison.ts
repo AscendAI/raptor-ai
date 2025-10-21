@@ -14,6 +14,19 @@ export const ComparisonCheckpoint = z.object({
 });
 export type ComparisonCheckpoint = z.infer<typeof ComparisonCheckpoint>;
 
+// Structure-specific comparison result
+export const StructureComparison = z.object({
+  structureNumber: z.number(),
+  summary: z.object({
+    pass: z.number(),
+    failed: z.number(),
+    missing: z.number(),
+    total: z.number(),
+  }),
+  comparisons: z.array(ComparisonCheckpoint),
+});
+export type StructureComparison = z.infer<typeof StructureComparison>;
+
 // Summary statistics schema
 export const ComparisonSummary = z.object({
   pass: z.number(),
@@ -23,11 +36,13 @@ export const ComparisonSummary = z.object({
 });
 export type ComparisonSummary = z.infer<typeof ComparisonSummary>;
 
-// Main comparison result schema
+// Main comparison result schema - supports both single and multi-structure
 export const ComparisonResult = z.object({
   success: z.boolean(),
+  structureCount: z.number().default(1),
   summary: ComparisonSummary,
-  comparisons: z.array(ComparisonCheckpoint),
+  comparisons: z.array(ComparisonCheckpoint).optional(), // For backward compatibility (single structure)
+  structures: z.array(StructureComparison).optional(), // For multi-structure comparisons
 });
 export type ComparisonResult = z.infer<typeof ComparisonResult>;
 
@@ -47,6 +62,27 @@ export function calculateSummary(
   });
 
   return summary;
+}
+
+// Helper function to calculate overall summary from structure comparisons
+export function calculateOverallSummary(
+  structures: StructureComparison[]
+): ComparisonSummary {
+  const overallSummary = {
+    pass: 0,
+    failed: 0,
+    missing: 0,
+    total: 0,
+  };
+
+  structures.forEach((structure) => {
+    overallSummary.pass += structure.summary.pass;
+    overallSummary.failed += structure.summary.failed;
+    overallSummary.missing += structure.summary.missing;
+    overallSummary.total += structure.summary.total;
+  });
+
+  return overallSummary;
 }
 
 // Status display helpers

@@ -244,7 +244,7 @@ export function ComparisonResults({ data, className }: ComparisonResultsProps) {
           <CardTitle className="flex items-center justify-between">
             <span>Analysis Summary</span>
             <Badge variant="outline">
-              {data.comparisons.length} checkpoints
+              {data.comparisons?.length || 0} checkpoints
             </Badge>
           </CardTitle>
           <CardDescription>
@@ -267,13 +267,13 @@ export function ComparisonResults({ data, className }: ComparisonResultsProps) {
         </CardHeader>
         <CardContent>
           <Accordion type="multiple" className="space-y-2">
-            {data.comparisons.map((comparison, index) => (
+            {data.comparisons?.map((comparison, index) => (
               <ComparisonAccordionItem
                 key={index}
                 comparison={comparison}
                 index={index}
               />
-            ))}
+            )) || []}
           </Accordion>
         </CardContent>
       </Card>

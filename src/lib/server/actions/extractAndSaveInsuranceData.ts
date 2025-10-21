@@ -31,8 +31,10 @@ export async function extractAndSaveInsuranceData(
       };
     }
 
+    const structureCount = task.structureCount || 1;
     const insuranceAnalysisRaw = await analyseInsuranceReport(
-      insuranceReportImages
+      insuranceReportImages,
+      structureCount
     );
     const insuranceResult = parseInsuranceReportData(insuranceAnalysisRaw);
 

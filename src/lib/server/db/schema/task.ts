@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, json } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, json, integer } from 'drizzle-orm/pg-core';
 import { user } from './auth';
 import type {
   InsuranceReportData,
@@ -13,6 +13,7 @@ export const task = pgTable('task', {
     .notNull()
     .references(() => user.id, { onDelete: 'cascade', onUpdate: 'cascade' }),
   name: text('name'),
+  structureCount: integer('structure_count').default(1).notNull(),
   image: text('image'),
   description: text('description'),
   roofData: json('roof_data').$type<RoofReportData>(),
