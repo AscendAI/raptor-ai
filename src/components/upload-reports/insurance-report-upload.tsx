@@ -11,11 +11,21 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { FileUpload } from '@/components/ui/file-upload';
-import { Loader2, Upload, FileText, ArrowLeft, CheckCircle, AlertCircle } from 'lucide-react';
+import {
+  Loader2,
+  Upload,
+  FileText,
+  ArrowLeft,
+  CheckCircle,
+  AlertCircle,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import { extractAndSaveInsuranceData } from '@/lib/server/actions/extractAndSaveInsuranceData';
 import { getUserReviewData } from '@/lib/server/actions/getUserReviewData';
 import { convertPdfToImages } from '@/lib/utils/pdf';
+import Image from 'next/image';
+import { cn } from '@/lib/utils';
+import { uploadInsuranceReportFile } from '@/lib/server/actions/uploadInsuranceReportFile';
 
 interface InsuranceReportUploadProps {
   taskId: string;
@@ -26,26 +36,25 @@ export function InsuranceReportUpload({ taskId }: InsuranceReportUploadProps) {
   const [insuranceFile, setInsuranceFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
+  const [pageImages, setPageImages] = useState<string[]>([]);
+  const [selectedPages, setSelectedPages] = useState<number[]>([]);
+  const [isGeneratingPages, setIsGeneratingPages] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isUploaded, setIsUploaded] = useState(false);
 
   // Utility
   // sleep utility defined above;
 
   // Multi-step loading state
-  type UploadStepStatus = 'pending' | 'running' | 'completed' | 'error'
+  type UploadStepStatus = 'pending' | 'running' | 'completed' | 'error';
   interface UploadStep {
-    id: string
-    title: string
-    description: string
-    status: UploadStepStatus
+    id: string;
+    title: string;
+    description: string;
+    status: UploadStepStatus;
   }
 
   const INITIAL_STEPS: UploadStep[] = [
-    {
-      id: 'preparing',
-      title: 'Preparing Upload',
-      description: 'Setting up file processing',
-      status: 'pending',
-    },
     {
       id: 'extracting',
       title: 'Extracting Insurance Data',
@@ -58,105 +67,157 @@ export function InsuranceReportUpload({ taskId }: InsuranceReportUploadProps) {
       description: 'Validating and saving extracted data',
       status: 'pending',
     },
-  ]
+  ];
 
-  const [steps, setSteps] = useState<UploadStep[]>(INITIAL_STEPS)
-  const [currentStepIndex, setCurrentStepIndex] = useState(0)
+  const [steps, setSteps] = useState<UploadStep[]>(INITIAL_STEPS);
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
 
-  const updateStepStatus = (
-    stepIndex: number,
-    status: UploadStepStatus
-  ) => {
+  const updateStepStatus = (stepIndex: number, status: UploadStepStatus) => {
     setSteps((prev) =>
-      prev.map((step, index) => (index === stepIndex ? { ...step, status } : step))
-    )
-  }
+      prev.map((step, index) =>
+        index === stepIndex ? { ...step, status } : step
+      )
+    );
+  };
 
-  const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+  const sleep = (ms: number) =>
+    new Promise((resolve) => setTimeout(resolve, ms));
 
   const handleInsuranceFileChange = (file: File | null) => {
     setInsuranceFile(file);
+    setPageImages([]);
+    setSelectedPages([]);
+    setIsUploaded(false);
+    setIsGeneratingPages(false);
   };
 
-  const processInsuranceDocument = async () => {
+  const generatePageImages = async (file: File) => {
+    try {
+      setIsGeneratingPages(true);
+      toast.info('Generating page thumbnails...');
+      const images = await convertPdfToImages(file);
+      setPageImages(images);
+      setSelectedPages([]);
+      toast.success(`Loaded ${images.length} page(s)`);
+    } catch (error) {
+      console.error('Error generating page images:', error);
+      toast.error('Failed to read PDF pages');
+    } finally {
+      setIsGeneratingPages(false);
+    }
+  };
+
+  const togglePage = (index: number) => {
+    setSelectedPages((prev) =>
+      prev.includes(index)
+        ? prev.filter((i) => i !== index)
+        : [...prev, index].sort((a, b) => a - b)
+    );
+  };
+
+  const selectAllPages = () =>
+    setSelectedPages(pageImages.map((_, idx) => idx));
+  const clearAllPages = () => setSelectedPages([]);
+
+  const uploadPdf = async () => {
     if (!insuranceFile) return;
+    setIsUploading(true);
+    try {
+      toast.info('Uploading insurance PDF...');
+      const res = await uploadInsuranceReportFile(taskId, insuranceFile);
+      if (!res.success) {
+        throw new Error(res.error || 'Upload failed');
+      }
+      setIsUploaded(true);
+      toast.success('PDF uploaded. Generating thumbnails...');
+      await generatePageImages(insuranceFile);
+    } catch (error) {
+      console.error('Error uploading insurance PDF:', error);
+      toast.error(
+        'Failed to upload PDF: ' +
+          (error instanceof Error ? error.message : 'Unknown error')
+      );
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const confirmAndExtract = async () => {
+    if (!insuranceFile || !isUploaded) return;
 
     setIsProcessing(true);
     setIsComplete(false);
     setSteps(INITIAL_STEPS.map((s) => ({ ...s, status: 'pending' })));
+    setCurrentStepIndex(0);
+    updateStepStatus(0, 'running');
+
     try {
-      toast.info('Processing insurance document...');
+      const selectedImages = selectedPages
+        .map((idx) => pageImages[idx])
+        .filter((img): img is string => Boolean(img));
 
-      const FAKE_MS = 10000;
+      if (selectedImages.length === 0) {
+        throw new Error('No pages selected for analysis');
+      }
 
-      // Step 1: Preparing (fake, non-blocking)
-      updateStepStatus(0, 'running');
-      setTimeout(() => updateStepStatus(0, 'completed'), FAKE_MS);
+      toast.info('Extracting insurance data...');
+      const extractionResult = await extractAndSaveInsuranceData(
+        selectedImages,
+        taskId,
+        insuranceFile
+      );
 
-      // Kick off real processing immediately (concurrent with fake step)
-      const convertAndExtractPromise = (async () => {
-        const insuranceImages = await convertPdfToImages(insuranceFile);
-
-        toast.info('Extracting insurance data...');
-        const extractionResult = await extractAndSaveInsuranceData(
-          insuranceImages,
-          taskId,
-          insuranceFile
+      if (!extractionResult.success || !extractionResult.data) {
+        updateStepStatus(0, 'error');
+        throw new Error(
+          extractionResult.error || 'Failed to extract insurance data'
         );
+      }
 
-        if (!extractionResult.success || !extractionResult.data) {
-          throw new Error(extractionResult.error || 'Failed to extract insurance data');
-        }
+      updateStepStatus(0, 'completed');
 
-        return extractionResult;
-      })();
-
-      // After fake step completes visually, show extracting
-      await sleep(FAKE_MS);
       setCurrentStepIndex(1);
       updateStepStatus(1, 'running');
-
-      await convertAndExtractPromise;
-      updateStepStatus(1, 'completed');
-
-      // Step 3: Verifying & Saving
-      setCurrentStepIndex(2);
-      updateStepStatus(2, 'running');
 
       toast.info('Verifying extracted data...');
       const maxRetries = 3;
       let retryCount = 0;
-      let verificationResult: Awaited<ReturnType<typeof getUserReviewData>> | undefined;
+      let verificationResult:
+        | Awaited<ReturnType<typeof getUserReviewData>>
+        | undefined;
 
       while (retryCount < maxRetries) {
-        console.log(
-          `Verifying insurance data${retryCount > 0 ? ` (attempt ${retryCount + 1}/${maxRetries})` : ''}...`
-        );
         verificationResult = await getUserReviewData(taskId);
 
-        if (verificationResult.success && verificationResult.data?.insuranceData) {
+        if (
+          verificationResult.success &&
+          verificationResult.data?.insuranceData
+        ) {
           break;
         }
 
         retryCount++;
         if (retryCount < maxRetries) {
-          console.log(`Retrying in ${retryCount} second(s)...`);
-          await new Promise((resolve) => setTimeout(resolve, 1000 * retryCount));
+          await new Promise((resolve) =>
+            setTimeout(resolve, 1000 * retryCount)
+          );
         }
       }
 
-      if (!verificationResult?.success || !verificationResult.data?.insuranceData) {
-        updateStepStatus(2, 'error');
-        throw new Error('Verification failed: insurance data not found after processing');
+      if (
+        !verificationResult?.success ||
+        !verificationResult.data?.insuranceData
+      ) {
+        updateStepStatus(1, 'error');
+        throw new Error(
+          'Verification failed: insurance data not found after processing'
+        );
       }
 
-      // Proceed immediately after verification
-
-      updateStepStatus(2, 'completed');
+      updateStepStatus(1, 'completed');
       setIsComplete(true);
       toast.success('Insurance document processed successfully!');
 
-      // Keep steps visible and all green briefly before navigating
       setTimeout(() => {
         router.push(`/dashboard/${taskId}/insurance-report-review`);
       }, 800);
@@ -170,6 +231,8 @@ export function InsuranceReportUpload({ taskId }: InsuranceReportUploadProps) {
       setIsProcessing(false);
     }
   };
+
+  // migrated: old processInsuranceDocument flow removed in favor of upload + page selection + confirm extraction.
 
   const handleBack = () => {
     router.push(`/dashboard/${taskId}/roof-report-review`);
@@ -201,22 +264,126 @@ export function InsuranceReportUpload({ taskId }: InsuranceReportUploadProps) {
             Back to Roof Review
           </Button>
 
-          <Button
-            onClick={processInsuranceDocument}
-            disabled={!insuranceFile || isProcessing}
-            className="flex-1"
-            size="lg"
-          >
-            {isProcessing ? (
-            <>Processing Document...</>
-          ) : (
-            <>
-              <Upload className="h-4 w-4 mr-2" />
-              Upload and Process
-            </>
+          {insuranceFile && !isUploaded && (
+            <Button
+              onClick={uploadPdf}
+              disabled={isUploading}
+              className="flex-1"
+              size="lg"
+            >
+              {isUploading ? (
+                <>Uploading...</>
+              ) : (
+                <>
+                  <Upload className="h-4 w-4 mr-2" />
+                  Upload PDF
+                </>
+              )}
+            </Button>
           )}
-          </Button>
+
+          {insuranceFile && isUploaded && (
+            <Button
+              onClick={confirmAndExtract}
+              disabled={
+                isProcessing || isGeneratingPages || selectedPages.length === 0
+              }
+              className="flex-1"
+              size="lg"
+            >
+              {isProcessing ? (
+                <>Processing Document...</>
+              ) : (
+                <>
+                  <Upload className="h-4 w-4 mr-2" />
+                  Confirm and continue to extraction
+                </>
+              )}
+            </Button>
+          )}
         </div>
+
+        {insuranceFile && isUploaded && (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between gap-6">
+              <div>
+                <h3 className="text-sm font-medium">Select Pages to Analyze</h3>
+                <p className="text-xs text-muted-foreground">
+                  Tip: Select only the relevant pages to improve accuracy.
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={selectAllPages}
+                  disabled={isGeneratingPages || pageImages.length === 0}
+                >
+                  Select All
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={clearAllPages}
+                  disabled={isGeneratingPages || pageImages.length === 0}
+                >
+                  Clear All
+                </Button>
+              </div>
+            </div>
+
+            {isGeneratingPages ? (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Generating thumbnails...
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                {pageImages.map((src, idx) => {
+                  const selected = selectedPages.includes(idx);
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => togglePage(idx)}
+                      className={cn(
+                        'relative border rounded-md overflow-hidden group',
+                        selected
+                          ? 'border-primary ring-2 ring-primary'
+                          : 'border-slate-200'
+                      )}
+                    >
+                      <Image
+                        src={src}
+                        alt={`Page ${idx + 1}`}
+                        width={512}
+                        height={128}
+                        unoptimized
+                        className="w-full h-32 object-cover"
+                      />
+                      <div className="absolute top-1 left-1 px-2 py-1 text-xs bg-white/80 rounded-md shadow">
+                        Page {idx + 1}
+                      </div>
+                      {selected && (
+                        <div className="absolute top-1 right-1 bg-primary text-white rounded-full p-1">
+                          <CheckCircle className="h-3 w-3" />
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+                {pageImages.length === 0 && (
+                  <div className="text-sm text-muted-foreground">
+                    No pages detected in the PDF.
+                  </div>
+                )}
+              </div>
+            )}
+            <p className="text-xs text-muted-foreground">
+              {selectedPages.length} page(s) selected
+            </p>
+          </div>
+        )}
 
         {(isProcessing || isComplete) && (
           <div className="space-y-4">
@@ -254,7 +421,9 @@ export function InsuranceReportUpload({ taskId }: InsuranceReportUploadProps) {
                     >
                       {step.title}
                     </h3>
-                    <p className="text-xs text-muted-foreground">{step.description}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {step.description}
+                    </p>
                   </div>
                 </div>
               ))}

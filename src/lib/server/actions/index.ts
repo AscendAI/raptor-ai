@@ -13,4 +13,5 @@ export * from './cleanupOldResults';
 export * from './completeAnalysisWorkflow';
 export * from './analyseFiles';
 export * from './uploadRoofReportFile';
+export * from './uploadInsuranceReportFile';
 export * from './extractRoofDataFromImages';
