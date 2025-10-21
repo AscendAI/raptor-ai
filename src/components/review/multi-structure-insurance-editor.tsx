@@ -2,7 +2,13 @@
 
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,15 +21,23 @@ interface MultiStructureInsuranceEditorProps {
   onChange: (data: InsuranceReportData) => void;
 }
 
-export function MultiStructureInsuranceEditor({ data, onChange }: MultiStructureInsuranceEditorProps) {
-  const [activeTab, setActiveTab] = useState(data.roofSections.length > 0 ? `roof-${data.roofSections[0].roofNumber}` : 'roof-1');
+export function MultiStructureInsuranceEditor({
+  data,
+  onChange,
+}: MultiStructureInsuranceEditorProps) {
+  const [activeTab, setActiveTab] = useState(
+    data.roofSections.length > 0
+      ? `roof-${data.roofSections[0].roofNumber}`
+      : 'roof-1'
+  );
 
   const updateClaimInfo = (field: string, value: string) => {
     onChange({ ...data, [field]: value });
   };
 
   const addRoofSection = () => {
-    const newRoofNumber = Math.max(...data.roofSections.map(r => r.roofNumber), 0) + 1;
+    const newRoofNumber =
+      Math.max(...data.roofSections.map((r) => r.roofNumber), 0) + 1;
     const newSection = {
       roofNumber: newRoofNumber,
       section_name: `Roof${newRoofNumber}`,
@@ -37,21 +51,29 @@ export function MultiStructureInsuranceEditor({ data, onChange }: MultiStructure
   };
 
   const removeRoofSection = (roofNumber: number) => {
-    const updatedSections = data.roofSections.filter(section => section.roofNumber !== roofNumber);
+    const updatedSections = data.roofSections.filter(
+      (section) => section.roofNumber !== roofNumber
+    );
     onChange({
       ...data,
       roofSections: updatedSections,
     });
-    
+
     // Switch to first available tab if current tab was removed
     if (activeTab === `roof-${roofNumber}` && updatedSections.length > 0) {
       setActiveTab(`roof-${updatedSections[0].roofNumber}`);
     }
   };
 
-  const updateRoofSection = (roofNumber: number, field: string, value: string) => {
-    const updatedSections = data.roofSections.map(section =>
-      section.roofNumber === roofNumber ? { ...section, [field]: value } : section
+  const updateRoofSection = (
+    roofNumber: number,
+    field: string,
+    value: string
+  ) => {
+    const updatedSections = data.roofSections.map((section) =>
+      section.roofNumber === roofNumber
+        ? { ...section, [field]: value }
+        : section
     );
     onChange({
       ...data,
@@ -60,15 +82,16 @@ export function MultiStructureInsuranceEditor({ data, onChange }: MultiStructure
   };
 
   const addLineItem = (roofNumber: number) => {
-    const updatedSections = data.roofSections.map(section => {
+    const updatedSections = data.roofSections.map((section) => {
       if (section.roofNumber === roofNumber) {
-        const newItemNo = Math.max(...section.line_items.map(item => item.item_no), 0) + 1;
+        const newItemNo =
+          Math.max(...section.line_items.map((item) => item.item_no), 0) + 1;
         const newLineItem = {
           item_no: newItemNo,
           description: '',
-          quantity: { 
-            value: null as number | null, 
-            unit: null as string | null 
+          quantity: {
+            value: null as number | null,
+            unit: null as string | null,
           },
           options_text: null as string | null,
         };
@@ -86,11 +109,13 @@ export function MultiStructureInsuranceEditor({ data, onChange }: MultiStructure
   };
 
   const removeLineItem = (roofNumber: number, itemNo: number) => {
-    const updatedSections = data.roofSections.map(section => {
+    const updatedSections = data.roofSections.map((section) => {
       if (section.roofNumber === roofNumber) {
         return {
           ...section,
-          line_items: section.line_items.filter(item => item.item_no !== itemNo),
+          line_items: section.line_items.filter(
+            (item) => item.item_no !== itemNo
+          ),
         };
       }
       return section;
@@ -101,29 +126,35 @@ export function MultiStructureInsuranceEditor({ data, onChange }: MultiStructure
     });
   };
 
-  const updateLineItem = (roofNumber: number, itemNo: number, field: string, value: string | number | null) => {
-    const updatedSections = data.roofSections.map(section => {
+  const updateLineItem = (
+    roofNumber: number,
+    itemNo: number,
+    field: string,
+    value: string | number | null
+  ) => {
+    const updatedSections = data.roofSections.map((section) => {
       if (section.roofNumber === roofNumber) {
-        const updatedLineItems = section.line_items.map(item => {
+        const updatedLineItems = section.line_items.map((item) => {
           if (item.item_no === itemNo) {
             if (field === 'quantity.value') {
               // Ensure quantity.value is number | null
-              const numericValue = typeof value === 'string' ? parseFloat(value) || null : value;
-              return { 
-                ...item, 
-                quantity: { 
-                  ...item.quantity, 
-                  value: numericValue as number | null 
-                } 
+              const numericValue =
+                typeof value === 'string' ? parseFloat(value) || null : value;
+              return {
+                ...item,
+                quantity: {
+                  ...item.quantity,
+                  value: numericValue as number | null,
+                },
               };
             } else if (field === 'quantity.unit') {
               // Ensure quantity.unit is string | null
-              return { 
-                ...item, 
-                quantity: { 
-                  ...item.quantity, 
-                  unit: value as string | null 
-                } 
+              return {
+                ...item,
+                quantity: {
+                  ...item.quantity,
+                  unit: value as string | null,
+                },
               };
             } else {
               return { ...item, [field]: value as string };
@@ -144,8 +175,8 @@ export function MultiStructureInsuranceEditor({ data, onChange }: MultiStructure
   return (
     <div className="space-y-6">
       {/* Claim Information */}
-      <Card className="shadow-sm border-slate-200">
-        <CardHeader className="bg-gradient-to-r from-slate-100 to-slate-300 border-b border-slate-200 rounded-t-xl">
+      <Card className="shadow-sm border-slate-200 py-0 flex flex-col">
+        <CardHeader className="bg-gradient-to-r from-slate-100 to-slate-300 border-b border-slate-200 rounded-t-xl pt-4">
           <CardTitle className="flex items-center gap-3 text-slate-800">
             <div className="p-2 bg-slate-200 rounded-lg">
               <Edit3 className="h-5 w-5 text-slate-600" />
@@ -153,10 +184,13 @@ export function MultiStructureInsuranceEditor({ data, onChange }: MultiStructure
             Claim Information
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-6">
+        <CardContent className="pb-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="space-y-2">
-              <Label htmlFor="claim_id" className="text-sm font-medium text-slate-700">
+              <Label
+                htmlFor="claim_id"
+                className="text-sm font-medium text-slate-700"
+              >
                 Claim ID
               </Label>
               <Input
@@ -169,7 +203,10 @@ export function MultiStructureInsuranceEditor({ data, onChange }: MultiStructure
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="date" className="text-sm font-medium text-slate-700">
+              <Label
+                htmlFor="date"
+                className="text-sm font-medium text-slate-700"
+              >
                 Date
               </Label>
               <Input
@@ -182,7 +219,10 @@ export function MultiStructureInsuranceEditor({ data, onChange }: MultiStructure
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="price_list" className="text-sm font-medium text-slate-700">
+              <Label
+                htmlFor="price_list"
+                className="text-sm font-medium text-slate-700"
+              >
                 Price List
               </Label>
               <Input
@@ -199,8 +239,8 @@ export function MultiStructureInsuranceEditor({ data, onChange }: MultiStructure
       </Card>
 
       {/* Roof Sections */}
-      <Card className="shadow-sm border-slate-200">
-        <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-slate-200 rounded-t-xl">
+      <Card className="shadow-sm border-slate-200 pt-0">
+        <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-slate-200 rounded-t-xl pt-4">
           <CardTitle className="flex items-center justify-between">
             <div className="flex items-center gap-3 text-slate-800">
               <div className="p-2 bg-blue-100 rounded-lg">
@@ -208,7 +248,8 @@ export function MultiStructureInsuranceEditor({ data, onChange }: MultiStructure
               </div>
               Roof Sections
               <Badge variant="secondary" className="ml-2">
-                {data.roofSections.length} Section{data.roofSections.length !== 1 ? 's' : ''}
+                {data.roofSections.length} Section
+                {data.roofSections.length !== 1 ? 's' : ''}
               </Badge>
             </div>
             <Button
@@ -227,15 +268,26 @@ export function MultiStructureInsuranceEditor({ data, onChange }: MultiStructure
         <CardContent className="p-6">
           {data.roofSections.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-slate-500 mb-4">No roof sections found. Add a section to get started.</p>
+              <p className="text-slate-500 mb-4">
+                No roof sections found. Add a section to get started.
+              </p>
               <Button onClick={addRoofSection} variant="outline">
                 <Plus className="h-4 w-4 mr-2" />
                 Add First Section
               </Button>
             </div>
           ) : (
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(${data.roofSections.length}, 1fr)` }}>
+            <Tabs
+              value={activeTab}
+              onValueChange={setActiveTab}
+              className="w-full"
+            >
+              <TabsList
+                className="grid w-full"
+                style={{
+                  gridTemplateColumns: `repeat(${data.roofSections.length}, 1fr)`,
+                }}
+              >
                 {data.roofSections.map((section) => (
                   <TabsTrigger
                     key={`roof-${section.roofNumber}`}
@@ -284,7 +336,13 @@ export function MultiStructureInsuranceEditor({ data, onChange }: MultiStructure
                       <Input
                         type="text"
                         value={section.section_name}
-                        onChange={(e) => updateRoofSection(section.roofNumber, 'section_name', e.target.value)}
+                        onChange={(e) =>
+                          updateRoofSection(
+                            section.roofNumber,
+                            'section_name',
+                            e.target.value
+                          )
+                        }
                         className="border-slate-300 focus:border-blue-500 focus:ring-blue-500"
                         placeholder="Enter section name"
                       />
@@ -293,7 +351,9 @@ export function MultiStructureInsuranceEditor({ data, onChange }: MultiStructure
                     {/* Line Items */}
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
-                        <h4 className="text-md font-medium text-slate-700">Line Items</h4>
+                        <h4 className="text-md font-medium text-slate-700">
+                          Line Items
+                        </h4>
                         <Button
                           onClick={() => addLineItem(section.roofNumber)}
                           size="sm"
@@ -307,7 +367,9 @@ export function MultiStructureInsuranceEditor({ data, onChange }: MultiStructure
 
                       {section.line_items.length === 0 ? (
                         <div className="text-center py-6 border-2 border-dashed border-slate-200 rounded-lg">
-                          <p className="text-slate-500 mb-2">No line items in this section</p>
+                          <p className="text-slate-500 mb-2">
+                            No line items in this section
+                          </p>
                           <Button
                             onClick={() => addLineItem(section.roofNumber)}
                             variant="outline"
@@ -331,7 +393,14 @@ export function MultiStructureInsuranceEditor({ data, onChange }: MultiStructure
                                 <Input
                                   type="number"
                                   value={item.item_no}
-                                  onChange={(e) => updateLineItem(section.roofNumber, item.item_no, 'item_no', parseInt(e.target.value) || 0)}
+                                  onChange={(e) =>
+                                    updateLineItem(
+                                      section.roofNumber,
+                                      item.item_no,
+                                      'item_no',
+                                      parseInt(e.target.value) || 0
+                                    )
+                                  }
                                   className="border-slate-300 focus:border-blue-500 focus:ring-blue-500"
                                 />
                               </div>
@@ -342,7 +411,14 @@ export function MultiStructureInsuranceEditor({ data, onChange }: MultiStructure
                                 <Input
                                   type="text"
                                   value={item.description}
-                                  onChange={(e) => updateLineItem(section.roofNumber, item.item_no, 'description', e.target.value)}
+                                  onChange={(e) =>
+                                    updateLineItem(
+                                      section.roofNumber,
+                                      item.item_no,
+                                      'description',
+                                      e.target.value
+                                    )
+                                  }
                                   className="border-slate-300 focus:border-blue-500 focus:ring-blue-500"
                                   placeholder="Item description"
                                 />
@@ -354,7 +430,14 @@ export function MultiStructureInsuranceEditor({ data, onChange }: MultiStructure
                                 <Input
                                   type="number"
                                   value={item.quantity.value || ''}
-                                  onChange={(e) => updateLineItem(section.roofNumber, item.item_no, 'quantity.value', parseFloat(e.target.value) || null)}
+                                  onChange={(e) =>
+                                    updateLineItem(
+                                      section.roofNumber,
+                                      item.item_no,
+                                      'quantity.value',
+                                      parseFloat(e.target.value) || null
+                                    )
+                                  }
                                   className="border-slate-300 focus:border-blue-500 focus:ring-blue-500"
                                   placeholder="Qty"
                                 />
@@ -366,7 +449,14 @@ export function MultiStructureInsuranceEditor({ data, onChange }: MultiStructure
                                 <Input
                                   type="text"
                                   value={item.quantity.unit || ''}
-                                  onChange={(e) => updateLineItem(section.roofNumber, item.item_no, 'quantity.unit', e.target.value || null)}
+                                  onChange={(e) =>
+                                    updateLineItem(
+                                      section.roofNumber,
+                                      item.item_no,
+                                      'quantity.unit',
+                                      e.target.value || null
+                                    )
+                                  }
                                   className="border-slate-300 focus:border-blue-500 focus:ring-blue-500"
                                   placeholder="Unit"
                                 />
@@ -376,7 +466,12 @@ export function MultiStructureInsuranceEditor({ data, onChange }: MultiStructure
                                   type="button"
                                   variant="outline"
                                   size="sm"
-                                  onClick={() => removeLineItem(section.roofNumber, item.item_no)}
+                                  onClick={() =>
+                                    removeLineItem(
+                                      section.roofNumber,
+                                      item.item_no
+                                    )
+                                  }
                                   className="text-red-600 border-red-300 hover:bg-red-50 hover:border-red-400"
                                 >
                                   <Trash2 className="h-4 w-4" />
