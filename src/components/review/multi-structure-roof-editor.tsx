@@ -79,24 +79,6 @@ export function MultiStructureRoofEditor({ data, onChange }: MultiStructureRoofE
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <Card className="shadow-sm border-slate-200">
-        <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-slate-200 rounded-t-xl">
-          <CardTitle className="flex items-center gap-3 text-slate-800">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Building2 className="h-5 w-5 text-blue-600" />
-            </div>
-            Multi-Structure Roof Review
-            <Badge variant="secondary" className="ml-2">
-              {data.structureCount} Structures
-            </Badge>
-          </CardTitle>
-          <CardDescription className="text-slate-600">
-            Review and edit the roof data for each structure individually using the tabs below
-          </CardDescription>
-        </CardHeader>
-      </Card>
-
       {/* Tabbed Interface */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(${data.structures.length}, 1fr)` }}>

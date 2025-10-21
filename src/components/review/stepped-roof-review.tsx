@@ -94,7 +94,7 @@ export function SteppedRoofReview({
                 </h3>
                 <p className="text-emerald-700 text-sm leading-relaxed max-w-md">
                   Your roof document has been successfully processed. Review and
-                  edit the extracted data below to ensure accuracy.
+                  edit the extracted data below to ensure accuracy. {currentRoofData.structureCount > 1 ? 'Use the tabs below to review each structure individually.' : ''}
                 </p>
               </div>
             </div>

@@ -116,7 +116,7 @@ export function SteppedInsuranceReview({
                 </h3>
                 <p className="text-emerald-700 text-sm leading-relaxed max-w-md">
                   Your insurance document has been successfully processed.
-                  Review and edit the extracted data below to ensure accuracy.
+                  Review and edit the extracted data below to ensure accuracy. Use the tabs below to review each roof section individually.
                 </p>
               </div>
             </div>

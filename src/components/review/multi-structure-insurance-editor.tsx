@@ -143,24 +143,6 @@ export function MultiStructureInsuranceEditor({ data, onChange }: MultiStructure
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <Card className="shadow-sm border-slate-200">
-        <CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50 border-b border-slate-200 rounded-t-xl">
-          <CardTitle className="flex items-center gap-3 text-slate-800">
-            <div className="p-2 bg-purple-100 rounded-lg">
-              <Building2 className="h-5 w-5 text-purple-600" />
-            </div>
-            Insurance Report Review
-            <Badge variant="secondary" className="ml-2">
-              {data.structureCount} Structure{data.structureCount !== 1 ? 's' : ''}
-            </Badge>
-          </CardTitle>
-          <CardDescription className="text-slate-600">
-            Review and edit the insurance claim data for each roof section
-          </CardDescription>
-        </CardHeader>
-      </Card>
-
       {/* Claim Information */}
       <Card className="shadow-sm border-slate-200">
         <CardHeader className="bg-gradient-to-r from-slate-100 to-slate-300 border-b border-slate-200 rounded-t-xl">
