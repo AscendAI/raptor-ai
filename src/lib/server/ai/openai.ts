@@ -187,9 +187,15 @@ Extract the structured data for ${structureCount} roof structure(s) according to
    - price_list → the "Price List" value (e.g., "ININ28_JUL24")
    - structureCount → ${structureCount}
 
-2. Roof sections:
-   - Look for sections labeled "Roof1", "Roof2", "Roof3", "Roof4" etc.
-   - Extract line items for each roof section separately
+2. Roof sections to extract (naming rules):
+   - Detect roof sections labeled numerically like "Roof1", "Roof2", "Roof3", etc.
+   - ALSO detect semantically named roof sections such as:
+       "Home / Main House", "Garage", "Shed / Barn / Outbuilding", "Porch / Patio / Carport", etc.
+   - Use the section header text from the document EXACTLY as the section_name (preserve punctuation and slashes). 
+     If the header includes a suffix like "- Roof" or "Roof:" (e.g., "Home / Main House - Roof"), remove the suffix and keep just the base name.
+   - Extract line items for each roof section separately.
+   - Order roofSections as they appear in the document. Assign roofNumber sequentially starting from 1.
+   - If the document contains more than ${structureCount} roof sections, include the first ${structureCount} roof-relevant sections in reading order.
    - Skip any line item explicitly marked as **REVISED**.
    - For each valid line item, capture:
        * item_no → the line item number (integer)
@@ -210,7 +216,7 @@ Extract the structured data for ${structureCount} roof structure(s) according to
   "roofSections": [
     {
       "roofNumber": 1,
-      "section_name": "Roof1",
+      "section_name": "Home / Main House",
       "line_items": [
         {
           "item_no": number,
@@ -222,12 +228,12 @@ Extract the structured data for ${structureCount} roof structure(s) according to
           "options_text": "string" | null
         }
       ]
-    }${structureCount > 1 ? ',\n    // ... repeat for Roof2, Roof3, Roof4 as needed' : ''}
+    }${structureCount > 1 ? ',\n    // ... repeat for additional sections such as "Garage", "Shed / Barn / Outbuilding", etc.' : ''}
   ]
 }
 
 4. Important:
-   - Extract data for exactly ${structureCount} roof section(s).
+   - Extract data for ${structureCount} roof section(s) as defined above.
    - Do NOT include cost, depreciation, tax, or age/life fields.
    - If a field does not exist → set it to null (do not omit).
    - Ensure all numbers remain as numbers (not strings).

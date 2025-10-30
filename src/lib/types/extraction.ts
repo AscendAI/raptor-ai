@@ -81,7 +81,7 @@ export interface InsuranceReportData {
   structureCount: number;
   roofSections: Array<{
     roofNumber: number;
-    section_name: string; // e.g., "Roof1", "Roof2", etc.
+    section_name: string; // e.g., "Roof1", "Roof2" OR semantic names like "Home / Main House", "Garage", etc.
     line_items: Array<{
       item_no: number;
       description: string;
@@ -102,64 +102,82 @@ export interface ExtractionResult<T> {
 }
 
 // Parsing functions with error handling
-export function parseRoofReportData(rawText: string): ExtractionResult<RoofReportData> {
+export function parseRoofReportData(
+  rawText: string
+): ExtractionResult<RoofReportData> {
   try {
     // Clean the text - remove any markdown formatting or extra text
     const cleanText = rawText.trim();
     let jsonText = cleanText;
-    
+
     // Try to extract JSON from markdown code blocks if present
     const jsonMatch = cleanText.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
     if (jsonMatch) {
       jsonText = jsonMatch[1].trim();
     }
-    
+
     // Try to find JSON object boundaries
     const startIndex = jsonText.indexOf('{');
     const lastIndex = jsonText.lastIndexOf('}');
-    
+
     if (startIndex !== -1 && lastIndex !== -1 && lastIndex > startIndex) {
       jsonText = jsonText.substring(startIndex, lastIndex + 1);
     }
-    
+
     const parsed = JSON.parse(jsonText);
-    
+
     // Check if this is the legacy single structure format
-    if (parsed.measurements && parsed.pitch_breakdown && parsed.waste_table && !parsed.structureCount) {
+    if (
+      parsed.measurements &&
+      parsed.pitch_breakdown &&
+      parsed.waste_table &&
+      !parsed.structureCount
+    ) {
       // Convert legacy format to multi-structure format
       const legacyData = parsed as SingleRoofReportData;
-      const multiStructureData: RoofReportData = convertLegacyToMultiStructure(legacyData);
-      
+      const multiStructureData: RoofReportData =
+        convertLegacyToMultiStructure(legacyData);
+
       return {
         success: true,
         data: multiStructureData,
-        rawText
+        rawText,
       };
     }
-    
+
     // Validate multi-structure format
     const multiStructureData = parsed as RoofReportData;
-    if (!multiStructureData.structureCount || !Array.isArray(multiStructureData.structures)) {
-      throw new Error('Invalid roof report structure - missing structureCount or structures array');
+    if (
+      !multiStructureData.structureCount ||
+      !Array.isArray(multiStructureData.structures)
+    ) {
+      throw new Error(
+        'Invalid roof report structure - missing structureCount or structures array'
+      );
     }
-    
+
     return {
       success: true,
       data: multiStructureData,
-      rawText
+      rawText,
     };
   } catch (error) {
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown parsing error',
-      rawText
+      rawText,
     };
   }
 }
 
-export function parseInsuranceReportData(rawText: string): ExtractionResult<InsuranceReportData> {
-  console.log('parseInsuranceReportData called with text length:', rawText?.length || 0);
-  
+export function parseInsuranceReportData(
+  rawText: string
+): ExtractionResult<InsuranceReportData> {
+  console.log(
+    'parseInsuranceReportData called with text length:',
+    rawText?.length || 0
+  );
+
   if (!rawText || rawText.trim() === '') {
     console.log('Empty or null raw text provided');
     return {
@@ -173,66 +191,113 @@ export function parseInsuranceReportData(rawText: string): ExtractionResult<Insu
     // Clean the text - remove any markdown formatting or extra text
     const cleanText = rawText.trim();
     let jsonText = cleanText;
-    
+
     // Try to extract JSON from markdown code blocks if present
     const jsonMatch = cleanText.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
     if (jsonMatch) {
       jsonText = jsonMatch[1].trim();
     }
-    
+
     // Try to find JSON object boundaries
     const startIndex = jsonText.indexOf('{');
     const lastIndex = jsonText.lastIndexOf('}');
-    
+
     if (startIndex !== -1 && lastIndex !== -1 && lastIndex > startIndex) {
       jsonText = jsonText.substring(startIndex, lastIndex + 1);
     }
-    
+
     console.log('Cleaned text preview:', jsonText.substring(0, 200));
-    
+
     const parsed = JSON.parse(jsonText);
     console.log('Successfully parsed JSON, keys:', Object.keys(parsed));
-    
+
     // Check if this is legacy single-structure format (has 'sections' instead of 'roofSections')
     if (parsed.sections && !parsed.roofSections && !parsed.structureCount) {
       console.log('Detected legacy single-structure format, converting...');
       // Convert legacy format to multi-structure format
+      // Helper to lightly normalize section names (remove common "- Roof" suffix and trim)
+      const sanitizeSectionName = (name: string | undefined): string => {
+        if (!name) return 'Roof';
+        return name
+          .replace(/\s*[-:]?\s*Roof\s*$/i, '')
+          .replace(/\s{2,}/g, ' ')
+          .trim();
+      };
+
       const convertedData: InsuranceReportData = {
         claim_id: parsed.claim_id,
         date: parsed.date,
         price_list: parsed.price_list,
         structureCount: 1,
-        roofSections: parsed.sections.map((section: { section_name?: string; line_items?: unknown[] }, index: number) => ({
-          roofNumber: index + 1,
-          section_name: section.section_name || 'Roof',
-          line_items: section.line_items || []
-        }))
+        roofSections: parsed.sections.map(
+          (
+            section: { section_name?: string; line_items?: unknown[] },
+            index: number
+          ) => ({
+            roofNumber: index + 1,
+            section_name: sanitizeSectionName(section.section_name),
+            line_items: section.line_items || [],
+          })
+        ),
       };
-      
+
       console.log('Converted to multi-structure format');
       return {
         success: true,
         data: convertedData,
-        rawText
+        rawText,
       };
     }
-    
+
     // Validate multi-structure format
-    if (!parsed.claim_id || !parsed.date || !Array.isArray(parsed.roofSections)) {
+    if (
+      !parsed.claim_id ||
+      !parsed.date ||
+      !Array.isArray(parsed.roofSections)
+    ) {
       console.log('Missing required fields in multi-structure format');
       console.log('Has claim_id:', !!parsed.claim_id);
       console.log('Has date:', !!parsed.date);
       console.log('Has roofSections:', !!parsed.roofSections);
-      throw new Error('Invalid insurance report structure - missing required fields or roofSections array');
+      throw new Error(
+        'Invalid insurance report structure - missing required fields or roofSections array'
+      );
     }
-    
+
     console.log('Valid multi-structure format detected');
     console.log('Roof sections count:', parsed.roofSections.length);
-    
+
+    // Normalize section names for multi-structure format as well
+    const sanitizeSectionName = (name: string | undefined): string => {
+      if (!name) return 'Roof';
+      return name
+        .replace(/\s*[-:]?\s*Roof\s*$/i, '')
+        .replace(/\s{2,}/g, ' ')
+        .trim();
+    };
+
+    type ParsedSection = {
+      roofNumber?: number;
+      section_name?: string;
+      line_items?: unknown[];
+    };
+    const normalized: InsuranceReportData = {
+      ...parsed,
+      roofSections: (parsed.roofSections as ParsedSection[]).map(
+        (section: ParsedSection, index: number) => ({
+          roofNumber: section.roofNumber ?? index + 1,
+          section_name: sanitizeSectionName(section.section_name),
+          line_items: Array.isArray(section.line_items)
+            ? section.line_items
+            : [],
+        })
+      ),
+    };
+
     return {
       success: true,
-      data: parsed as InsuranceReportData,
-      rawText
+      data: normalized,
+      rawText,
     };
   } catch (error) {
     console.error('JSON parsing error:', error);
@@ -240,44 +305,53 @@ export function parseInsuranceReportData(rawText: string): ExtractionResult<Insu
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown parsing error',
-      rawText
+      rawText,
     };
   }
 }
 
 // Helper function to convert parsed data back to string for AI comparison
-export function stringifyForComparison(roofData: RoofReportData, insuranceData: InsuranceReportData): {
+export function stringifyForComparison(
+  roofData: RoofReportData,
+  insuranceData: InsuranceReportData
+): {
   roofReportText: string;
   insuranceReportText: string;
 } {
   return {
     roofReportText: JSON.stringify(roofData, null, 2),
-    insuranceReportText: JSON.stringify(insuranceData, null, 2)
+    insuranceReportText: JSON.stringify(insuranceData, null, 2),
   };
 }
 
 // Utility functions for backward compatibility
-export function convertLegacyToMultiStructure(legacyData: SingleRoofReportData): RoofReportData {
+export function convertLegacyToMultiStructure(
+  legacyData: SingleRoofReportData
+): RoofReportData {
   return {
     structureCount: 1,
-    structures: [{
-      structureNumber: 1,
-      measurements: legacyData.measurements,
-      pitch_breakdown: legacyData.pitch_breakdown,
-      waste_table: legacyData.waste_table
-    }]
+    structures: [
+      {
+        structureNumber: 1,
+        measurements: legacyData.measurements,
+        pitch_breakdown: legacyData.pitch_breakdown,
+        waste_table: legacyData.waste_table,
+      },
+    ],
   };
 }
 
-export function convertMultiToLegacyStructure(multiData: RoofReportData): SingleRoofReportData | null {
+export function convertMultiToLegacyStructure(
+  multiData: RoofReportData
+): SingleRoofReportData | null {
   if (multiData.structureCount !== 1 || multiData.structures.length !== 1) {
     return null; // Cannot convert multi-structure to legacy format
   }
-  
+
   const structure = multiData.structures[0];
   return {
     measurements: structure.measurements,
     pitch_breakdown: structure.pitch_breakdown,
-    waste_table: structure.waste_table
+    waste_table: structure.waste_table,
   };
 }
