@@ -196,7 +196,7 @@ export function MultiStructureInsuranceEditor({
               <Input
                 id="claim_id"
                 type="text"
-                value={data.claim_id}
+                value={data.claim_id || ''}
                 onChange={(e) => updateClaimInfo('claim_id', e.target.value)}
                 className="border-slate-300 focus:border-slate-500 focus:ring-slate-500"
                 placeholder="Enter claim ID"
@@ -212,7 +212,7 @@ export function MultiStructureInsuranceEditor({
               <Input
                 id="date"
                 type="text"
-                value={data.date}
+                value={data.date || ''}
                 onChange={(e) => updateClaimInfo('date', e.target.value)}
                 className="border-slate-300 focus:border-slate-500 focus:ring-slate-500"
                 placeholder="Enter date"
@@ -228,7 +228,7 @@ export function MultiStructureInsuranceEditor({
               <Input
                 id="price_list"
                 type="text"
-                value={data.price_list}
+                value={data.price_list || ''}
                 onChange={(e) => updateClaimInfo('price_list', e.target.value)}
                 className="border-slate-300 focus:border-slate-500 focus:ring-slate-500"
                 placeholder="Enter price list"
@@ -295,7 +295,7 @@ export function MultiStructureInsuranceEditor({
                     className="text-sm"
                   >
                     <Building2 className="h-4 w-4 mr-2" />
-                    {section.section_name}
+                    {section.section_name || `Roof ${section.roofNumber}`}
                   </TabsTrigger>
                 ))}
               </TabsList>
@@ -335,7 +335,7 @@ export function MultiStructureInsuranceEditor({
                       </Label>
                       <Input
                         type="text"
-                        value={section.section_name}
+                        value={section.section_name || ''}
                         onChange={(e) =>
                           updateRoofSection(
                             section.roofNumber,
