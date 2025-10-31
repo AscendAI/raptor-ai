@@ -9,4 +9,29 @@ Full Checklist:
     i. Roof report: Recommended waste factor percentage value (SQ) in the waste table.
     ii. Insurance report: Laminated - comp shingle w/ or w/out felt value.
     iii. Compare: Compare if square value of recommended waste factor from roof report >= the Laminated - comp shingle w/ or w/out felt value from the insurance report.
-3. 
+3. Drip Edge:
+    i. Roof report: Eaves + rakes.
+    ii. Insurance report: Drip edge value (LF).
+    iii. Compare: Check if Eaves + rakes from roof report >= drip edge (LF) from insurance report.
+
+4. Starter Strip:
+    i. Roof report: Eaves + rakes.
+    ii. Insurance report: Starter strip / Asphalt starter/ Starter value (LF).
+    iii. Compare: Check if Eaves + rakes from roof report >= starter strip / Asphalt starter/ Starter value (LF) from insurance report.
+5. Ridge Cap:
+    i. Roof report: Total Hips + ridges length.
+    ii. Insurance report: Hip/Ridge cap value (LF).
+    iii. Compare: Check if Total Hips + ridges length from roof report >= Hip/Ridge cap value (LF) from insurance report.`
+
+6. Ice and Water Shield in Valleys:
+    i. Roof report: Total valley length * 6
+    ii. Insurance report: Ice and water shield / barrier value (SF).
+    iii. Compare: Check if (Total valley length * 6) from roof report >= Ice and water shield / barrier value (SF) from insurance report.
+7. Step flashing:
+    present or not.
+    i. Roof report: Total wall flashing + Total step flashing.
+    ii. Insurance report: If included, Step flashing value (LF).
+    iii. Compare: Check if (Total wall flashing + Total step flashing) from roof report >= Step flashing value (LF) from insurance report (if included).
+8. Chimney flashing:
+    present or not.
+9. Ventilation items:
