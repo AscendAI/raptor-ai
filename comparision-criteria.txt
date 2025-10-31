@@ -1,0 +1,12 @@
+Full Checklist: 
+
+1. Confirm Total Squares:
+    i. Roof report: Total roof area (sqft). Waste factor 0% value.
+    ii. Insurance report: Surface area (sqft). Number of squares (SQ). (1 square = 100 sqft). Tear off (SQ). 
+    iii. Compare: Check if total squares from roof report >= total squares from insurance report.
+
+2. Check if proper waste factor is applied:
+    i. Roof report: Recommended waste factor percentage value (SQ) in the waste table.
+    ii. Insurance report: Laminated - comp shingle w/ or w/out felt value.
+    iii. Compare: Compare if square value of recommended waste factor from roof report >= the Laminated - comp shingle w/ or w/out felt value from the insurance report.
+3. 
