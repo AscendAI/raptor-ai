@@ -290,10 +290,6 @@ Normalization and parsing rules:
 - Missing numeric buckets: Treat any unavailable pitch bucket as 0 for pitch-based checks.
 
 Checklist (apply to EACH structure exactly as written below):
-0. Check the metadata: Price list date
-   - Compare the roof report "Date inspected" (if available; else the insurance document date) vs the month/year encoded in insurance price_list (e.g., ININ28_JUL24 → July 2024).
-   - Pass if same month or within ±1 month; Failed if outside; Missing if dates unavailable.
-
 1. Confirm Total Squares
   - Roof report value: total squares at 0% waste (prefer waste_table 0% "squares"; else compute measurements.total_roof_area / 100).
   - Insurance report value: Tear off quantity in SQ (prefer explicit tear-off line items; if unit is sqft, convert to SQ). Do NOT use base/installation quantity for this checkpoint.
@@ -403,10 +399,6 @@ Normalization and parsing rules:
 - Missing pitch buckets are treated as 0 for pitch-based checks.
 
 Checklist (single-structure):
-0. Check the metadata: Price list date
-   - Compare the roof report "Date inspected" (if available; else the insurance document date) vs the month/year encoded in insurance price_list (e.g., ININ28_JUL24 → July 2024).
-   - Pass if same month or within ±1 month; Failed if outside; Missing if dates unavailable.
-
 1. Confirm Total Squares
   - Roof report value: total squares at 0% waste (prefer waste_table 0% "squares"; else compute measurements.total_roof_area / 100).
   - Insurance report value: Tear off quantity in SQ (prefer explicit tear-off line items; if unit is sqft, convert to SQ). Do NOT use base/installation quantity for this checkpoint.

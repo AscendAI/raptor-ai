@@ -19,6 +19,10 @@ import { type InsuranceReportData } from '@/lib/types/extraction';
 import { toast } from 'sonner';
 import { MultiStructureComparisonResults } from '@/components/results/multi-structure-comparison-results';
 import { type ComparisonResult } from '@/lib/types/comparison';
+import {
+  evaluatePriceListVsInsuranceDate,
+  type PriceListDateStatus,
+} from '@/lib/utils/compare-pricelist-date';
 
 interface ResultsClientWrapperProps {
   taskId: string;
@@ -44,6 +48,15 @@ export function ResultsClientWrapper({
     (file) =>
       file.name.includes('insuranceReport') && file.name.endsWith('.pdf')
   );
+
+  const priceListStatus: PriceListDateStatus | null = React.useMemo(() => {
+    if (!insuranceData) return null;
+    // Compare using only insurance date and price list
+    return evaluatePriceListVsInsuranceDate(
+      insuranceData.price_list,
+      insuranceData.date
+    );
+  }, [insuranceData]);
 
   const handleDownloadReport = () => {
     const reportContent = `# Roof vs Insurance Report Analysis\n\n## Summary\n- Total Checkpoints: ${comparison.summary.total}\n- Matching (Pass): ${comparison.summary.pass}\n- Discrepancies (Failed): ${comparison.summary.failed}\n- Missing Data: ${comparison.summary.missing}\n\n## Detailed Comparison\n${
@@ -152,6 +165,32 @@ export function ResultsClientWrapper({
                 <div className="text-xs text-muted-foreground">Price List</div>
                 <div className="text-sm font-medium">
                   {insuranceData.price_list || '—'}
+                </div>
+              </div>
+              <div className="p-3 rounded-md border bg-muted/30 sm:col-span-3">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  {priceListStatus ? (
+                    <Badge
+                      variant="outline"
+                      className={
+                        priceListStatus.status === 'pass'
+                          ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
+                          : priceListStatus.status === 'failed'
+                            ? 'bg-red-100 text-red-800 border-red-200'
+                            : 'bg-amber-100 text-amber-900 border-amber-200'
+                      }
+                      title={priceListStatus.message}
+                    >
+                      {priceListStatus.status.toUpperCase()}
+                    </Badge>
+                  ) : (
+                    <Badge variant="secondary">N/A</Badge>
+                  )}
+                  {priceListStatus && (
+                    <div className="text-xs text-muted-foreground">
+                      {priceListStatus.message}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
