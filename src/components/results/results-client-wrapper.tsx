@@ -163,23 +163,20 @@ export function ResultsClientWrapper({
                   </div>
                 </div>
                 {priceListStatus && (
-                  <div className="ml-4 text-right">
+                  <div className="ml-4">
                     <div
                       className={cn(
-                        'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium mb-1',
+                        'inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium border text-center',
                         {
-                          'bg-emerald-100 text-emerald-700 border border-emerald-200':
+                          'bg-emerald-50 text-emerald-700 border-emerald-200':
                             priceListStatus.status === 'pass',
-                          'bg-red-100 text-red-700 border border-red-200':
+                          'bg-red-50 text-red-700 border-red-200':
                             priceListStatus.status === 'failed',
-                          'bg-amber-100 text-amber-700 border border-amber-200':
+                          'bg-amber-50 text-amber-700 border-amber-200':
                             priceListStatus.status === 'warning',
                         }
                       )}
                     >
-                      {priceListStatus.status.toUpperCase()}
-                    </div>
-                    <div className="text-xs text-gray-600 max-w-32">
                       {priceListStatus.message}
                     </div>
                   </div>
