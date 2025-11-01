@@ -95,7 +95,20 @@ function ComparisonAccordionItem({
               <h4 className="font-medium">{comparison.checkpoint}</h4>
             </div>
           </div>
-          <StatusBadge status={comparison.status} />
+          <div className="flex items-center gap-2">
+            {comparison.status === 'pass' && comparison.warning && (
+              <Badge
+                variant="outline"
+                className="text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800"
+                title={comparison.warning}
+              >
+                <span className="inline-flex items-center gap-1">
+                  <AlertTriangle className="h-3.5 w-3.5" /> Warning
+                </span>
+              </Badge>
+            )}
+            <StatusBadge status={comparison.status} />
+          </div>
         </div>
       </AccordionTrigger>
       <AccordionContent className="px-4 pb-4">
@@ -206,11 +219,23 @@ export function MultiStructureComparisonResults({
 
   // Handle single structure case (backward compatibility)
   if (data.structureCount === 1 && data.comparisons && !data.structures) {
+    const warningsCount = data.comparisons.reduce(
+      (acc, c) => acc + (c.warning ? 1 : 0),
+      0
+    );
     return (
       <div className={cn('w-full', className)}>
         <Card>
           <CardHeader>
-            <CardTitle>Analysis Results</CardTitle>
+            <CardTitle className="flex items-center justify-between">
+              <span>Analysis Results</span>
+              <Badge
+                variant="outline"
+                className="text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800"
+              >
+                Warnings: {warningsCount}
+              </Badge>
+            </CardTitle>
             <CardDescription>
               Detailed comparison between roof and insurance reports
             </CardDescription>
@@ -233,16 +258,29 @@ export function MultiStructureComparisonResults({
 
   // Handle multi-structure case
   if (data.structures && data.structures.length > 0) {
+    const warningsCount = data.structures.reduce(
+      (acc, s) =>
+        acc + s.comparisons.reduce((a, c) => a + (c.warning ? 1 : 0), 0),
+      0
+    );
     return (
       <div className={cn('w-full', className)}>
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               <span>Analysis Results</span>
-              <Badge variant="outline">
-                {data.structureCount}{' '}
-                {data.structureCount === 1 ? 'structure' : 'structures'}
-              </Badge>
+              <div className="flex items-center gap-2">
+                <Badge
+                  variant="outline"
+                  className="text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800"
+                >
+                  Warnings: {warningsCount}
+                </Badge>
+                <Badge variant="outline">
+                  {data.structureCount}{' '}
+                  {data.structureCount === 1 ? 'structure' : 'structures'}
+                </Badge>
+              </div>
             </CardTitle>
             <CardDescription>
               Detailed comparison results for each structure
