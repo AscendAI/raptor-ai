@@ -306,24 +306,24 @@ Checklist (apply to EACH structure exactly as written below):
 
 3. Drip Edge
    - Compare roof eaves + rakes (LF) vs insurance drip edge (LF).
-   - Status: Pass if Roof LF ≥ Insurance LF; Failed if less; Missing if insurance item missing.
+   - Status: Pass if Roof LF ≤ Insurance LF; Failed if less; Missing if insurance item missing.
 
 4. Starter Strip
    - Compare roof eaves + rakes (LF) vs insurance starter strip/asphalt starter/starter (LF).
-   - Status: Pass if Roof LF ≥ Insurance LF; Failed if less; Missing if insurance item missing.
+   - Status: Pass if Roof LF ≤ Insurance LF; Failed if less; Missing if insurance item missing.
 
 5. Ridge Cap
    - Compare roof total hips + ridges (LF) vs insurance hip/ridge cap (LF).
-   - Status: Pass if Roof LF ≥ Insurance LF; Failed if less; Missing if insurance item missing.
+   - Status: Pass if Roof LF ≤ Insurance LF; Failed if less; Missing if insurance item missing.
    - Warning: If insurance description/options_text indicates "cut from 3-tab" (any wording), add a WARNING message; otherwise warning = null.
 
 6. Ice and Water Shield in Valleys
    - Roof SF = total valley length (LF) × 6 ft; compare vs insurance ice and water shield/barrier (SF).
-   - Status: Pass if Roof SF ≥ Insurance SF; Failed if less; Missing if insurance item missing.
+   - Status: Pass if Roof SF ≤ Insurance SF; Failed if less; Missing if insurance item missing.
 
 7. Step flashing
    - Present or not. If present in insurance: compare roof (total wall flashing + total step flashing) LF vs insurance step flashing (LF).
-   - Status: If present and Roof LF ≥ Insurance LF → Pass; if present and less → Failed; if not present → Missing.
+   - Status: If present and Roof LF ≤ Insurance LF → Pass; if present and less → Failed; if not present → Missing.
 
 8. Chimney flashing
    - Presence check in insurance report.
@@ -335,19 +335,19 @@ Checklist (apply to EACH structure exactly as written below):
 
 10. Remove additional charge for steep roof 7/12 to 9/12 slope (Take off)
     - Roof SQ = sum of pitch_breakdown squares for 7/12, 8/12, 9/12 (treat missing buckets as 0).
-    - Compare vs insurance removal add-on quantity. Status: Pass if Roof SQ ≥ Insurance SQ; Failed if less; Missing if insurance item missing.
+    - Compare vs insurance removal add-on quantity. Status: Pass if Roof SQ ≤ Insurance SQ; Failed if less; Missing if insurance item missing.
 
 11. Additional charge for steep roof 7/12 to 9/12 slope (Put back)
     - Roof SQ_put_back = (7/12 + 8/12 + 9/12 squares) + recommended waste % of that sum.
-    - Compare vs insurance add-on quantity. Status: Pass if Roof ≥ Insurance; Failed if less; Missing if insurance item missing.
+    - Compare vs insurance add-on quantity. Status: Pass if Roof ≤ Insurance; Failed if less; Missing if insurance item missing.
 
 12. Remove additional charge for steep roof 10/12 and 12/12 slope (Take off)
     - Roof SQ = sum of pitch_breakdown squares for 10/12 and 12/12 (treat missing buckets as 0).
-    - Compare vs insurance removal add-on quantity. Status: Pass if Roof SQ ≥ Insurance SQ; Failed if less; Missing if insurance item missing.
+    - Compare vs insurance removal add-on quantity. Status: Pass if Roof SQ ≤ Insurance SQ; Failed if less; Missing if insurance item missing.
 
 13. Additional charge for steep roof 10/12 and 12/12 slope (Put back)
     - Roof SQ_put_back = (10/12 + 12/12 squares) + recommended waste % of that sum.
-    - Compare vs insurance add-on quantity. Status: Pass if Roof ≥ Insurance; Failed if less; Missing if insurance item missing.
+    - Compare vs insurance add-on quantity. Status: Pass if Roof ≤ Insurance; Failed if less; Missing if insurance item missing.
 
 14. Underlayment
     - Presence check in insurance.
@@ -430,17 +430,17 @@ Checklist (single-structure):
   - Status: Pass if Insurance felt SQ ≥ Roof recommended waste SQ; Failed if less; Missing if unavailable.
 
 3. Drip Edge
-   - Compare roof eaves + rakes (LF) vs insurance drip edge (LF). Pass if Roof ≥ Insurance; Failed if less; Missing if insurance item missing.
+   - Compare roof eaves + rakes (LF) vs insurance drip edge (LF). Pass if Roof ≤ Insurance; Failed if less; Missing if insurance item missing.
 
 4. Starter Strip
-   - Compare roof eaves + rakes (LF) vs insurance starter strip/asphalt starter/starter (LF). Pass if Roof ≥ Insurance; Failed if less; Missing if insurance item missing.
+   - Compare roof eaves + rakes (LF) vs insurance starter strip/asphalt starter/starter (LF). Pass if Roof ≤ Insurance; Failed if less; Missing if insurance item missing.
 
 5. Ridge Cap
-   - Compare roof hips + ridges (LF) vs insurance hip/ridge cap (LF). Pass if Roof ≥ Insurance; Failed if less; Missing if insurance item missing.
+   - Compare roof hips + ridges (LF) vs insurance hip/ridge cap (LF). Pass if Roof ≤ Insurance; Failed if less; Missing if insurance item missing.
    - Warning: If insurance mentions hip/ridge "cut from 3-tab", set a WARNING; otherwise null.
 
 6. Ice and Water Shield in Valleys
-   - Roof SF = total valley length × 6 ft; compare vs insurance ice and water shield/barrier (SF). Pass if Roof ≥ Insurance; Failed if less; Missing if insurance item missing.
+   - Roof SF = total valley length × 6 ft; compare vs insurance ice and water shield/barrier (SF). Pass if Roof ≤ Insurance; Failed if less; Missing if insurance item missing.
 
 7. Step flashing
    - Present or not. If present: compare roof (total wall flashing + total step flashing) LF vs insurance step flashing (LF). Pass/Failed accordingly. If not present → Missing.
@@ -452,16 +452,16 @@ Checklist (single-structure):
    - Presence check in insurance (e.g., ridge vent, box/turtle/power/off-ridge vents). Present → Pass; Missing → Missing with WARNING.
 
 10. Remove additional charge for steep roof 7/12 to 9/12 slope (Take off)
-    - Roof SQ = sum of 7/12, 8/12, 9/12 pitch squares; compare vs insurance removal add-on. Pass if Roof ≥ Insurance; Failed if less; Missing if insurance item missing.
+    - Roof SQ = sum of 7/12, 8/12, 9/12 pitch squares; compare vs insurance removal add-on. Pass if Roof ≤ Insurance; Failed if less; Missing if insurance item missing.
 
 11. Additional charge for steep roof 7/12 to 9/12 slope (Put back)
-    - Roof SQ_put_back = (7/12 + 8/12 + 9/12 squares) + recommended waste % of that sum. Compare vs insurance add-on. Pass if Roof ≥ Insurance; Failed if less; Missing if insurance item missing.
+    - Roof SQ_put_back = (7/12 + 8/12 + 9/12 squares) + recommended waste % of that sum. Compare vs insurance add-on. Pass if Roof ≤ Insurance; Failed if less; Missing if insurance item missing.
 
 12. Remove additional charge for steep roof 10/12 and 12/12 slope (Take off)
-    - Roof SQ = sum of 10/12 and 12/12 pitch squares; compare vs insurance removal add-on. Pass if Roof ≥ Insurance; Failed if less; Missing if insurance item missing.
+    - Roof SQ = sum of 10/12 and 12/12 pitch squares; compare vs insurance removal add-on. Pass if Roof ≤ Insurance; Failed if less; Missing if insurance item missing.
 
 13. Additional charge for steep roof 10/12 and 12/12 slope (Put back)
-    - Roof SQ_put_back = (10/12 + 12/12 squares) + recommended waste % of that sum. Compare vs insurance add-on. Pass if Roof ≥ Insurance; Failed if less; Missing if insurance item missing.
+    - Roof SQ_put_back = (10/12 + 12/12 squares) + recommended waste % of that sum. Compare vs insurance add-on. Pass if Roof ≤ Insurance; Failed if less; Missing if insurance item missing.
 
 14. Underlayment
     - Presence check in insurance. Present → Pass; Missing → Missing with WARNING.

@@ -3,19 +3,19 @@ Full Checklist:
 0. Check the metadata:
     i. Price list date: Check if the Date inspected and the Price list date are the same or close enough. for price list date, in the insurance report you can find something like this, "Price list: ININ28_JUL24". 
 
-1. Confirm Total Squares:
-    i. Roof report: Total roof area (sqft). Waste factor 0% value.
-    ii. Insurance report: Surface area (sqft). Number of squares (SQ). (1 square = 100 sqft). Tear off (SQ). 
-    iii. Compare: If Roof report <= insurance report, then pass. If not, fail. If missing, flag it missing.
+1. Confirm Total Squares
+  - Roof report value: total squares at 0% waste (prefer waste_table 0% "squares"; else compute measurements.total_roof_area / 100).
+  - Insurance report value: Tear off quantity in SQ (prefer explicit tear-off line items; if unit is sqft, convert to SQ). Do NOT use base/installation quantity for this checkpoint.
+  - Status: Pass if Insurance tear-off SQ ≥ Roof 0% SQ; Failed if less; Missing if tear-off not found.
 
-2. Check if proper waste factor is applied:
-    i. Roof report: Recommended waste factor percentage value (SQ) in the waste table.
-    ii. Insurance report: Laminated - comp shingle w/ or w/out felt value.
-    iii. Compare: If Roof report <= insurance report, then pass. If not, fail. If missing, flag it missing.
+2. Check if proper waste factor is applied
+  - Roof report value: squares at the recommended waste (use waste_table row where recommended=true → its "squares"; if only percent is present, compute squares = percent × roof 0% squares).
+  - Insurance report value: felt/underlayment quantity (w/ or w/out felt) in SQ (convert from sqft if needed). Use the felt line item tied to the shingle scope for this roof.
+  - Status: Pass if Insurance felt SQ ≥ Roof recommended waste SQ; Failed if less; Missing if unavailable.
 3. Drip Edge:
     i. Roof report: Eaves + rakes.
     ii. Insurance report: Drip edge value (LF).
-    iii. Compare: If Roof report <= insurance report, then pass. If not, fail. If missing, flag it missing.
+    iii. Compare: If Roof report ≤ insurance report, then pass. If not, fail. If missing, flag it missing.
 
 4. Starter Strip:
     i. Roof report: Eaves + rakes.
