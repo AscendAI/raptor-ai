@@ -12,7 +12,8 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Loader2, Save, ArrowRight, Eye, EyeOff, Check } from 'lucide-react';
 import { BsFilePdfFill } from 'react-icons/bs';
-import { RoofDataEditor } from './roof-data-editor';
+import { SingleStructureRoofEditor } from './single-structure-roof-editor';
+import { MultiStructureRoofEditor } from './multi-structure-roof-editor';
 import { RoofReportData } from '@/lib/types/extraction';
 import { saveRoofReviewData } from '@/lib/server/actions/saveRoofReviewData';
 import { FileData } from '@/lib/types/files';
@@ -92,8 +93,7 @@ export function SteppedRoofReview({
                   Data Extraction Complete
                 </h3>
                 <p className="text-emerald-700 text-sm leading-relaxed max-w-md">
-                  Your roof document has been successfully processed. Review and
-                  edit the extracted data below to ensure accuracy.
+                  Document processed successfully. Review and edit the data below for accuracy.
                 </p>
               </div>
             </div>
@@ -125,10 +125,32 @@ export function SteppedRoofReview({
         className={`${showPdfPreview && roofPdfFile ? 'grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6' : ''}`}
       >
         <div className={showPdfPreview && roofPdfFile ? 'xl:col-span-1' : ''}>
-          <RoofDataEditor
-            data={currentRoofData}
-            onChange={setCurrentRoofData}
-          />
+          {currentRoofData.structureCount > 1 ? (
+            <MultiStructureRoofEditor
+              data={currentRoofData}
+              onChange={setCurrentRoofData}
+            />
+          ) : (
+            <SingleStructureRoofEditor
+              data={{
+                measurements: currentRoofData.structures[0]?.measurements || {},
+                pitch_breakdown: currentRoofData.structures[0]?.pitch_breakdown || [],
+                waste_table: currentRoofData.structures[0]?.waste_table || [],
+              }}
+              onChange={(singleData) => {
+                const updatedMultiData: RoofReportData = {
+                  structureCount: 1,
+                  structures: [{
+                    structureNumber: 1,
+                    measurements: singleData.measurements,
+                    pitch_breakdown: singleData.pitch_breakdown,
+                    waste_table: singleData.waste_table,
+                  }],
+                };
+                setCurrentRoofData(updatedMultiData);
+              }}
+            />
+          )}
         </div>
         {showPdfPreview && roofPdfFile && (
           <div className="xl:col-span-1">

@@ -1,0 +1,61 @@
+Full Checklist: 
+
+0. Check the metadata:
+    i. Price list date: Check if the Date inspected and the Price list date are the same or close enough. for price list date, in the insurance report you can find something like this, "Price list: ININ28_JUL24". 
+
+1. Confirm Total Squares
+  - Roof report value: total squares at 0% waste (prefer waste_table 0% "squares"; else compute measurements.total_roof_area / 100).
+  - Insurance report value: Tear off quantity in SQ (prefer explicit tear-off line items; if unit is sqft, convert to SQ). Do NOT use base/installation quantity for this checkpoint.
+  - Status: Pass if Insurance tear-off SQ ≥ Roof 0% SQ; Failed if less; Missing if tear-off not found.
+
+2. Check if proper waste factor is applied
+  - Roof report value: squares at the recommended waste (use waste_table row where recommended=true → its "squares"; if only percent is present, compute squares = percent × roof 0% squares).
+  - Insurance report value: felt/underlayment quantity (w/ or w/out felt) in SQ (convert from sqft if needed). Use the felt line item tied to the shingle scope for this roof.
+  - Status: Pass if Insurance felt SQ ≥ Roof recommended waste SQ; Failed if less; Missing if unavailable.
+3. Drip Edge:
+    i. Roof report: Eaves + rakes.
+    ii. Insurance report: Drip edge value (LF).
+    iii. Compare: If Roof report ≤ insurance report, then pass. If not, fail. If missing, flag it missing.
+
+4. Starter Strip:
+    i. Roof report: Eaves + rakes.
+    ii. Insurance report: Starter strip / Asphalt starter / Starter value (LF).
+    iii. Compare: If Roof report <= insurance report, then pass. If not, fail. If missing, flag it missing.
+5. Ridge Cap:
+    i. Roof report: Total Hips + ridges length.
+    ii. Insurance report: Hip/Ridge cap value (LF).
+    iii. Compare: If Roof report <= insurance report, then pass. If not, fail. If missing, flag it missing.
+    iv: If Hip/Ridge says cut from 3 tab. then it's a red flag. Need to show as "warning" message. 
+
+6. Ice and Water Shield in Valleys:
+    i. Roof report: Total valley length * 6
+    ii. Insurance report: Ice and water shield / barrier value (SF).
+    iii. Compare: If Roof report <= insurance report, then pass. If not, fail. If missing, flag it missing.
+7. Step flashing:
+    present or not.
+    i. Roof report: Total wall flashing + Total step flashing.
+    ii. Insurance report: If included, Step flashing value (LF).
+    iii. Compare: If Roof report <= insurance report, then pass. If not, fail. If missing, flag it missing.
+8. Chimney flashing:
+    i. Check if chimney flashing is present in the insurance report. If yes, then green flag. If not, red flag. Need to show as "warning" message.
+9. Ventilation items:
+    i. Check if ventilation items are present in the insurance report. If yes, then green flag. If not, red flag. Need to show as "warning" message.
+10. Remove additional charge for steep roof 7/12 to 9/12 slope (Take off):
+    i. Roof report: Sum of 7/12 and 9/12 square values in Pitch table (7/12 value + 9/12 value SQ).
+    ii. Insurance report: Remove additional charge for steep roof 7/12 to 9/12 slope value.
+    iii. Compare: If Roof report <= insurance report, then pass. If not, fail. If missing, flag it missing.
+11. Additional charge for steep roof 7/12 to 9/12 slope (Put back):
+    i. Roof report: Sum of 7/12 and 9/12 square values in Pitch table for the total. then add recommended waste % of the total. so (7/12 value + 9/12 value) + recommended waste factor percentage of (7/12 value + 9/12 value).
+    ii. Insurance report: Additional charge for steep roof 7/12 to 9/12 slope value.
+    iii. Compare: If Roof report <= insurance report, then pass. If not, fail. If missing, flag it missing.
+
+12. Remove additional charge for steep roof 10/12 and 12/12 slope (Take off):
+    i. Roof report: Sum of 10/12 and 12/12 square values in Pitch table (10/12 value + 12/12 value SQ).
+    ii. Insurance report: Remove additional charge for steep roof 10/12 and 12/12 slope value.
+    iii. Compare: If Roof report <= insurance report, then pass. If not, fail. If missing, flag it missing.
+13. Additional charge for steep roof 10/12 and 12/12 slope (Put back):
+    i. Roof report: Sum of 10/12 and 12/12 square values in Pitch table for total.  then add recommended waste % of the total. so (10/12 value + 12/12 value) + recommended waste factor percentage of (10/12 value + 12/12 value).
+    ii. Insurance report: Additional charge for steep roof 10/12 and 12/12 slope value.
+    iii. Compare: If Roof report <= insurance report, then pass. If not, fail. If missing, flag it missing.
+14. Underlayment:
+    i. Check if underlayment is present in the insurance report. If yes, then green flag. If not, red flag. Need to show as "warning" message. 

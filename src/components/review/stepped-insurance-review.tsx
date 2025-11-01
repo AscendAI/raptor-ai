@@ -12,7 +12,8 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Loader2, Save, ArrowRight, Eye, EyeOff, Check } from 'lucide-react';
 import { BsFilePdfFill } from 'react-icons/bs';
-import { InsuranceDataEditor } from './insurance-data-editor';
+import { SingleStructureInsuranceEditor } from './single-structure-insurance-editor';
+import { MultiStructureInsuranceEditor } from './multi-structure-insurance-editor';
 import { InsuranceReportData, RoofReportData } from '@/lib/types/extraction';
 import { saveUserReviewData } from '@/lib/server/actions/saveUserReviewData';
 import { FileData } from '@/lib/types/files';
@@ -114,8 +115,7 @@ export function SteppedInsuranceReview({
                   Data Extraction Complete
                 </h3>
                 <p className="text-emerald-700 text-sm leading-relaxed max-w-md">
-                  Your insurance document has been successfully processed.
-                  Review and edit the extracted data below to ensure accuracy.
+                  Document processed successfully. Review and edit the data below for accuracy.
                 </p>
               </div>
             </div>
@@ -149,10 +149,17 @@ export function SteppedInsuranceReview({
         <div
           className={showPdfPreview && insurancePdfFile ? 'xl:col-span-1' : ''}
         >
-          <InsuranceDataEditor
-            data={currentInsuranceData}
-            onChange={setCurrentInsuranceData}
-          />
+          {currentInsuranceData.structureCount > 1 ? (
+            <MultiStructureInsuranceEditor
+              data={currentInsuranceData}
+              onChange={setCurrentInsuranceData}
+            />
+          ) : (
+            <SingleStructureInsuranceEditor
+              data={currentInsuranceData}
+              onChange={setCurrentInsuranceData}
+            />
+          )}
         </div>
         {showPdfPreview && insurancePdfFile && (
           <div className="xl:col-span-1">

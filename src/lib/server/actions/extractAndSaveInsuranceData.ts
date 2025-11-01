@@ -17,6 +17,7 @@ export async function extractAndSaveInsuranceData(
     console.log('Extracting insurance report data...');
     const session = await getAuthSession();
     if (!session?.user?.id) {
+      console.log('Authentication failed - no user ID');
       return {
         success: false,
         error: 'Not authenticated',
@@ -25,16 +26,31 @@ export async function extractAndSaveInsuranceData(
 
     const task = await getCachedTaskData(session.user.id, taskId);
     if (!task) {
+      console.log('Task not found for taskId:', taskId);
       return {
         success: false,
         error: 'Task not found',
       };
     }
 
+    const structureCount = task.structureCount || 1;
+    console.log('Structure count for insurance extraction:', structureCount);
+    console.log('Calling AI analysis with', insuranceReportImages.length, 'images');
+    
     const insuranceAnalysisRaw = await analyseInsuranceReport(
-      insuranceReportImages
+      insuranceReportImages,
+      structureCount
     );
+    
+    console.log('Raw AI response length:', insuranceAnalysisRaw?.length || 0);
+    console.log('Raw AI response preview:', insuranceAnalysisRaw?.substring(0, 200));
+    
     const insuranceResult = parseInsuranceReportData(insuranceAnalysisRaw);
+    console.log('Parse result success:', insuranceResult.success);
+    if (!insuranceResult.success) {
+      console.log('Parse error:', insuranceResult.error);
+      console.log('Parse raw text:', insuranceResult.rawText?.substring(0, 500));
+    }
 
     if (!insuranceResult.success) {
       return {
@@ -76,6 +92,7 @@ task.files = [...insuranceReportFiles, ...(task.files || [])];
       comparison: null,
     });
 
+    console.log('Successfully saved insurance data to database');
     revalidateTaskData(taskId);
 
     return {

@@ -110,12 +110,14 @@ export function FileUpload({
 
       <Card
         className={cn(
-          'relative cursor-pointer transition-all duration-200 border-2 border-dashed overflow-hidden',
+          'relative cursor-pointer transition-all duration-200 overflow-hidden',
           {
+            'border-2 border-dashed': !selectedFile,
+            'shadow-none border-0': selectedFile,
             'border-primary bg-primary/5 shadow-sm scale-[1.02]':
-              isDragOver && !disabled,
+              isDragOver && !disabled && !selectedFile,
             'border-muted-foreground/25 hover:border-muted-foreground/50 hover:shadow-sm':
-              !isDragOver && !disabled,
+              !isDragOver && !disabled && !selectedFile,
             'border-muted-foreground/10 cursor-not-allowed opacity-50':
               disabled,
           }
@@ -125,7 +127,7 @@ export function FileUpload({
         onDragLeave={handleDragLeave}
         onClick={() => !disabled && document.getElementById(id)?.click()}
       >
-        <div className="p-8 text-center">
+        <div className={cn('text-center', selectedFile ? 'p-0' : 'p-6')}>
           <Input
             id={id}
             type="file"
@@ -136,53 +138,45 @@ export function FileUpload({
           />
 
           {selectedFile ? (
-            <div className="space-y-4">
-              <div className="flex items-center justify-center">
-                <CheckLine className="h-12 w-12 text-green-500" />
-              </div>
-
-              <div className="space-y-3">
-                <div className="relative">
-                  <div className="bg-gradient-to-r from-slate-50 to-slate-200/50 border-slate-200 rounded-lg p-4 border shadow-sm">
-                    <div className="flex items-center gap-3">
-                      <div className="flex-shrink-0">
-                        <div className="h-10 w-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                          <File className="h-5 w-5 text-primary" />
-                        </div>
+            <div className="space-y-0">
+              <div className="relative">
+                <div className="bg-gradient-to-r from-slate-50 to-slate-200/50 border-slate-200 rounded-md p-1 border shadow-sm">
+                  <div className="flex items-center gap-2">
+                    <div className="flex-shrink-0">
+                      <div className="h-6 w-6 bg-primary/10 rounded-md flex items-center justify-center">
+                        <File className="h-4 w-4 text-primary" />
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-foreground truncate text-left">
-                          {selectedFile.name}
-                        </p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <p className="text-xs text-muted-foreground">
-                            {formatFileSize(selectedFile.size)}
-                          </p>
-                          <span className="text-xs text-muted-foreground">
-                            •
-                          </span>
-                          <p className="text-xs text-green-600 font-medium">
-                            Ready to upload
-                          </p>
-                        </div>
-                      </div>
-                      {!disabled && (
-                        <button
-                          onClick={handleRemoveFile}
-                          className="text-muted-foreground hover:text-destructive transition-all duration-200 p-2 hover:bg-destructive/10 rounded-lg flex-shrink-0 group"
-                          type="button"
-                          title="Remove file"
-                        >
-                          <X className="h-4 w-4 group-hover:scale-110 transition-transform" />
-                        </button>
-                      )}
                     </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium leading-tight text-foreground truncate text-left">
+                        {selectedFile.name}
+                      </p>
+                      <div className="flex items-center gap-1 mt-0.5">
+                        <p className="text-xs text-muted-foreground">
+                          {formatFileSize(selectedFile.size)}
+                        </p>
+                        <span className="text-xs text-muted-foreground">•</span>
+                        <p className="text-xs text-green-600 font-medium">
+                          Ready to upload
+                        </p>
+                      </div>
+                    </div>
+                    {!disabled && (
+                      <button
+                        onClick={handleRemoveFile}
+                        className="text-muted-foreground hover:text-destructive transition-all duration-200 p-1 hover:bg-destructive/10 rounded-md flex-shrink-0 group"
+                        type="button"
+                        title="Remove file"
+                      >
+                        <X className="h-4 w-4 group-hover:scale-110 transition-transform" />
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
 
               {!disabled && (
-                <p className="text-xs text-muted-foreground font-medium">
+                <p className="text-xs text-muted-foreground font-medium text-center pt-2">
                   Click or drag to replace file
                 </p>
               )}

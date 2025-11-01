@@ -61,9 +61,10 @@ function StatusBadge({ status, className }: StatusBadgeProps) {
 
 interface SummaryStatsProps {
   summary: ComparisonResult['summary'];
+  warningsCount?: number;
 }
 
-function SummaryStats({ summary }: SummaryStatsProps) {
+function SummaryStats({ summary, warningsCount = 0 }: SummaryStatsProps) {
   const stats = [
     {
       label: 'Passed',
@@ -93,6 +94,15 @@ function SummaryStats({ summary }: SummaryStatsProps) {
       accentColor: 'bg-yellow-500',
     },
     {
+      label: 'Warnings',
+      value: warningsCount,
+      icon: AlertTriangle,
+      color: 'text-amber-700 dark:text-amber-400',
+      bgColor: 'bg-amber-50 dark:bg-amber-900/20',
+      borderColor: 'border-amber-200 dark:border-amber-800',
+      accentColor: 'bg-amber-500',
+    },
+    {
       label: 'Total',
       value: summary.total,
       icon: BarChart3,
@@ -104,7 +114,7 @@ function SummaryStats({ summary }: SummaryStatsProps) {
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
       {stats.map((stat) => {
         const IconComponent = stat.icon;
         return (
@@ -168,7 +178,20 @@ function ComparisonAccordionItem({
               </p>
             </div>
           </div>
-          <StatusBadge status={comparison.status} />
+          <div className="flex items-center gap-2">
+            {comparison.status === 'pass' && comparison.warning && (
+              <Badge
+                variant="outline"
+                className="text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800"
+                title={comparison.warning}
+              >
+                <span className="inline-flex items-center gap-1">
+                  <AlertTriangle className="h-3.5 w-3.5" /> Warning
+                </span>
+              </Badge>
+            )}
+            <StatusBadge status={comparison.status} />
+          </div>
         </div>
       </AccordionTrigger>
       <AccordionContent className="px-4 pb-4 bg-muted/20">
@@ -216,6 +239,19 @@ function ComparisonAccordionItem({
               </div>
             </div>
           )}
+
+          {comparison.warning && (
+            <div className="space-y-2">
+              <p className="text-xs font-medium text-amber-700 dark:text-amber-400 uppercase tracking-wide flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4" /> Warning
+              </p>
+              <div className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-md border border-amber-200 dark:border-amber-800">
+                <p className="text-sm leading-relaxed text-amber-800 dark:text-amber-200">
+                  {comparison.warning}
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </AccordionContent>
     </AccordionItem>
@@ -223,6 +259,10 @@ function ComparisonAccordionItem({
 }
 
 export function ComparisonResults({ data, className }: ComparisonResultsProps) {
+  const warningsCount = (data.comparisons || []).reduce(
+    (acc, c) => acc + (c.warning ? 1 : 0),
+    0
+  );
   // Show error only if there are no comparisons at all
   if (!data.success && (!data.comparisons || data.comparisons.length === 0)) {
     return (
@@ -244,7 +284,7 @@ export function ComparisonResults({ data, className }: ComparisonResultsProps) {
           <CardTitle className="flex items-center justify-between">
             <span>Analysis Summary</span>
             <Badge variant="outline">
-              {data.comparisons.length} checkpoints
+              {data.comparisons?.length || 0} checkpoints
             </Badge>
           </CardTitle>
           <CardDescription>
@@ -253,7 +293,7 @@ export function ComparisonResults({ data, className }: ComparisonResultsProps) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <SummaryStats summary={data.summary} />
+          <SummaryStats summary={data.summary} warningsCount={warningsCount} />
         </CardContent>
       </Card>
 
@@ -267,13 +307,13 @@ export function ComparisonResults({ data, className }: ComparisonResultsProps) {
         </CardHeader>
         <CardContent>
           <Accordion type="multiple" className="space-y-2">
-            {data.comparisons.map((comparison, index) => (
+            {data.comparisons?.map((comparison, index) => (
               <ComparisonAccordionItem
                 key={index}
                 comparison={comparison}
                 index={index}
               />
-            ))}
+            )) || []}
           </Accordion>
         </CardContent>
       </Card>
