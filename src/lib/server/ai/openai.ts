@@ -283,10 +283,10 @@ Use the following checklist for EACH structure (evaluate independently per struc
 7. Step Flashing — Roof total wall flashing + total step flashing (LF) vs Insurance step flashing (LF). Missing if not listed.
 8. Chimney Flashing — Check presence in Insurance. Present → pass. Missing → missing with WARNING.
 9. Ventilation Items — Check presence in Insurance (e.g., ridge vent, box vents, turtle, power vents). Present → pass. Missing → missing with WARNING.
-10. Steep Roof 7/12–9/12 (Remove) — Sum (7/12 + 9/12) SQ vs Insurance removal add-on. Pass if Roof >= Insurance.
-11. Steep Roof 7/12–9/12 (Put back) — (7/12 + 9/12) SQ plus recommended waste % vs Insurance add-on. Pass if Roof >= Insurance.
-12. Steep Roof 10/12–12/12 (Remove) — Sum (10/12 + 12/12) SQ vs Insurance removal add-on. Pass if Roof >= Insurance.
-13. Steep Roof 10/12–12/12 (Put back) — (10/12 + 12/12) SQ plus recommended waste % vs Insurance add-on. Pass if Roof >= Insurance.
+10. Steep Roof 7/12–9/12 (Remove) — Sum (7/12 + 9/12) SQ vs Insurance removal add-on. If a pitch bucket is missing in the Roof report, treat its value as 0 (partial presence allowed). Pass if Roof >= Insurance.
+11. Steep Roof 7/12–9/12 (Put back) — (7/12 + 9/12) SQ plus recommended waste % of that sum. If a pitch bucket is missing, treat it as 0. Pass if Roof >= Insurance.
+12. Steep Roof 10/12–12/12 (Remove) — Sum (10/12 + 12/12) SQ vs Insurance removal add-on. If a pitch bucket is missing, treat it as 0. Pass if Roof >= Insurance.
+13. Steep Roof 10/12–12/12 (Put back) — (10/12 + 12/12) SQ plus recommended waste % of that sum. If a pitch bucket is missing, treat it as 0. Pass if Roof >= Insurance.
 14. Underlayment — Check presence/type in Insurance. Present → pass. Missing → missing with WARNING.
 
 Rules:
@@ -295,6 +295,12 @@ Rules:
 - Use status: "pass", "failed", or "missing".
 - Provide clear notes showing the calculation/logic and any assumptions.
 - If a checkpoint has a notable caveat (e.g., ridge cut from 3-tab, starter cut from field), include a human-readable WARNING message; otherwise set warning to null.
+
+Edge cases for pitch-based checkpoints (10–13):
+- If the sum for a pitch group equals 0 SQ (e.g., only 5/12 present, no 7/12–9/12 or 10/12–12/12), then:
+  * If the Insurance report has corresponding steep add-ons (> 0), mark "failed" (over-allowance) and note expected 0 SQ.
+  * If the Insurance report has no such add-ons, mark "pass".
+  * Always show the computed roof_report_value (e.g., "0 SQ").
 
 Return JSON with this exact schema:
 {
@@ -339,10 +345,10 @@ Checklist (single-structure):
 7. Step Flashing — Roof total wall flashing + total step flashing (LF) vs Insurance step flashing (LF).
 8. Chimney Flashing — Presence in Insurance. If missing → missing and WARNING.
 9. Ventilation Items — Presence in Insurance. If missing → missing and WARNING.
-10. Steep 7/12–9/12 (Remove) — (7/12 + 9/12) SQ vs Insurance removal add-on.
-11. Steep 7/12–9/12 (Put back) — (7/12 + 9/12) SQ + recommended waste % vs Insurance add-on.
-12. Steep 10/12–12/12 (Remove) — (10/12 + 12/12) SQ vs Insurance removal add-on.
-13. Steep 10/12–12/12 (Put back) — (10/12 + 12/12) SQ + recommended waste % vs Insurance add-on.
+10. Steep 7/12–9/12 (Remove) — (7/12 + 9/12) SQ vs Insurance removal add-on. If a pitch bucket is missing in the Roof report, treat it as 0.
+11. Steep 7/12–9/12 (Put back) — (7/12 + 9/12) SQ + recommended waste % vs Insurance add-on. Treat missing pitch buckets as 0.
+12. Steep 10/12–12/12 (Remove) — (10/12 + 12/12) SQ vs Insurance removal add-on. Treat missing pitch buckets as 0.
+13. Steep 10/12–12/12 (Put back) — (10/12 + 12/12) SQ + recommended waste % vs Insurance add-on. Treat missing pitch buckets as 0.
 14. Underlayment — Presence/type in Insurance; missing → WARNING.
 
 Rules:
@@ -351,6 +357,12 @@ Rules:
 - Use status: "pass", "failed", or "missing".
 - Provide clear notes explaining each decision and showing relevant quantities.
 - Use the WARNING field to flag caveats like: hip/ridge "cut from 3-tab", starter cut from field shingles, missing chimney flashing, missing ventilation, missing underlayment.
+
+Edge cases for pitch-based checkpoints (10–13):
+- If the sum for a pitch group equals 0 SQ (e.g., only 5/12 present, no 7/12–9/12 or 10/12–12/12), then:
+  * If the Insurance report has corresponding steep add-ons (> 0), mark "failed" (over-allowance) and note expected 0 SQ.
+  * If the Insurance report has no such add-ons, mark "pass".
+  * Always show the computed roof_report_value (e.g., "0 SQ").
 
 JSON Output Schema
 {
