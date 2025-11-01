@@ -17,6 +17,7 @@ import {
   FileText,
   CheckCircle,
   AlertCircle,
+  Eye,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { uploadRoofReportFile } from '@/lib/server/actions/uploadRoofReportFile';
@@ -25,6 +26,7 @@ import { getUserReviewData } from '@/lib/server/actions/getUserReviewData';
 import { convertPdfToImages } from '@/lib/utils/pdf';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
+import { ImagePreviewModal } from '@/components/ui/image-preview-modal';
 
 interface RoofReportUploadProps {
   taskId: string;
@@ -41,6 +43,8 @@ export function RoofReportUpload({ taskId }: RoofReportUploadProps) {
   const [isGeneratingPages, setIsGeneratingPages] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isUploaded, setIsUploaded] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewIndex, setPreviewIndex] = useState(0);
 
   // Multi-step loading state
   type UploadStepStatus = 'pending' | 'running' | 'completed' | 'error';
@@ -293,10 +297,8 @@ export function RoofReportUpload({ taskId }: RoofReportUploadProps) {
                 {pageImages.map((src, idx) => {
                   const selected = selectedPages.includes(idx);
                   return (
-                    <button
+                    <div
                       key={idx}
-                      type="button"
-                      onClick={() => togglePage(idx)}
                       className={cn(
                         'relative border rounded-md overflow-hidden group',
                         selected
@@ -304,14 +306,20 @@ export function RoofReportUpload({ taskId }: RoofReportUploadProps) {
                           : 'border-slate-200'
                       )}
                     >
-                      <Image
-                        src={src}
-                        alt={`Page ${idx + 1}`}
-                        width={512}
-                        height={128}
-                        unoptimized
-                        className="w-full h-32 object-cover"
-                      />
+                      <button
+                        type="button"
+                        onClick={() => togglePage(idx)}
+                        className="w-full"
+                      >
+                        <Image
+                          src={src}
+                          alt={`Page ${idx + 1}`}
+                          width={512}
+                          height={128}
+                          unoptimized
+                          className="w-full h-32 object-cover"
+                        />
+                      </button>
                       <div className="absolute top-1 left-1 px-2 py-1 text-xs bg-white/80 rounded-md shadow">
                         Page {idx + 1}
                       </div>
@@ -320,7 +328,20 @@ export function RoofReportUpload({ taskId }: RoofReportUploadProps) {
                           <CheckCircle className="h-3 w-3" />
                         </div>
                       )}
-                    </button>
+                      {/* Preview button - shows on hover */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setPreviewIndex(idx);
+                          setPreviewOpen(true);
+                        }}
+                        className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 hover:bg-white p-2 rounded-md shadow-lg"
+                        title="Preview page"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </button>
+                    </div>
                   );
                 })}
                 {pageImages.length === 0 && (
@@ -431,6 +452,18 @@ export function RoofReportUpload({ taskId }: RoofReportUploadProps) {
           </div>
         )}
       </CardContent>
+
+      {/* Image Preview Modal */}
+      <ImagePreviewModal
+        images={pageImages}
+        currentIndex={previewIndex}
+        open={previewOpen}
+        onOpenChange={setPreviewOpen}
+        onNavigate={setPreviewIndex}
+        pageLabel={(idx) => `Page ${idx + 1}`}
+        selectedPages={selectedPages}
+        onToggleSelect={togglePage}
+      />
     </Card>
   );
 }
