@@ -104,7 +104,7 @@ export async function analyseRoofReport(
       : createMultiStructureRoofPrompt(structureCount);
 
   const response = await client.responses.create({
-    model: 'gpt-5-nano',
+    model: 'gpt-5-mini',
     instructions: prompt,
     input: [
       {
