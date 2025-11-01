@@ -270,55 +270,49 @@ export async function analyseInsuranceReport(
 
 // Multi-structure comparison prompt
 function createMultiStructureComparisonPrompt(structureCount: number): string {
-  return `You are an expert roofing analyst. Compare the roofing report data with the insurance report data for ${structureCount} roof structure(s).
+  return `You are an expert roofing analyst. Compare the roofing report data with the insurance estimate for ${structureCount} roof structure(s). The roofing report is the source of truth.
 
-For each structure, perform a detailed comparison between the roofing report measurements and the insurance report line items. The roofing report is the source of truth.
+Use the following checklist for EACH structure (evaluate independently per structure):
+0. Metadata: Price list date — Compare insurance document date vs the month/year encoded in insurance price_list (e.g., ININ28_JUL24 → July 2024); allow minor drift (same month or ±1 month). Pass if same/close; otherwise failed.
+1. Total Squares — Roof total area (sqft) vs Insurance squares (SQ) and/or surface area. Pass if Roof >= Insurance. Include tear-off check (Insurance tear-off SQ <= Roof SQ).
+2. Waste Factor — Compare Roof recommended waste % (from waste table) vs Insurance laminated comp shingle waste/allowance. Pass if Roof >= Insurance.
+3. Drip Edge — Roof eaves + rakes (LF) vs Insurance drip edge (LF). Pass if Roof >= Insurance.
+4. Starter Strip — Roof eaves + rakes (LF) vs Insurance starter strip (LF). Pass if Roof >= Insurance. WARNING if text indicates starter cut from field shingles.
+5. Ridge Cap — Roof hips + ridges (LF) vs Insurance hip/ridge cap (LF). Pass if Roof >= Insurance. WARNING if hip/ridge states cut from 3-tab.
+6. Ice & Water Shield (Valleys) — Roof total valley length * 6 ft width (SF) vs Insurance ice/water shield (SF). Pass if Roof >= Insurance.
+7. Step Flashing — Roof total wall flashing + total step flashing (LF) vs Insurance step flashing (LF). Missing if not listed.
+8. Chimney Flashing — Check presence in Insurance. Present → pass. Missing → missing with WARNING.
+9. Ventilation Items — Check presence in Insurance (e.g., ridge vent, box vents, turtle, power vents). Present → pass. Missing → missing with WARNING.
+10. Steep Roof 7/12–9/12 (Remove) — Sum (7/12 + 9/12) SQ vs Insurance removal add-on. Pass if Roof >= Insurance.
+11. Steep Roof 7/12–9/12 (Put back) — (7/12 + 9/12) SQ plus recommended waste % vs Insurance add-on. Pass if Roof >= Insurance.
+12. Steep Roof 10/12–12/12 (Remove) — Sum (10/12 + 12/12) SQ vs Insurance removal add-on. Pass if Roof >= Insurance.
+13. Steep Roof 10/12–12/12 (Put back) — (10/12 + 12/12) SQ plus recommended waste % vs Insurance add-on. Pass if Roof >= Insurance.
+14. Underlayment — Check presence/type in Insurance. Present → pass. Missing → missing with WARNING.
 
-Key Comparison Points for Each Structure:
-1. **Total Roof Area** → Compare to insurance squares (1 square = 100 sqft)
-2. **Drip Edge** → Look for drip edge line items in insurance
-3. **Ridge Cap** → Compare ridge measurements to ridge cap quantities
-4. **Hip Cap** → Compare hip measurements to hip cap quantities  
-5. **Starter Shingles** → Compare eaves/rakes to starter quantities
-6. **Underlayment** → Compare roof area to underlayment squares
-7. **Ice & Water Shield** → Look for ice/water shield line items
-8. **Flashing** → Compare flashing measurements to flashing quantities
-9. **Waste Factor** → Compare recommended waste % to insurance allowance
-10. **Additional Items** → Flag any missing standard roofing components
-
-Rules for Each Structure:
-1. Always use the roofing report as the source of truth
-2. Flag under-allowances or missing items in the insurance report
-3. Mark as "pass" if values match within reasonable tolerance
-4. Mark as "failed" if insurance significantly under-allows
-5. Mark as "missing" if required items are absent from insurance
+Rules:
+- Always use the roofing report as the source of truth.
+- Flag under-allowances or missing items in the insurance report.
+- Use status: "pass", "failed", or "missing".
+- Provide clear notes showing the calculation/logic and any assumptions.
+- If a checkpoint has a notable caveat (e.g., ridge cut from 3-tab, starter cut from field), include a human-readable WARNING message; otherwise set warning to null.
 
 Return JSON with this exact schema:
 {
   "success": true,
   "structureCount": ${structureCount},
-  "summary": {
-    "pass": 0,
-    "failed": 0, 
-    "missing": 0,
-    "total": 0
-  },
+  "summary": { "pass": 0, "failed": 0, "missing": 0, "total": 0 },
   "structures": [
     {
       "structureNumber": 1,
-      "summary": {
-        "pass": 0,
-        "failed": 0,
-        "missing": 0,
-        "total": 0
-      },
+      "summary": { "pass": 0, "failed": 0, "missing": 0, "total": 0 },
       "comparisons": [
         {
           "checkpoint": "string",
           "status": "pass" | "failed" | "missing",
           "roof_report_value": "string|null",
-          "insurance_report_value": "string|null", 
-          "notes": "string"
+          "insurance_report_value": "string|null",
+          "notes": "string",
+          "warning": "string|null"
         }
       ]
     }${structureCount > 1 ? ',\n    // ... repeat for each structure' : ''}
@@ -329,86 +323,48 @@ Return JSON with this exact schema:
 const reportComparisonPrompt = `
 You are given two reports:
 
-Roofing report (this is always accurate).
+- Roofing report (always accurate)
+- Insurance estimate (may contain mistakes)
 
-Insurance estimate (may contain mistakes).
+Your task: Compare the insurance estimate against the roofing report using the checklist below and return structured JSON.
 
-Your task: Compare the insurance estimate against the roofing report to identify inaccuracies.
+Checklist (single-structure):
+0. Metadata: Price list date — Compare insurance document date vs the month/year encoded in insurance price_list (e.g., ININ28_JUL24 → July 2024); allow minor drift (same month or ±1 month).
+1. Total Squares — Roof total area (sqft) vs Insurance squares (SQ)/surface area; include tear-off check.
+2. Waste Factor — Roof recommended waste % vs Insurance laminated comp shingle waste/allowance.
+3. Drip Edge — Roof eaves + rakes (LF) vs Insurance drip edge (LF).
+4. Starter Strip — Roof eaves + rakes (LF) vs Insurance starter (LF). WARNING if starter cut from field shingles.
+5. Ridge Cap — Roof hips + ridges (LF) vs Insurance hip/ridge cap (LF). WARNING if hip/ridge cut from 3-tab.
+6. Ice & Water Shield (Valleys) — Roof total valley length * 6 ft width (SF) vs Insurance IWS (SF).
+7. Step Flashing — Roof total wall flashing + total step flashing (LF) vs Insurance step flashing (LF).
+8. Chimney Flashing — Presence in Insurance. If missing → missing and WARNING.
+9. Ventilation Items — Presence in Insurance. If missing → missing and WARNING.
+10. Steep 7/12–9/12 (Remove) — (7/12 + 9/12) SQ vs Insurance removal add-on.
+11. Steep 7/12–9/12 (Put back) — (7/12 + 9/12) SQ + recommended waste % vs Insurance add-on.
+12. Steep 10/12–12/12 (Remove) — (10/12 + 12/12) SQ vs Insurance removal add-on.
+13. Steep 10/12–12/12 (Put back) — (10/12 + 12/12) SQ + recommended waste % vs Insurance add-on.
+14. Underlayment — Presence/type in Insurance; missing → WARNING.
 
-Common Areas of Error:
-
-1. Total Squares & Waste Factor
-2. Drip Edge
-3. Starter Strip
-4. Ridge Cap
-5. Ice & Water Shield (Valleys)
-6. Step Flashing
-7. Chimney Flashing
-8. Ventilation Items
-9. Steep/High Charges
-10. Underlayment Type
-
-Comparison Criteria
-
-Tear-off Quantity: Insurance tear-off ≥ roofing report → pass, else failed.
-
-Square Comparison: Insurance "felt" quantity compared to roofing + waste factor. Insurance ≥ roofing → pass, else failed.
-
-Drip Edge: Insurance quantity vs roofing eaves+rakes. Insurance ≥ roofing → pass, else failed.
-
-Starter Strip: Insurance vs roofing eaves+rakes. Must not be cut from field shingles.
-
-Hip/Ridge Cap: Insurance vs roofing hips+ridges. Insurance ≥ roofing → pass, else failed.
-
-Ice & Water Shield in Valleys: Must include correct (valley length * 6 ft width).
-
-Step Flashing: If not listed in insurance → missing, else pass.
-
-Chimney Flashing: If not listed in insurance → missing, else pass.
-
-Ventilation Items: If missing from insurance → missing, else pass.
-
-Steep Roof (7/12-9/12):
-
-Removal Charge → Compare to combined squares.
-
-Additional Charge → Compare to squares + waste factor.
-
-Steep Roof (10/12-12/12):
-
-Removal Charge → Compare to combined squares.
-
-Additional Charge → Compare to squares + waste factor.
-
-Underlayment Type: If missing from insurance → missing, else pass.
-
-Rules
-
-1. Always use the roofing report as the source of truth.
-
-2. Flag under-allowances or missing items in the insurance report.
-
-3. Always return JSON using the schema below.
-
-4. Provide a clear note for each checkpoint explaining why it was marked.
+Rules:
+- Always use the roofing report as the source of truth.
+- Flag under-allowances or missing items in the insurance report.
+- Use status: "pass", "failed", or "missing".
+- Provide clear notes explaining each decision and showing relevant quantities.
+- Use the WARNING field to flag caveats like: hip/ridge "cut from 3-tab", starter cut from field shingles, missing chimney flashing, missing ventilation, missing underlayment.
 
 JSON Output Schema
 {
   "success": true,
   "structureCount": 1,
-  "summary": {
-    "pass": 0,        // number of items marked as pass
-    "failed": 0,      // number of items marked as failed
-    "missing": 0,     // number of items marked as missing
-    "total": 0        // total checkpoints evaluated
-  },
+  "summary": { "pass": 0, "failed": 0, "missing": 0, "total": 0 },
   "comparisons": [
     {
       "checkpoint": "string",            // e.g., "Drip Edge"
       "status": "pass" | "failed" | "missing",
       "roof_report_value": "string|null",
       "insurance_report_value": "string|null",
-      "notes": "string"                  // explanation for decision
+      "notes": "string",                 // explanation for decision
+      "warning": "string|null"           // warning message if applicable
     }
   ]
 }`;

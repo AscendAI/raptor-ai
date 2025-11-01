@@ -11,6 +11,8 @@ export const ComparisonCheckpoint = z.object({
   roof_report_value: z.string().nullable(),
   insurance_report_value: z.string().nullable(),
   notes: z.string(),
+  // Optional warning message for edge cases (e.g., ridge cut from 3-tab)
+  warning: z.string().optional().nullable().default(null),
 });
 export type ComparisonCheckpoint = z.infer<typeof ComparisonCheckpoint>;
 

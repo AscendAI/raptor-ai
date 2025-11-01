@@ -25,7 +25,7 @@ Full Checklist:
     i. Roof report: Total Hips + ridges length.
     ii. Insurance report: Hip/Ridge cap value (LF).
     iii. Compare: If Roof report >= insurance report, then pass. If not, fail. If missing, flag it missing.
-    iv: If Hip/Ridge says cut from 3 tab. then it's a red flag. Need to show as notice message. 
+    iv: If Hip/Ridge says cut from 3 tab. then it's a red flag. Need to show as "warning" message. 
 
 6. Ice and Water Shield in Valleys:
     i. Roof report: Total valley length * 6
@@ -37,9 +37,9 @@ Full Checklist:
     ii. Insurance report: If included, Step flashing value (LF).
     iii. Compare: If Roof report >= insurance report, then pass. If not, fail. If missing, flag it missing.
 8. Chimney flashing:
-    i. Check if chimney flashing is present in the insurance report. If yes, then green flag. If not, red flag. Need to show as notice message.
+    i. Check if chimney flashing is present in the insurance report. If yes, then green flag. If not, red flag. Need to show as "warning" message.
 9. Ventilation items:
-    i. Check if ventilation items are present in the insurance report. If yes, then green flag. If not, red flag. Need to show as notice message.
+    i. Check if ventilation items are present in the insurance report. If yes, then green flag. If not, red flag. Need to show as "warning" message.
 10. Remove additional charge for steep roof 7/12 to 9/12 slope (Take off):
     i. Roof report: Sum of 7/12 and 9/12 square values in Pitch table (7/12 value + 9/12 value SQ).
     ii. Insurance report: Remove additional charge for steep roof 7/12 to 9/12 slope value.
@@ -58,4 +58,4 @@ Full Checklist:
     ii. Insurance report: Additional charge for steep roof 10/12 and 12/12 slope value.
     iii. Compare: If Roof report >= insurance report, then pass. If not, fail. If missing, flag it missing.
 14. Underlayment:
-    i. Check if underlayment is present in the insurance report. If yes, then green flag. If not, red flag. Need to show as notice message. 
+    i. Check if underlayment is present in the insurance report. If yes, then green flag. If not, red flag. Need to show as "warning" message. 

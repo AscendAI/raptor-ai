@@ -216,6 +216,19 @@ function ComparisonAccordionItem({
               </div>
             </div>
           )}
+
+          {comparison.warning && (
+            <div className="space-y-2">
+              <p className="text-xs font-medium text-amber-700 dark:text-amber-400 uppercase tracking-wide flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4" /> Warning
+              </p>
+              <div className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-md border border-amber-200 dark:border-amber-800">
+                <p className="text-sm leading-relaxed text-amber-800 dark:text-amber-200">
+                  {comparison.warning}
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </AccordionContent>
     </AccordionItem>

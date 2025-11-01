@@ -16,7 +16,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import { Check, X, AlertTriangle, BarChart3 } from 'lucide-react';
+import { Check, X, AlertTriangle } from 'lucide-react';
 import {
   type ComparisonResult,
   type ComparisonCheckpoint,
@@ -76,11 +76,7 @@ function ComparisonAccordionItem({
   return (
     <AccordionItem
       value={`item-${index}`}
-      className={cn(
-        'rounded-lg border',
-        config.bgColor,
-        config.borderColor
-      )}
+      className={cn('rounded-lg border', config.bgColor, config.borderColor)}
     >
       <AccordionTrigger className="px-4 py-3 hover:no-underline">
         <div className="flex items-center justify-between w-full mr-4">
@@ -132,6 +128,16 @@ function ComparisonAccordionItem({
               </p>
             </div>
           )}
+          {comparison.warning && (
+            <div className="space-y-2">
+              <h5 className="font-medium text-sm text-amber-700 dark:text-amber-400 flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4" /> Warning
+              </h5>
+              <p className="text-sm bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-200 p-3 rounded border border-amber-200 dark:border-amber-800">
+                {comparison.warning}
+              </p>
+            </div>
+          )}
         </div>
       </AccordionContent>
     </AccordionItem>
@@ -149,7 +155,8 @@ function StructureComparisonView({ structure }: StructureComparisonProps) {
         <CardHeader>
           <CardTitle>Structure {structure.structureNumber} Analysis</CardTitle>
           <CardDescription>
-            Detailed comparison results for structure {structure.structureNumber}
+            Detailed comparison results for structure{' '}
+            {structure.structureNumber}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -181,7 +188,11 @@ export function MultiStructureComparisonResults({
   });
 
   // Show error only if there are no comparisons at all
-  if (!data.success && (!data.comparisons || data.comparisons.length === 0) && (!data.structures || data.structures.length === 0)) {
+  if (
+    !data.success &&
+    (!data.comparisons || data.comparisons.length === 0) &&
+    (!data.structures || data.structures.length === 0)
+  ) {
     return (
       <Card className={cn('w-full', className)}>
         <CardContent className="pt-6">
@@ -229,7 +240,8 @@ export function MultiStructureComparisonResults({
             <CardTitle className="flex items-center justify-between">
               <span>Analysis Results</span>
               <Badge variant="outline">
-                {data.structureCount} {data.structureCount === 1 ? 'structure' : 'structures'}
+                {data.structureCount}{' '}
+                {data.structureCount === 1 ? 'structure' : 'structures'}
               </Badge>
             </CardTitle>
             <CardDescription>
@@ -238,7 +250,12 @@ export function MultiStructureComparisonResults({
           </CardHeader>
           <CardContent>
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(${data.structures.length}, 1fr)` }}>
+              <TabsList
+                className="grid w-full"
+                style={{
+                  gridTemplateColumns: `repeat(${data.structures.length}, 1fr)`,
+                }}
+              >
                 {data.structures.map((structure) => (
                   <TabsTrigger
                     key={structure.structureNumber}

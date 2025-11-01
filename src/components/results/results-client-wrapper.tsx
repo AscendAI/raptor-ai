@@ -2,7 +2,13 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { TrendingUp, FileText, Eye, EyeOff } from 'lucide-react';
@@ -19,7 +25,11 @@ interface ResultsClientWrapperProps {
   files: FileData[];
 }
 
-export function ResultsClientWrapper({ taskId, comparison, files }: ResultsClientWrapperProps) {
+export function ResultsClientWrapper({
+  taskId,
+  comparison,
+  files,
+}: ResultsClientWrapperProps) {
   const router = useRouter();
   const [showPdfPreview, setShowPdfPreview] = useState(false);
   const [activeTab, setActiveTab] = useState<'roof' | 'insurance'>('roof');
@@ -28,7 +38,8 @@ export function ResultsClientWrapper({ taskId, comparison, files }: ResultsClien
     (file) => file.name.includes('roofReport') && file.name.endsWith('.pdf')
   );
   const insurancePdfFile = files.find(
-    (file) => file.name.includes('insuranceReport') && file.name.endsWith('.pdf')
+    (file) =>
+      file.name.includes('insuranceReport') && file.name.endsWith('.pdf')
   );
 
   const handleDownloadReport = () => {
@@ -37,21 +48,22 @@ export function ResultsClientWrapper({ taskId, comparison, files }: ResultsClien
         ? comparison.comparisons
             .map(
               (item) =>
-                `### ${item.checkpoint}\n**Status:** ${item.status.toUpperCase()}\n**Roof Report:** ${item.roof_report_value || 'N/A'}\n**Insurance Report:** ${item.insurance_report_value || 'N/A'}\n**Notes:** ${item.notes}\n`
+                `### ${item.checkpoint}\n**Status:** ${item.status.toUpperCase()}\n**Roof Report:** ${item.roof_report_value || 'N/A'}\n**Insurance Report:** ${item.insurance_report_value || 'N/A'}\n**Notes:** ${item.notes}${item.warning ? `\n**Warning:** ${item.warning}` : ''}\n`
             )
             .join('\n')
         : comparison.structures
-        ? comparison.structures
-            .map((structure) =>
-              `## Structure ${structure.structureNumber}\n${structure.comparisons
-                .map(
-                  (item) =>
-                    `### ${item.checkpoint}\n**Status:** ${item.status.toUpperCase()}\n**Roof Report:** ${item.roof_report_value || 'N/A'}\n**Insurance Report:** ${item.insurance_report_value || 'N/A'}\n**Notes:** ${item.notes}\n`
-                )
-                .join('\n')}`
-            )
-            .join('\n\n')
-        : 'No comparison data available'
+          ? comparison.structures
+              .map(
+                (structure) =>
+                  `## Structure ${structure.structureNumber}\n${structure.comparisons
+                    .map(
+                      (item) =>
+                        `### ${item.checkpoint}\n**Status:** ${item.status.toUpperCase()}\n**Roof Report:** ${item.roof_report_value || 'N/A'}\n**Insurance Report:** ${item.insurance_report_value || 'N/A'}\n**Notes:** ${item.notes}${item.warning ? `\n**Warning:** ${item.warning}` : ''}\n`
+                    )
+                    .join('\n')}`
+              )
+              .join('\n\n')
+          : 'No comparison data available'
     }`;
     const blob = new Blob([reportContent], { type: 'text/markdown' });
     const url = URL.createObjectURL(blob);
@@ -73,13 +85,17 @@ export function ResultsClientWrapper({ taskId, comparison, files }: ResultsClien
             Analysis Complete
           </CardTitle>
           <CardDescription>
-            Your roof vs insurance report comparison has been successfully completed
+            Your roof vs insurance report comparison has been successfully
+            completed
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Badge variant="default" className="bg-green-600 hover:bg-green-700 text-white border-green-600">
+              <Badge
+                variant="default"
+                className="bg-green-600 hover:bg-green-700 text-white border-green-600"
+              >
                 Analysis Complete
               </Badge>
             </div>
@@ -107,8 +123,16 @@ export function ResultsClientWrapper({ taskId, comparison, files }: ResultsClien
       </Card>
 
       {/* Comparison Results + PDF Preview */}
-      <div className={`${showPdfPreview && (roofPdfFile || insurancePdfFile) ? 'grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6' : ''}`}>
-        <div className={showPdfPreview && (roofPdfFile || insurancePdfFile) ? 'xl:col-span-1' : ''}>
+      <div
+        className={`${showPdfPreview && (roofPdfFile || insurancePdfFile) ? 'grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6' : ''}`}
+      >
+        <div
+          className={
+            showPdfPreview && (roofPdfFile || insurancePdfFile)
+              ? 'xl:col-span-1'
+              : ''
+          }
+        >
           <MultiStructureComparisonResults data={comparison} />
         </div>
         {showPdfPreview && (roofPdfFile || insurancePdfFile) && (
@@ -122,7 +146,9 @@ export function ResultsClientWrapper({ taskId, comparison, files }: ResultsClien
                   PDF Preview
                 </CardTitle>
                 <CardDescription className="text-sm py-0">
-                  {activeTab === 'roof' ? 'Original roof report document' : 'Original insurance report document'}
+                  {activeTab === 'roof'
+                    ? 'Original roof report document'
+                    : 'Original insurance report document'}
                 </CardDescription>
                 <div className="mt-2 flex gap-2">
                   <Button
@@ -146,17 +172,26 @@ export function ResultsClientWrapper({ taskId, comparison, files }: ResultsClien
               <CardContent className="p-0">
                 <div className="relative h-[calc(100vh-130px)] min-h-[600px]">
                   {roofPdfFile && (
-                    <div className={`${activeTab === 'roof' ? 'block' : 'hidden'} absolute inset-0`}>
+                    <div
+                      className={`${activeTab === 'roof' ? 'block' : 'hidden'} absolute inset-0`}
+                    >
                       <PDFViewer pdfUrl={roofPdfFile.url} className="h-full" />
                     </div>
                   )}
                   {insurancePdfFile && (
-                    <div className={`${activeTab === 'insurance' ? 'block' : 'hidden'} absolute inset-0`}>
-                      <PDFViewer pdfUrl={insurancePdfFile.url} className="h-full" />
+                    <div
+                      className={`${activeTab === 'insurance' ? 'block' : 'hidden'} absolute inset-0`}
+                    >
+                      <PDFViewer
+                        pdfUrl={insurancePdfFile.url}
+                        className="h-full"
+                      />
                     </div>
                   )}
                   {!roofPdfFile && !insurancePdfFile && (
-                    <div className="p-4 text-sm text-muted-foreground">Selected report file not available.</div>
+                    <div className="p-4 text-sm text-muted-foreground">
+                      Selected report file not available.
+                    </div>
                   )}
                 </div>
               </CardContent>
@@ -189,10 +224,18 @@ export function ResultsClientWrapper({ taskId, comparison, files }: ResultsClien
                   <FileText className="h-4 w-4 mr-2" />
                   Download Report
                 </Button>
-                <Button variant="outline" onClick={() => router.push(`/dashboard/${taskId}/insurance-report-review`)}>
+                <Button
+                  variant="outline"
+                  onClick={() =>
+                    router.push(`/dashboard/${taskId}/insurance-report-review`)
+                  }
+                >
                   View Review Steps
                 </Button>
-                <Button variant="outline" onClick={() => router.push('/dashboard')}>
+                <Button
+                  variant="outline"
+                  onClick={() => router.push('/dashboard')}
+                >
                   Back to Dashboard
                 </Button>
               </div>
