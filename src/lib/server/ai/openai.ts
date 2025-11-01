@@ -285,7 +285,8 @@ Normalization and parsing rules:
   * Squares/Surface area: Use line items with unit "SQ" for shingles/surface area. If only surface area in sqft exists, convert to SQ via /100.
   * Tear off SQ: Use line items that represent tear-off/removal quantities in SQ.
   * Drip Edge, Starter Strip, Hip/Ridge Cap, Ice and Water Shield, Step Flashing: use their LF/SF quantities from the Roof section.
-  * Waste %: If present, extract from options_text (e.g., "Auto Calculated Waste: X%") or description; otherwise treat as missing.
+  * Felt/Underlayment: use felt/underlayment quantity (w/ or w/out felt); prefer SQ; if in sqft, convert to SQ.
+  * Waste %: If present, extract from options_text (e.g., "Auto Calculated Waste: X%") or description (use for notes only; checkpoint 2 compares squares).
 - Missing numeric buckets: Treat any unavailable pitch bucket as 0 for pitch-based checks.
 
 Checklist (apply to EACH structure exactly as written below):
@@ -294,13 +295,14 @@ Checklist (apply to EACH structure exactly as written below):
    - Pass if the month/year match or are within ±1 month; otherwise failed. If either date is unavailable, mark missing.
 
 1. Confirm Total Squares
-   - Roof: total squares at 0% waste (see normalization). Insurance: number of squares (SQ) and/or surface area (sqft → SQ). Include Tear off (SQ) check: insurance tear-off SQ must be ≤ roof SQ.
-   - Status: Pass if Roof SQ ≥ Insurance SQ; Failed if less; Missing if any required value is unavailable. Note both SQ values and the tear-off comparison.
+  - Roof report value: total squares at 0% waste (use waste_table 0% "squares"; else compute measurements.total_roof_area / 100).
+  - Insurance report value: Tear off quantity in SQ (prefer explicit tear-off line items; if unit is sqft, convert to SQ). Do NOT use base/installation quantity for this checkpoint.
+  - Status: Pass if Insurance tear-off SQ ≥ Roof 0% SQ; Failed if less; Missing if tear-off not found. In notes, show both numeric SQ values used. Do not append explanatory text to the value fields—keep them like "16.4 SQ" only.
 
 2. Check if proper waste factor is applied
-   - Roof: recommended waste percent (from waste_table, recommended=true).
-   - Insurance: the waste/allowance percent for "Laminated - comp shingle w/ or w/out felt" (parse options_text like "Auto Calculated Waste: X%" if available).
-   - Status: Pass if Roof % ≥ Insurance %; Failed if less; Missing if either side missing. Note the percents used.
+  - Roof report value: the squares at the recommended waste from the waste_table row where recommended=true (use its "squares"). If only percent is present, compute squares = percent × roof 0% squares.
+  - Insurance report value: the quantity for felt/underlayment (w/ or w/out felt). Prefer units in SQ; if provided in sqft, convert to SQ. Choose the felt/underlayment line item associated with the main shingle scope for this roof section.
+  - Status: Pass if Insurance felt SQ ≥ Roof recommended waste SQ; Failed if less; Missing if either side missing. In notes, include the waste percent used and the computed values if derived.
 
 3. Drip Edge
    - Compare roof eaves + rakes (LF) vs insurance drip edge (LF).
@@ -376,8 +378,8 @@ Return JSON with this exact schema:
         {
           "checkpoint": "string",
           "status": "pass" | "failed" | "missing",
-          "roof_report_value": "string|null",
-          "insurance_report_value": "string|null",
+          "roof_report_value": "string|null",  // Keep concise: "N.N SQ/LF/SF" only, no parenthetical notes
+          "insurance_report_value": "string|null", // Keep concise: "N.N SQ/LF/SF" only
           "notes": "string",
           "warning": "string|null"
         }
@@ -408,7 +410,8 @@ Normalization and parsing rules:
   * Squares/Surface: use SQ line items; else derive from sqft / 100.
   * Tear off SQ: removal/tear-off line items in SQ.
   * Drip Edge/Starter/Ridge Cap/IWS/Step Flashing: use their LF/SF quantities in the Roof section.
-  * Waste %: parse from options_text (e.g., "Auto Calculated Waste: X%") or description when present.
+  * Felt/Underlayment: use felt/underlayment quantity (w/ or w/out felt), prefer SQ; if in sqft, convert to SQ.
+  * Waste %: parse from options_text (e.g., "Auto Calculated Waste: X%") or description when present (use only for notes; compare squares for checkpoint 2).
 - Missing pitch buckets are treated as 0 for pitch-based checks.
 
 Checklist (single-structure):
@@ -417,12 +420,14 @@ Checklist (single-structure):
    - Pass if same month or within ±1 month; Failed if outside; Missing if dates unavailable.
 
 1. Confirm Total Squares
-   - Roof: total squares at 0% waste. Insurance: number of squares (SQ) and/or surface area (sqft → SQ). Include Tear off (SQ) check (insurance tear-off SQ must be ≤ roof SQ).
-   - Status: Pass if Roof SQ ≥ Insurance SQ; Failed if less; Missing if required values missing.
+  - Roof report value: total squares at 0% waste (prefer waste_table 0% "squares"; else compute measurements.total_roof_area / 100).
+  - Insurance report value: Tear off quantity in SQ (prefer explicit tear-off line items; if unit is sqft, convert to SQ). Do NOT use base/installation quantity for this checkpoint.
+  - Status: Pass if Insurance tear-off SQ ≥ Roof 0% SQ; Failed if less; Missing if tear-off not found.
 
 2. Check if proper waste factor is applied
-   - Roof: recommended waste percent. Insurance: waste/allowance percent for "Laminated - comp shingle w/ or w/out felt" (from options_text if available).
-   - Status: Pass if Roof % ≥ Insurance %; Failed if less; Missing if unavailable.
+  - Roof report value: squares at the recommended waste (use waste_table row where recommended=true → its "squares"; if only percent is present, compute squares = percent × roof 0% squares).
+  - Insurance report value: felt/underlayment quantity (w/ or w/out felt) in SQ (convert from sqft if needed). Use the felt line item tied to the shingle scope for this roof.
+  - Status: Pass if Insurance felt SQ ≥ Roof recommended waste SQ; Failed if less; Missing if unavailable.
 
 3. Drip Edge
    - Compare roof eaves + rakes (LF) vs insurance drip edge (LF). Pass if Roof ≥ Insurance; Failed if less; Missing if insurance item missing.
@@ -482,8 +487,8 @@ JSON Output Schema
     {
       "checkpoint": "string",            // Exact name from the checklist
       "status": "pass" | "failed" | "missing",
-      "roof_report_value": "string|null",
-      "insurance_report_value": "string|null",
+      "roof_report_value": "string|null",  // Keep concise: "N.N SQ/LF/SF" only, no parenthetical notes
+      "insurance_report_value": "string|null", // Keep concise: "N.N SQ/LF/SF" only
       "notes": "string",                 // explanation for decision
       "warning": "string|null"           // warning message if applicable
     }
