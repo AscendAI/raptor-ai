@@ -2,15 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { TrendingUp, FileText, Eye, EyeOff } from 'lucide-react';
 import { BsFilePdfFill } from 'react-icons/bs';
 import { PDFViewer } from '@/components/ui/pdf-viewer';
@@ -23,6 +15,7 @@ import {
   evaluatePriceListVsInsuranceDate,
   type PriceListDateStatus,
 } from '@/lib/utils/compare-pricelist-date';
+import { cn } from '@/lib/utils';
 
 interface ResultsClientWrapperProps {
   taskId: string;
@@ -94,108 +87,107 @@ export function ResultsClientWrapper({
   return (
     <div className="space-y-8">
       {/* Header Summary */}
-      <Card className="border-2 border-dashed border-muted-foreground/20 hover:border-muted-foreground/40 transition-colors">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="h-5 w-5" />
-            Analysis Complete
-          </CardTitle>
-          <CardDescription>
-            Your roof vs insurance report comparison has been successfully
-            completed
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Badge
-                variant="default"
-                className="bg-green-600 hover:bg-green-700 text-white border-green-600"
-              >
-                Analysis Complete
-              </Badge>
+      <div className="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl p-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="inline-flex items-center justify-center w-12 h-12 bg-emerald-100 rounded-full">
+              <TrendingUp className="h-6 w-6 text-emerald-600" />
             </div>
-            {(roofPdfFile || insurancePdfFile) && (
-              <Button
-                onClick={() => setShowPdfPreview(!showPdfPreview)}
-                className="flex items-center gap-2 bg-white/80 hover:bg-white border-emerald-200 text-emerald-700 hover:text-emerald-800 shadow-sm"
-                variant="outline"
-              >
-                {showPdfPreview ? (
-                  <>
-                    <EyeOff className="h-4 w-4" />
-                    Hide Report
-                  </>
-                ) : (
-                  <>
-                    <Eye className="h-4 w-4" />
-                    View Report
-                  </>
-                )}
-              </Button>
-            )}
+            <div>
+              <h1 className="text-xl font-semibold text-emerald-900">
+                Analysis Complete
+              </h1>
+              <p className="text-emerald-700 text-sm mt-1">
+                Your roof vs insurance report comparison has been successfully
+                completed
+              </p>
+            </div>
           </div>
-        </CardContent>
-      </Card>
+          {(roofPdfFile || insurancePdfFile) && (
+            <button
+              onClick={() => setShowPdfPreview(!showPdfPreview)}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-emerald-200 text-emerald-700 rounded-lg hover:bg-emerald-50 transition-colors shadow-sm"
+            >
+              {showPdfPreview ? (
+                <>
+                  <EyeOff className="h-4 w-4" />
+                  Hide Reports
+                </>
+              ) : (
+                <>
+                  <Eye className="h-4 w-4" />
+                  View Reports
+                </>
+              )}
+            </button>
+          )}
+        </div>
+      </div>
 
       {/* Insurance Basic Information */}
       {insuranceData && (
-        <Card className="shadow-sm border-slate-200">
-          <CardHeader>
-            <CardTitle className="text-base">Insurance Details</CardTitle>
-            <CardDescription>
-              Basic information extracted from the insurance estimate
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="p-3 rounded-md border bg-muted/30">
-                <div className="text-xs text-muted-foreground">Claim ID</div>
-                <div className="text-sm font-medium break-all">
-                  {insuranceData.claim_id || '—'}
-                </div>
+        <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+          <div className="mb-4">
+            <h2 className="text-lg font-semibold text-gray-900">
+              Insurance Details
+            </h2>
+            <p className="text-sm text-gray-600 mt-1">
+              Key information extracted from the insurance estimate
+            </p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="bg-gray-50 rounded-lg p-4 border">
+              <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+                Claim ID
               </div>
-              <div className="p-3 rounded-md border bg-muted/30">
-                <div className="text-xs text-muted-foreground">Date</div>
-                <div className="text-sm font-medium">
-                  {insuranceData.date || '—'}
-                </div>
-              </div>
-              <div className="p-3 rounded-md border bg-muted/30">
-                <div className="text-xs text-muted-foreground">Price List</div>
-                <div className="text-sm font-medium">
-                  {insuranceData.price_list || '—'}
-                </div>
-              </div>
-              <div className="p-3 rounded-md border bg-muted/30 sm:col-span-3">
-                <div className="flex items-center justify-between flex-wrap gap-2">
-                  {priceListStatus ? (
-                    <Badge
-                      variant="outline"
-                      className={
-                        priceListStatus.status === 'pass'
-                          ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
-                          : priceListStatus.status === 'failed'
-                            ? 'bg-red-100 text-red-800 border-red-200'
-                            : 'bg-amber-100 text-amber-900 border-amber-200'
-                      }
-                      title={priceListStatus.message}
-                    >
-                      {priceListStatus.status.toUpperCase()}
-                    </Badge>
-                  ) : (
-                    <Badge variant="secondary">N/A</Badge>
-                  )}
-                  {priceListStatus && (
-                    <div className="text-xs text-muted-foreground">
-                      {priceListStatus.message}
-                    </div>
-                  )}
-                </div>
+              <div className="text-sm font-mono text-gray-900 break-all">
+                {insuranceData.claim_id || '—'}
               </div>
             </div>
-          </CardContent>
-        </Card>
+            <div className="bg-gray-50 rounded-lg p-4 border">
+              <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+                Date
+              </div>
+              <div className="text-sm font-mono text-gray-900">
+                {insuranceData.date || '—'}
+              </div>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-4 border">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+                    Price List
+                  </div>
+                  <div className="text-sm font-mono text-gray-900">
+                    {insuranceData.price_list || '—'}
+                  </div>
+                </div>
+                {priceListStatus && (
+                  <div className="ml-4 text-right">
+                    <div
+                      className={cn(
+                        'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium mb-1',
+                        {
+                          'bg-emerald-100 text-emerald-700 border border-emerald-200':
+                            priceListStatus.status === 'pass',
+                          'bg-red-100 text-red-700 border border-red-200':
+                            priceListStatus.status === 'failed',
+                          'bg-amber-100 text-amber-700 border border-amber-200':
+                            priceListStatus.status === 'warning',
+                        }
+                      )}
+                    >
+                      {priceListStatus.status.toUpperCase()}
+                    </div>
+                    <div className="text-xs text-gray-600 max-w-32">
+                      {priceListStatus.message}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Comparison Results + PDF Preview */}
@@ -213,112 +205,134 @@ export function ResultsClientWrapper({
         </div>
         {showPdfPreview && (roofPdfFile || insurancePdfFile) && (
           <div className="xl:col-span-1">
-            <Card className="shadow-sm border-slate-200 sticky top-2 pb-0">
-              <CardHeader className="py-0">
-                <CardTitle className="text-base font-medium py-0 flex items-center gap-2">
-                  <div className="p-2 bg-muted rounded-lg">
-                    <BsFilePdfFill className="w-5 h-5 text-primary" />
+            <div className="bg-white border border-gray-200 rounded-xl shadow-sm sticky top-2 overflow-hidden">
+              <div className="p-4 border-b bg-gray-50">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="p-2 bg-blue-100 rounded-lg">
+                    <BsFilePdfFill className="w-5 h-5" />
                   </div>
-                  PDF Preview
-                </CardTitle>
-                <CardDescription className="text-sm py-0">
-                  {activeTab === 'roof'
-                    ? 'Original roof report document'
-                    : 'Original insurance report document'}
-                </CardDescription>
-                <div className="mt-2 flex gap-2">
-                  <Button
-                    variant={activeTab === 'roof' ? 'default' : 'ghost'}
-                    size="sm"
+                  <div>
+                    <h3 className="font-medium text-gray-900">PDF Preview</h3>
+                    <p className="text-sm text-gray-600">
+                      {activeTab === 'roof'
+                        ? 'Original roof report document'
+                        : 'Original insurance report document'}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <button
                     onClick={() => setActiveTab('roof')}
                     disabled={!roofPdfFile}
+                    className={cn(
+                      'px-3 py-1.5 text-sm font-medium rounded-lg transition-colors',
+                      activeTab === 'roof'
+                        ? 'bg-blue-100 text-blue-700 border border-blue-200'
+                        : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50',
+                      !roofPdfFile && 'opacity-50 cursor-not-allowed'
+                    )}
                   >
                     Roof Report
-                  </Button>
-                  <Button
-                    variant={activeTab === 'insurance' ? 'default' : 'ghost'}
-                    size="sm"
+                  </button>
+                  <button
                     onClick={() => setActiveTab('insurance')}
                     disabled={!insurancePdfFile}
+                    className={cn(
+                      'px-3 py-1.5 text-sm font-medium rounded-lg transition-colors',
+                      activeTab === 'insurance'
+                        ? 'bg-blue-100 text-blue-700 border border-blue-200'
+                        : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50',
+                      !insurancePdfFile && 'opacity-50 cursor-not-allowed'
+                    )}
                   >
                     Insurance Report
-                  </Button>
+                  </button>
                 </div>
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="relative h-[calc(100vh-130px)] min-h-[600px]">
-                  {roofPdfFile && (
-                    <div
-                      className={`${activeTab === 'roof' ? 'block' : 'hidden'} absolute inset-0`}
-                    >
-                      <PDFViewer pdfUrl={roofPdfFile.url} className="h-full" />
-                    </div>
-                  )}
-                  {insurancePdfFile && (
-                    <div
-                      className={`${activeTab === 'insurance' ? 'block' : 'hidden'} absolute inset-0`}
-                    >
-                      <PDFViewer
-                        pdfUrl={insurancePdfFile.url}
-                        className="h-full"
-                      />
-                    </div>
-                  )}
-                  {!roofPdfFile && !insurancePdfFile && (
-                    <div className="p-4 text-sm text-muted-foreground">
-                      Selected report file not available.
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+              </div>
+              <div className="relative h-[calc(100vh-200px)] min-h-[600px]">
+                {roofPdfFile && (
+                  <div
+                    className={`${activeTab === 'roof' ? 'block' : 'hidden'} absolute inset-0`}
+                  >
+                    <PDFViewer pdfUrl={roofPdfFile.url} className="h-full" />
+                  </div>
+                )}
+                {insurancePdfFile && (
+                  <div
+                    className={`${activeTab === 'insurance' ? 'block' : 'hidden'} absolute inset-0`}
+                  >
+                    <PDFViewer
+                      pdfUrl={insurancePdfFile.url}
+                      className="h-full"
+                    />
+                  </div>
+                )}
+                {!roofPdfFile && !insurancePdfFile && (
+                  <div className="p-4 text-sm text-gray-500 text-center">
+                    Selected report file not available.
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         )}
       </div>
 
       {/* Actions */}
-      <Card className="border-2 border-dashed border-muted-foreground/20 hover:border-muted-foreground/40 transition-colors">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Export & Actions
-          </CardTitle>
-          <CardDescription>
-            Download your analysis report or start a new analysis
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col space-y-6">
-            <div className="flex items-start gap-4 p-4 bg-muted/30 rounded-lg border">
-              <div className="flex-1">
-                <p className="text-sm text-muted-foreground">
-                  Save the analysis in Markdown format for offline review
-                </p>
-              </div>
-              <div className="flex gap-2">
-                <Button onClick={handleDownloadReport}>
-                  <FileText className="h-4 w-4 mr-2" />
-                  Download Report
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() =>
-                    router.push(`/dashboard/${taskId}/insurance-report-review`)
-                  }
-                >
-                  View Review Steps
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => router.push('/dashboard')}
-                >
-                  Back to Dashboard
-                </Button>
-              </div>
+      <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-2 bg-blue-100 rounded-lg">
+            <FileText className="h-5 w-5 text-blue-600" />
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">
+              Export & Actions
+            </h2>
+            <p className="text-sm text-gray-600">
+              Download your analysis report or explore additional options
+            </p>
+          </div>
+        </div>
+
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-medium text-gray-900 mb-1">
+                Analysis Report
+              </h3>
+              <p className="text-sm text-gray-600">
+                Save the analysis in Markdown format for offline review and
+                documentation
+              </p>
+            </div>
+            <div className="flex gap-3 ml-4">
+              <Button
+                onClick={handleDownloadReport}
+                className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
+              >
+                <FileText className="h-4 w-4 mr-2" />
+                Download Report
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() =>
+                  router.push(`/dashboard/${taskId}/insurance-report-review`)
+                }
+                className="border-gray-300 text-gray-700 hover:bg-gray-50"
+              >
+                Review Steps
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => router.push('/dashboard')}
+                className="border-gray-300 text-gray-700 hover:bg-gray-50"
+              >
+                Dashboard
+              </Button>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }
