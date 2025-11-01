@@ -8,7 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { FileText, ClipboardList, TrendingUp } from 'lucide-react';
+import { FileText, ClipboardList, TrendingUp, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { listUserTasks } from '@/lib/server/db/services/tasksService';
 
@@ -20,7 +20,7 @@ export default async function DashboardPage() {
 
   const tasks = await listUserTasks(session.user.id);
 
-  const getStatusLabel = (t: typeof tasks[number]) => {
+  const getStatusLabel = (t: (typeof tasks)[number]) => {
     if (t.comparison) return 'Completed';
     if (t.roofData && t.insuranceData) return 'Ready to Compare';
     if (t.roofData || t.insuranceData) return 'Extracted';
@@ -31,10 +31,23 @@ export default async function DashboardPage() {
     <div className="container mx-auto py-6">
       <Card>
         <CardHeader>
-          <CardTitle>Dashboard</CardTitle>
-          <CardDescription>
-            Review and resume your previous tasks.
-          </CardDescription>
+          <div className="flex items-start justify-between">
+            <div>
+              <CardTitle>Dashboard</CardTitle>
+              <CardDescription>
+                Review and resume your previous tasks.
+              </CardDescription>
+            </div>
+            <Button asChild>
+              <Link
+                href="/dashboard/new-analysis"
+                className="inline-flex items-center"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                New Analysis
+              </Link>
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           {tasks.length === 0 ? (
@@ -46,30 +59,33 @@ export default async function DashboardPage() {
                 const actionHref = t.comparison
                   ? `/dashboard/${t.id}/results`
                   : t.roofData && t.insuranceData
-                  ? `/dashboard/${t.id}/analysis`
-                  : t.roofData
-                  ? `/dashboard/${t.id}/roof-report-review`
-                  : `/dashboard/${t.id}/roof-report-upload`;
+                    ? `/dashboard/${t.id}/insurance-report-review`
+                    : t.roofData
+                      ? `/dashboard/${t.id}/roof-report-review`
+                      : `/dashboard/${t.id}/roof-report-upload`;
                 const actionLabel = t.comparison ? 'View' : 'Resume';
                 return (
                   <div
                     key={t.id}
                     className="flex items-center justify-between border rounded-md p-4"
                   >
-                    <div className="flex items-center space-x-3">
+                    <div className="flex items-center space-x-3 flex-1">
                       <FileText className="h-5 w-5 text-muted-foreground" />
-                      <div>
-                        <div className="font-medium">
+                      <Link href={actionHref} className="flex-1">
+                        <div className="font-medium hover:text-primary transition-colors cursor-pointer">
                           {t.name || `Task ${t.id.slice(0, 8)}`}
                         </div>
                         <div className="text-xs text-muted-foreground">
                           Status: {status}
                         </div>
-                      </div>
+                      </Link>
                     </div>
                     <div className="flex items-center space-x-2">
                       <Button asChild variant="outline" size="sm">
-                        <Link href={actionHref} className="inline-flex items-center">
+                        <Link
+                          href={actionHref}
+                          className="inline-flex items-center"
+                        >
                           {t.comparison ? (
                             <TrendingUp className="mr-2 h-4 w-4" />
                           ) : (
