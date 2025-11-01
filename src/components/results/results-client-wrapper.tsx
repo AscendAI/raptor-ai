@@ -15,6 +15,7 @@ import { TrendingUp, FileText, Eye, EyeOff } from 'lucide-react';
 import { BsFilePdfFill } from 'react-icons/bs';
 import { PDFViewer } from '@/components/ui/pdf-viewer';
 import { type FileData } from '@/lib/types/files';
+import { type InsuranceReportData } from '@/lib/types/extraction';
 import { toast } from 'sonner';
 import { MultiStructureComparisonResults } from '@/components/results/multi-structure-comparison-results';
 import { type ComparisonResult } from '@/lib/types/comparison';
@@ -23,12 +24,14 @@ interface ResultsClientWrapperProps {
   taskId: string;
   comparison: ComparisonResult;
   files: FileData[];
+  insuranceData?: InsuranceReportData;
 }
 
 export function ResultsClientWrapper({
   taskId,
   comparison,
   files,
+  insuranceData,
 }: ResultsClientWrapperProps) {
   const router = useRouter();
   const [showPdfPreview, setShowPdfPreview] = useState(false);
@@ -121,6 +124,40 @@ export function ResultsClientWrapper({
           </div>
         </CardContent>
       </Card>
+
+      {/* Insurance Basic Information */}
+      {insuranceData && (
+        <Card className="shadow-sm border-slate-200">
+          <CardHeader>
+            <CardTitle className="text-base">Insurance Details</CardTitle>
+            <CardDescription>
+              Basic information extracted from the insurance estimate
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="p-3 rounded-md border bg-muted/30">
+                <div className="text-xs text-muted-foreground">Claim ID</div>
+                <div className="text-sm font-medium break-all">
+                  {insuranceData.claim_id || '—'}
+                </div>
+              </div>
+              <div className="p-3 rounded-md border bg-muted/30">
+                <div className="text-xs text-muted-foreground">Date</div>
+                <div className="text-sm font-medium">
+                  {insuranceData.date || '—'}
+                </div>
+              </div>
+              <div className="p-3 rounded-md border bg-muted/30">
+                <div className="text-xs text-muted-foreground">Price List</div>
+                <div className="text-sm font-medium">
+                  {insuranceData.price_list || '—'}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Comparison Results + PDF Preview */}
       <div
