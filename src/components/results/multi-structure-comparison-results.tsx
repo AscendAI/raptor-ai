@@ -200,16 +200,7 @@ function StructureComparisonView({ structure }: StructureComparisonProps) {
 
   return (
     <div className="space-y-6">
-      <div
-        className={cn('border rounded-xl p-6 transition-colors', {
-          'bg-gradient-to-r from-emerald-50 to-emerald-100/50 border-emerald-200':
-            overallStatus === 'pass',
-          'bg-gradient-to-r from-red-50 to-red-100/50 border-red-200':
-            overallStatus === 'failed',
-          'bg-gradient-to-r from-amber-50 to-amber-100/50 border-amber-200':
-            overallStatus === 'missing',
-        })}
-      >
+      <div className={cn('border rounded-xl p-6 transition-colors')}>
         <div className="flex items-center justify-between mb-4">
           <div>
             <h3 className="text-lg font-semibold text-gray-900">
@@ -308,16 +299,7 @@ export function MultiStructureComparisonResults({
 
     return (
       <div className={cn('w-full space-y-6', className)}>
-        <div
-          className={cn('border rounded-xl p-6 transition-colors', {
-            'bg-gradient-to-r from-emerald-50 to-emerald-100/50 border-emerald-200':
-              overallStatus === 'pass',
-            'bg-gradient-to-r from-red-50 to-red-100/50 border-red-200':
-              overallStatus === 'failed',
-            'bg-gradient-to-r from-amber-50 to-amber-100/50 border-amber-200':
-              overallStatus === 'missing',
-          })}
-        >
+        <div className={cn('border rounded-xl p-6 transition-colors')}>
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="text-lg font-semibold text-gray-900">
