@@ -270,37 +270,98 @@ export async function analyseInsuranceReport(
 
 // Multi-structure comparison prompt
 function createMultiStructureComparisonPrompt(structureCount: number): string {
-  return `You are an expert roofing analyst. Compare the roofing report data with the insurance estimate for ${structureCount} roof structure(s). The roofing report is the source of truth.
+  return `You are an expert roofing analyst. Compare the insurance estimate against the roofing report for ${structureCount} roof structure(s). Treat the roofing report as the source of truth. Evaluate each structure independently.
 
-Use the following checklist for EACH structure (evaluate independently per structure):
-0. Metadata: Price list date — Compare insurance document date vs the month/year encoded in insurance price_list (e.g., ININ28_JUL24 → July 2024); allow minor drift (same month or ±1 month). Pass if same/close; otherwise failed.
-1. Total Squares — Roof total area (sqft) vs Insurance squares (SQ) and/or surface area. Pass if Roof >= Insurance. Include tear-off check (Insurance tear-off SQ <= Roof SQ).
-2. Waste Factor — Compare Roof recommended waste % (from waste table) vs Insurance laminated comp shingle waste/allowance. Pass if Roof >= Insurance.
-3. Drip Edge — Roof eaves + rakes (LF) vs Insurance drip edge (LF). Pass if Roof >= Insurance.
-4. Starter Strip — Roof eaves + rakes (LF) vs Insurance starter strip (LF). Pass if Roof >= Insurance. WARNING if text indicates starter cut from field shingles.
-5. Ridge Cap — Roof hips + ridges (LF) vs Insurance hip/ridge cap (LF). Pass if Roof >= Insurance. WARNING if hip/ridge states cut from 3-tab.
-6. Ice & Water Shield (Valleys) — Roof total valley length * 6 ft width (SF) vs Insurance ice/water shield (SF). Pass if Roof >= Insurance.
-7. Step Flashing — Roof total wall flashing + total step flashing (LF) vs Insurance step flashing (LF). Missing if not listed.
-8. Chimney Flashing — Check presence in Insurance. Present → pass. Missing → missing with WARNING.
-9. Ventilation Items — Check presence in Insurance (e.g., ridge vent, box vents, turtle, power vents). Present → pass. Missing → missing with WARNING.
-10. Steep Roof 7/12–9/12 (Remove) — Sum (7/12 + 9/12) SQ vs Insurance removal add-on. If a pitch bucket is missing in the Roof report, treat its value as 0 (partial presence allowed). Pass if Roof >= Insurance.
-11. Steep Roof 7/12–9/12 (Put back) — (7/12 + 9/12) SQ plus recommended waste % of that sum. If a pitch bucket is missing, treat it as 0. Pass if Roof >= Insurance.
-12. Steep Roof 10/12–12/12 (Remove) — Sum (10/12 + 12/12) SQ vs Insurance removal add-on. If a pitch bucket is missing, treat it as 0. Pass if Roof >= Insurance.
-13. Steep Roof 10/12–12/12 (Put back) — (10/12 + 12/12) SQ plus recommended waste % of that sum. If a pitch bucket is missing, treat it as 0. Pass if Roof >= Insurance.
-14. Underlayment — Check presence/type in Insurance. Present → pass. Missing → missing with WARNING.
+Normalization and parsing rules:
+- Units: convert squares (SQ) ↔ sqft using 1 SQ = 100 sqft. Linear measures are LF; areas are SF.
+- Roofing report sources:
+  * Total Squares: Prefer waste_table entry where waste_percent = 0% (use its "squares"). If missing, compute from measurements.total_roof_area (sqft / 100).
+  * Eaves + Rakes: Prefer measurements.eaves_rakes; else sum measurements.total_eaves + measurements.total_rakes.
+  * Hips + Ridges: Prefer sum of measurements.total_hips + measurements.total_ridges; else use measurements.hips_ridges.
+  * Valleys SF: measurements.total_valleys (LF) × 6 ft width → SF.
+  * Step flashing LF: measurements.total_wall_flashing + measurements.total_step_flashing.
+  * Recommended waste %: the waste_table row where recommended = true; use its waste_percent as a percentage number.
+- Insurance report sources:
+  * Squares/Surface area: Use line items with unit "SQ" for shingles/surface area. If only surface area in sqft exists, convert to SQ via /100.
+  * Tear off SQ: Use line items that represent tear-off/removal quantities in SQ.
+  * Drip Edge, Starter Strip, Hip/Ridge Cap, Ice and Water Shield, Step Flashing: use their LF/SF quantities from the Roof section.
+  * Waste %: If present, extract from options_text (e.g., "Auto Calculated Waste: X%") or description; otherwise treat as missing.
+- Missing numeric buckets: Treat any unavailable pitch bucket as 0 for pitch-based checks.
 
-Rules:
-- Always use the roofing report as the source of truth.
-- Flag under-allowances or missing items in the insurance report.
-- Use status: "pass", "failed", or "missing".
-- Provide clear notes showing the calculation/logic and any assumptions.
-- If a checkpoint has a notable caveat (e.g., ridge cut from 3-tab, starter cut from field), include a human-readable WARNING message; otherwise set warning to null.
+Checklist (apply to EACH structure exactly as written below):
+0. Check the metadata: Price list date
+   - Compare the roof report "Date inspected" (if present; else use the insurance document date) against the month/year encoded in insurance price_list (e.g., ININ28_JUL24 → July 2024).
+   - Pass if the month/year match or are within ±1 month; otherwise failed. If either date is unavailable, mark missing.
+
+1. Confirm Total Squares
+   - Roof: total squares at 0% waste (see normalization). Insurance: number of squares (SQ) and/or surface area (sqft → SQ). Include Tear off (SQ) check: insurance tear-off SQ must be ≤ roof SQ.
+   - Status: Pass if Roof SQ ≥ Insurance SQ; Failed if less; Missing if any required value is unavailable. Note both SQ values and the tear-off comparison.
+
+2. Check if proper waste factor is applied
+   - Roof: recommended waste percent (from waste_table, recommended=true).
+   - Insurance: the waste/allowance percent for "Laminated - comp shingle w/ or w/out felt" (parse options_text like "Auto Calculated Waste: X%" if available).
+   - Status: Pass if Roof % ≥ Insurance %; Failed if less; Missing if either side missing. Note the percents used.
+
+3. Drip Edge
+   - Compare roof eaves + rakes (LF) vs insurance drip edge (LF).
+   - Status: Pass if Roof LF ≥ Insurance LF; Failed if less; Missing if insurance item missing.
+
+4. Starter Strip
+   - Compare roof eaves + rakes (LF) vs insurance starter strip/asphalt starter/starter (LF).
+   - Status: Pass if Roof LF ≥ Insurance LF; Failed if less; Missing if insurance item missing.
+
+5. Ridge Cap
+   - Compare roof total hips + ridges (LF) vs insurance hip/ridge cap (LF).
+   - Status: Pass if Roof LF ≥ Insurance LF; Failed if less; Missing if insurance item missing.
+   - Warning: If insurance description/options_text indicates "cut from 3-tab" (any wording), add a WARNING message; otherwise warning = null.
+
+6. Ice and Water Shield in Valleys
+   - Roof SF = total valley length (LF) × 6 ft; compare vs insurance ice and water shield/barrier (SF).
+   - Status: Pass if Roof SF ≥ Insurance SF; Failed if less; Missing if insurance item missing.
+
+7. Step flashing
+   - Present or not. If present in insurance: compare roof (total wall flashing + total step flashing) LF vs insurance step flashing (LF).
+   - Status: If present and Roof LF ≥ Insurance LF → Pass; if present and less → Failed; if not present → Missing.
+
+8. Chimney flashing
+   - Presence check in insurance report.
+   - Status: Present → Pass; Not present → Missing. Always add a WARNING if missing.
+
+9. Ventilation items
+   - Presence check in insurance (e.g., ridge vent, box/turtle/power vents, off-ridge vents). Count as present if any ventilation item exists.
+   - Status: Present → Pass; Not present → Missing. Always add a WARNING if missing.
+
+10. Remove additional charge for steep roof 7/12 to 9/12 slope (Take off)
+    - Roof SQ = sum of pitch_breakdown squares for 7/12, 8/12, 9/12 (treat missing buckets as 0).
+    - Compare vs insurance removal add-on quantity. Status: Pass if Roof SQ ≥ Insurance SQ; Failed if less; Missing if insurance item missing.
+
+11. Additional charge for steep roof 7/12 to 9/12 slope (Put back)
+    - Roof SQ_put_back = (7/12 + 8/12 + 9/12 squares) + recommended waste % of that sum.
+    - Compare vs insurance add-on quantity. Status: Pass if Roof ≥ Insurance; Failed if less; Missing if insurance item missing.
+
+12. Remove additional charge for steep roof 10/12 and 12/12 slope (Take off)
+    - Roof SQ = sum of pitch_breakdown squares for 10/12 and 12/12 (treat missing buckets as 0).
+    - Compare vs insurance removal add-on quantity. Status: Pass if Roof SQ ≥ Insurance SQ; Failed if less; Missing if insurance item missing.
+
+13. Additional charge for steep roof 10/12 and 12/12 slope (Put back)
+    - Roof SQ_put_back = (10/12 + 12/12 squares) + recommended waste % of that sum.
+    - Compare vs insurance add-on quantity. Status: Pass if Roof ≥ Insurance; Failed if less; Missing if insurance item missing.
+
+14. Underlayment
+    - Presence check in insurance.
+    - Status: Present → Pass; Not present → Missing. Always add a WARNING if missing.
 
 Edge cases for pitch-based checkpoints (10–13):
-- If the sum for a pitch group equals 0 SQ (e.g., only 5/12 present, no 7/12–9/12 or 10/12–12/12), then:
-  * If the Insurance report has corresponding steep add-ons (> 0), mark "failed" (over-allowance) and note expected 0 SQ.
-  * If the Insurance report has no such add-ons, mark "pass".
+- If the roof sum for the pitch group equals 0 SQ, then:
+  * If insurance has a corresponding steep add-on (> 0), mark Failed (over-allowance) and note expected 0 SQ.
+  * If insurance has no such add-on, mark Pass.
   * Always show the computed roof_report_value (e.g., "0 SQ").
+
+General rules:
+- Always use the roofing report as the source of truth.
+- Flag under-allowances or missing items in the insurance report.
+- Status must be one of: "pass", "failed", "missing".
+- Provide clear notes showing the calculation/logic and any assumptions. Use WARNING only for notable caveats (e.g., ridge cut from 3-tab, missing chimney flashing/ventilation/underlayment); otherwise set warning = null.
 
 Return JSON with this exact schema:
 {
@@ -329,40 +390,88 @@ Return JSON with this exact schema:
 const reportComparisonPrompt = `
 You are given two reports:
 
-- Roofing report (always accurate)
-- Insurance estimate (may contain mistakes)
+- Roofing report (source of truth)
+- Insurance estimate (to be validated)
 
-Your task: Compare the insurance estimate against the roofing report using the checklist below and return structured JSON.
+Your task: Compare the insurance estimate against the roofing report using the exact checklist below and return structured JSON.
+
+Normalization and parsing rules:
+- Units: 1 SQ = 100 sqft. Linear = LF; Area = SF.
+- Roofing report sources:
+  * Total Squares: Prefer waste_table where waste_percent = 0% (use its "squares"); else measurements.total_roof_area / 100.
+  * Eaves + Rakes: measurements.eaves_rakes OR (total_eaves + total_rakes).
+  * Hips + Ridges: (total_hips + total_ridges) OR hips_ridges.
+  * Valleys SF: total_valleys (LF) × 6 ft.
+  * Step flashing LF: total_wall_flashing + total_step_flashing.
+  * Recommended waste %: waste_table row with recommended=true.
+- Insurance report sources:
+  * Squares/Surface: use SQ line items; else derive from sqft / 100.
+  * Tear off SQ: removal/tear-off line items in SQ.
+  * Drip Edge/Starter/Ridge Cap/IWS/Step Flashing: use their LF/SF quantities in the Roof section.
+  * Waste %: parse from options_text (e.g., "Auto Calculated Waste: X%") or description when present.
+- Missing pitch buckets are treated as 0 for pitch-based checks.
 
 Checklist (single-structure):
-0. Metadata: Price list date — Compare insurance document date vs the month/year encoded in insurance price_list (e.g., ININ28_JUL24 → July 2024); allow minor drift (same month or ±1 month).
-1. Total Squares — Roof total area (sqft) vs Insurance squares (SQ)/surface area; include tear-off check.
-2. Waste Factor — Roof recommended waste % vs Insurance laminated comp shingle waste/allowance.
-3. Drip Edge — Roof eaves + rakes (LF) vs Insurance drip edge (LF).
-4. Starter Strip — Roof eaves + rakes (LF) vs Insurance starter (LF). WARNING if starter cut from field shingles.
-5. Ridge Cap — Roof hips + ridges (LF) vs Insurance hip/ridge cap (LF). WARNING if hip/ridge cut from 3-tab.
-6. Ice & Water Shield (Valleys) — Roof total valley length * 6 ft width (SF) vs Insurance IWS (SF).
-7. Step Flashing — Roof total wall flashing + total step flashing (LF) vs Insurance step flashing (LF).
-8. Chimney Flashing — Presence in Insurance. If missing → missing and WARNING.
-9. Ventilation Items — Presence in Insurance. If missing → missing and WARNING.
-10. Steep 7/12–9/12 (Remove) — (7/12 + 9/12) SQ vs Insurance removal add-on. If a pitch bucket is missing in the Roof report, treat it as 0.
-11. Steep 7/12–9/12 (Put back) — (7/12 + 9/12) SQ + recommended waste % vs Insurance add-on. Treat missing pitch buckets as 0.
-12. Steep 10/12–12/12 (Remove) — (10/12 + 12/12) SQ vs Insurance removal add-on. Treat missing pitch buckets as 0.
-13. Steep 10/12–12/12 (Put back) — (10/12 + 12/12) SQ + recommended waste % vs Insurance add-on. Treat missing pitch buckets as 0.
-14. Underlayment — Presence/type in Insurance; missing → WARNING.
+0. Check the metadata: Price list date
+   - Compare the roof report "Date inspected" (if available; else the insurance document date) vs the month/year encoded in insurance price_list (e.g., ININ28_JUL24 → July 2024).
+   - Pass if same month or within ±1 month; Failed if outside; Missing if dates unavailable.
 
-Rules:
-- Always use the roofing report as the source of truth.
-- Flag under-allowances or missing items in the insurance report.
-- Use status: "pass", "failed", or "missing".
-- Provide clear notes explaining each decision and showing relevant quantities.
-- Use the WARNING field to flag caveats like: hip/ridge "cut from 3-tab", starter cut from field shingles, missing chimney flashing, missing ventilation, missing underlayment.
+1. Confirm Total Squares
+   - Roof: total squares at 0% waste. Insurance: number of squares (SQ) and/or surface area (sqft → SQ). Include Tear off (SQ) check (insurance tear-off SQ must be ≤ roof SQ).
+   - Status: Pass if Roof SQ ≥ Insurance SQ; Failed if less; Missing if required values missing.
+
+2. Check if proper waste factor is applied
+   - Roof: recommended waste percent. Insurance: waste/allowance percent for "Laminated - comp shingle w/ or w/out felt" (from options_text if available).
+   - Status: Pass if Roof % ≥ Insurance %; Failed if less; Missing if unavailable.
+
+3. Drip Edge
+   - Compare roof eaves + rakes (LF) vs insurance drip edge (LF). Pass if Roof ≥ Insurance; Failed if less; Missing if insurance item missing.
+
+4. Starter Strip
+   - Compare roof eaves + rakes (LF) vs insurance starter strip/asphalt starter/starter (LF). Pass if Roof ≥ Insurance; Failed if less; Missing if insurance item missing.
+
+5. Ridge Cap
+   - Compare roof hips + ridges (LF) vs insurance hip/ridge cap (LF). Pass if Roof ≥ Insurance; Failed if less; Missing if insurance item missing.
+   - Warning: If insurance mentions hip/ridge "cut from 3-tab", set a WARNING; otherwise null.
+
+6. Ice and Water Shield in Valleys
+   - Roof SF = total valley length × 6 ft; compare vs insurance ice and water shield/barrier (SF). Pass if Roof ≥ Insurance; Failed if less; Missing if insurance item missing.
+
+7. Step flashing
+   - Present or not. If present: compare roof (total wall flashing + total step flashing) LF vs insurance step flashing (LF). Pass/Failed accordingly. If not present → Missing.
+
+8. Chimney flashing
+   - Presence check in insurance. Present → Pass; Missing → Missing with WARNING.
+
+9. Ventilation items
+   - Presence check in insurance (e.g., ridge vent, box/turtle/power/off-ridge vents). Present → Pass; Missing → Missing with WARNING.
+
+10. Remove additional charge for steep roof 7/12 to 9/12 slope (Take off)
+    - Roof SQ = sum of 7/12, 8/12, 9/12 pitch squares; compare vs insurance removal add-on. Pass if Roof ≥ Insurance; Failed if less; Missing if insurance item missing.
+
+11. Additional charge for steep roof 7/12 to 9/12 slope (Put back)
+    - Roof SQ_put_back = (7/12 + 8/12 + 9/12 squares) + recommended waste % of that sum. Compare vs insurance add-on. Pass if Roof ≥ Insurance; Failed if less; Missing if insurance item missing.
+
+12. Remove additional charge for steep roof 10/12 and 12/12 slope (Take off)
+    - Roof SQ = sum of 10/12 and 12/12 pitch squares; compare vs insurance removal add-on. Pass if Roof ≥ Insurance; Failed if less; Missing if insurance item missing.
+
+13. Additional charge for steep roof 10/12 and 12/12 slope (Put back)
+    - Roof SQ_put_back = (10/12 + 12/12 squares) + recommended waste % of that sum. Compare vs insurance add-on. Pass if Roof ≥ Insurance; Failed if less; Missing if insurance item missing.
+
+14. Underlayment
+    - Presence check in insurance. Present → Pass; Missing → Missing with WARNING.
 
 Edge cases for pitch-based checkpoints (10–13):
-- If the sum for a pitch group equals 0 SQ (e.g., only 5/12 present, no 7/12–9/12 or 10/12–12/12), then:
-  * If the Insurance report has corresponding steep add-ons (> 0), mark "failed" (over-allowance) and note expected 0 SQ.
-  * If the Insurance report has no such add-ons, mark "pass".
-  * Always show the computed roof_report_value (e.g., "0 SQ").
+- If the roof sum for the pitch group is 0 SQ:
+  * If insurance shows a corresponding steep add-on (> 0), mark Failed (over-allowance) and note expected 0 SQ.
+  * If insurance has no such add-on, mark Pass.
+  * Always include the computed roof_report_value (e.g., "0 SQ").
+
+General rules:
+- Always use the roofing report as the source of truth.
+- Status must be one of: "pass", "failed", "missing".
+- Provide clear notes showing the calculation/logic and any assumptions.
+- Use WARNING only for notable caveats (e.g., ridge cut from 3-tab, missing chimney/ventilation/underlayment); otherwise set to null.
 
 JSON Output Schema
 {
@@ -371,7 +480,7 @@ JSON Output Schema
   "summary": { "pass": 0, "failed": 0, "missing": 0, "total": 0 },
   "comparisons": [
     {
-      "checkpoint": "string",            // e.g., "Drip Edge"
+      "checkpoint": "string",            // Exact name from the checklist
       "status": "pass" | "failed" | "missing",
       "roof_report_value": "string|null",
       "insurance_report_value": "string|null",
