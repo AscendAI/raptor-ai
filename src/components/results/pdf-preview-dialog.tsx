@@ -19,6 +19,7 @@ interface PDFPreviewDialogProps {
   comparison: ComparisonResult;
   insuranceData?: InsuranceReportData;
   taskId: string;
+  taskName?: string | null;
   priceListStatus?: {
     status: 'pass' | 'failed' | 'warning';
     message: string;
@@ -31,6 +32,7 @@ export function PDFPreviewDialog({
   comparison,
   insuranceData,
   taskId,
+  taskName,
   priceListStatus,
 }: PDFPreviewDialogProps) {
   const templateRef = React.useRef<HTMLDivElement>(null);
@@ -55,9 +57,17 @@ export function PDFPreviewDialog({
       // Small delay for accordions to expand
       await new Promise((resolve) => setTimeout(resolve, 300));
 
+      // Generate filename from task name or fallback to task ID
+      const sanitizedTaskName =
+        taskName
+          ?.replace(/[^a-z0-9]/gi, '-')
+          .replace(/-+/g, '-')
+          .toLowerCase() || `task-${taskId.slice(-8)}`;
+      const filename = `${sanitizedTaskName}.pdf`;
+
       // Generate and download PDF with progress tracking using server-side rendering
       await generatePDFServerSide(templateRef.current, {
-        filename: `analysis-report-${taskId.slice(-8)}.pdf`,
+        filename,
         onProgress: (progress: number, message: string) => {
           setExportProgress(progress);
           setExportMessage(message);

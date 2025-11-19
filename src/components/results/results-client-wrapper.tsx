@@ -31,6 +31,7 @@ import { saveComparisonResults } from '@/lib/server/actions/saveComparisonResult
 
 interface ResultsClientWrapperProps {
   taskId: string;
+  taskName?: string | null;
   comparison: ComparisonResult;
   files: FileData[];
   insuranceData?: InsuranceReportData;
@@ -38,6 +39,7 @@ interface ResultsClientWrapperProps {
 
 export function ResultsClientWrapper({
   taskId,
+  taskName,
   comparison,
   files,
   insuranceData,
@@ -114,6 +116,7 @@ export function ResultsClientWrapper({
         comparison={editedComparison}
         insuranceData={insuranceData}
         taskId={taskId}
+        taskName={taskName}
         priceListStatus={priceListStatus}
       />
 
