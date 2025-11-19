@@ -18,8 +18,7 @@ import { PDFViewer } from '@/components/ui/pdf-viewer';
 import { type FileData } from '@/lib/types/files';
 import { type InsuranceReportData } from '@/lib/types/extraction';
 import { toast } from 'sonner';
-import { MultiStructureComparisonResults } from '@/components/results/multi-structure-comparison-results';
-import { EditableMultiStructureComparisonResults } from '@/components/results/editable-multi-structure-comparison-results';
+import { UnifiedComparisonResults } from '@/components/results/UnifiedComparisonResults';
 import { type ComparisonResult } from '@/lib/types/comparison';
 import {
   evaluatePriceListVsInsuranceDate,
@@ -284,14 +283,11 @@ export function ResultsClientWrapper({
               : ''
           }
         >
-          {isEditMode ? (
-            <EditableMultiStructureComparisonResults
-              data={editedComparison}
-              onChange={setEditedComparison}
-            />
-          ) : (
-            <MultiStructureComparisonResults data={editedComparison} />
-          )}
+          <UnifiedComparisonResults
+            data={editedComparison}
+            isEditable={isEditMode}
+            onChange={isEditMode ? setEditedComparison : undefined}
+          />
         </div>
         {showPdfPreview && (roofPdfFile || insurancePdfFile) && (
           <div className="xl:col-span-1">
