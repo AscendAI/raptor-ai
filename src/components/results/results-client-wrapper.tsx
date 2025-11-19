@@ -401,19 +401,10 @@ export function ResultsClientWrapper({
               </Button>
               <Button
                 variant="outline"
-                onClick={() =>
-                  router.push(`/dashboard/${taskId}/insurance-report-review`)
-                }
-                className="border-gray-300 text-gray-700 hover:bg-gray-50"
-              >
-                Review Steps
-              </Button>
-              <Button
-                variant="outline"
                 onClick={() => router.push('/dashboard')}
                 className="border-gray-300 text-gray-700 hover:bg-gray-50"
               >
-                Dashboard
+                Back to dashboard
               </Button>
             </div>
           </div>
