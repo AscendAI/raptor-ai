@@ -1,12 +1,46 @@
 import { NextRequest, NextResponse } from 'next/server';
-import puppeteer from 'puppeteer';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
+export const maxDuration = 60; // Set max duration to 60 seconds for Vercel
+
+/**
+ * Launch Puppeteer browser with appropriate configuration
+ * Automatically detects serverless environment (Vercel, AWS Lambda)
+ */
+async function launchBrowser() {
+  const isServerless =
+    !!process.env.VERCEL ||
+    !!process.env.AWS_LAMBDA_FUNCTION_VERSION ||
+    !!process.env.AWS_REGION;
+
+  if (isServerless) {
+    // Use puppeteer-core with @sparticuz/chromium for serverless
+    const chromium = await import('@sparticuz/chromium');
+    const puppeteerCore = await import('puppeteer-core');
+
+    // Get executable path (it's a function in @sparticuz/chromium)
+    const executablePath = await chromium.default.executablePath();
+
+    return puppeteerCore.default.launch({
+      args: chromium.default.args,
+      executablePath,
+      headless: true,
+    });
+  }
+
+  // Use regular puppeteer for local development
+  const puppeteer = await import('puppeteer');
+  return puppeteer.default.launch({
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    headless: true,
+  });
+}
 
 /**
  * Server-side PDF generation using Puppeteer
  * This generates pixel-perfect PDFs of the report template
+ * Works in both development and production (Vercel) environments
  */
 export async function POST(request: NextRequest) {
   let browser;
@@ -22,17 +56,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Determine environment
+    const isServerless =
+      !!process.env.VERCEL ||
+      !!process.env.AWS_LAMBDA_FUNCTION_VERSION ||
+      !!process.env.AWS_REGION;
+
+    console.log(
+      'PDF Generation: Environment:',
+      isServerless ? 'serverless' : 'local'
+    );
+
     // Launch Puppeteer browser
-    browser = await puppeteer.launch({
-      headless: true,
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-accelerated-2d-canvas',
-        '--disable-gpu',
-      ],
-    });
+    browser = await launchBrowser();
 
     const page = await browser.newPage();
 
@@ -57,10 +93,10 @@ export async function POST(request: NextRequest) {
       format: 'A4',
       printBackground: true,
       margin: {
-        top: '15mm',
-        right: '15mm',
-        bottom: '15mm',
-        left: '15mm',
+        top: '20mm',
+        right: '20mm',
+        bottom: '20mm',
+        left: '20mm',
       },
       preferCSSPageSize: false,
       displayHeaderFooter: false,
