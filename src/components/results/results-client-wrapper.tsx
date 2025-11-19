@@ -3,19 +3,30 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { TrendingUp, FileText, Eye, EyeOff } from 'lucide-react';
+import {
+  TrendingUp,
+  FileText,
+  Eye,
+  EyeOff,
+  Edit,
+  Save,
+  X as XIcon,
+  Loader2,
+} from 'lucide-react';
 import { BsFilePdfFill } from 'react-icons/bs';
 import { PDFViewer } from '@/components/ui/pdf-viewer';
 import { type FileData } from '@/lib/types/files';
 import { type InsuranceReportData } from '@/lib/types/extraction';
 import { toast } from 'sonner';
 import { MultiStructureComparisonResults } from '@/components/results/multi-structure-comparison-results';
+import { EditableMultiStructureComparisonResults } from '@/components/results/editable-multi-structure-comparison-results';
 import { type ComparisonResult } from '@/lib/types/comparison';
 import {
   evaluatePriceListVsInsuranceDate,
   type PriceListDateStatus,
 } from '@/lib/utils/compare-pricelist-date';
 import { cn } from '@/lib/utils';
+import { saveComparisonResults } from '@/lib/server/actions/saveComparisonResults';
 
 interface ResultsClientWrapperProps {
   taskId: string;
@@ -33,6 +44,10 @@ export function ResultsClientWrapper({
   const router = useRouter();
   const [showPdfPreview, setShowPdfPreview] = useState(false);
   const [activeTab, setActiveTab] = useState<'roof' | 'insurance'>('roof');
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editedComparison, setEditedComparison] =
+    useState<ComparisonResult>(comparison);
+  const [isSaving, setIsSaving] = useState(false);
 
   const roofPdfFile = files.find(
     (file) => file.name.includes('roofReport') && file.name.endsWith('.pdf')
@@ -50,6 +65,35 @@ export function ResultsClientWrapper({
       insuranceData.date
     );
   }, [insuranceData]);
+
+  const handleSaveComparison = async () => {
+    try {
+      setIsSaving(true);
+      toast.info('Saving comparison results...');
+
+      const result = await saveComparisonResults(taskId, editedComparison);
+
+      if (result.success) {
+        toast.success('Comparison results saved successfully!');
+        setIsEditMode(false);
+        // Refresh the page to get updated data
+        router.refresh();
+      } else {
+        toast.error(result.error || 'Failed to save comparison results');
+      }
+    } catch (error) {
+      console.error('Error saving comparison results:', error);
+      toast.error('Failed to save comparison results');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditedComparison(comparison);
+    setIsEditMode(false);
+    toast.info('Edit cancelled');
+  };
 
   const handleDownloadReport = () => {
     const reportContent = `# Roof vs Insurance Report Analysis\n\n## Summary\n- Total Checkpoints: ${comparison.summary.total}\n- Matching (Pass): ${comparison.summary.pass}\n- Discrepancies (Failed): ${comparison.summary.failed}\n- Missing Data: ${comparison.summary.missing}\n\n## Detailed Comparison\n${
@@ -103,24 +147,66 @@ export function ResultsClientWrapper({
               </p>
             </div>
           </div>
-          {(roofPdfFile || insurancePdfFile) && (
-            <button
-              onClick={() => setShowPdfPreview(!showPdfPreview)}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-emerald-200 text-emerald-700 rounded-lg hover:bg-emerald-50 transition-colors shadow-sm"
-            >
-              {showPdfPreview ? (
-                <>
-                  <EyeOff className="h-4 w-4" />
-                  Hide Reports
-                </>
-              ) : (
-                <>
-                  <Eye className="h-4 w-4" />
-                  View Reports
-                </>
-              )}
-            </button>
-          )}
+          <div className="flex items-center gap-3">
+            {isEditMode ? (
+              <>
+                <Button
+                  onClick={handleSaveComparison}
+                  disabled={isSaving}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                >
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4 mr-2" />
+                      Save Changes
+                    </>
+                  )}
+                </Button>
+                <Button
+                  onClick={handleCancelEdit}
+                  disabled={isSaving}
+                  variant="outline"
+                  className="border-gray-300 text-gray-700 hover:bg-gray-50"
+                >
+                  <XIcon className="h-4 w-4 mr-2" />
+                  Cancel
+                </Button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => setIsEditMode(true)}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-emerald-200 text-emerald-700 rounded-lg hover:bg-emerald-50 transition-colors shadow-sm"
+                >
+                  <Edit className="h-4 w-4" />
+                  Edit Results
+                </button>
+                {(roofPdfFile || insurancePdfFile) && (
+                  <button
+                    onClick={() => setShowPdfPreview(!showPdfPreview)}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-emerald-200 text-emerald-700 rounded-lg hover:bg-emerald-50 transition-colors shadow-sm"
+                  >
+                    {showPdfPreview ? (
+                      <>
+                        <EyeOff className="h-4 w-4" />
+                        Hide Reports
+                      </>
+                    ) : (
+                      <>
+                        <Eye className="h-4 w-4" />
+                        View Reports
+                      </>
+                    )}
+                  </button>
+                )}
+              </>
+            )}
+          </div>
         </div>
       </div>
 
@@ -198,7 +284,14 @@ export function ResultsClientWrapper({
               : ''
           }
         >
-          <MultiStructureComparisonResults data={comparison} />
+          {isEditMode ? (
+            <EditableMultiStructureComparisonResults
+              data={editedComparison}
+              onChange={setEditedComparison}
+            />
+          ) : (
+            <MultiStructureComparisonResults data={editedComparison} />
+          )}
         </div>
         {showPdfPreview && (roofPdfFile || insurancePdfFile) && (
           <div className="xl:col-span-1">
