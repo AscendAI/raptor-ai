@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// We purposely rely on the regular node runtime (not edge) because Puppeteer
-// requires native binaries.
+// Node.js runtime required (not edge) because Puppeteer needs native binaries
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -12,6 +11,7 @@ type ChromiumLike = {
   args: string[];
   executablePath?: (() => Promise<string | null>) | string | null;
   headless?: boolean;
+  defaultViewport?: { width: number; height: number } | null;
 };
 
 /**
@@ -25,64 +25,49 @@ async function launchBrowser() {
     !!process.env.AWS_REGION;
 
   if (isServerless) {
-    // Use puppeteer-core with @sparticuz/chromium for serverless (Vercel, AWS Lambda, etc.)
-    const chromiumMod = (await import('@sparticuz/chromium')) as unknown as
+    // Production/serverless: puppeteer-core + @sparticuz/chromium
+    const mod = (await import('@sparticuz/chromium')) as unknown as
       | (ChromiumLike & { default?: ChromiumLike })
       | { default: ChromiumLike };
-    // Standardize default vs named export
     const chromium: ChromiumLike =
-      (chromiumMod as { default?: ChromiumLike }).default ??
-      (chromiumMod as ChromiumLike);
+      (mod as { default?: ChromiumLike }).default ?? (mod as ChromiumLike);
     const puppeteerCore = await import('puppeteer-core');
 
-    // Some environments may supply a manual override path (e.g. for debugging)
-    const manualPath = process.env.CHROMIUM_PATH;
-
-    // Resolve executable path. Newer versions expose a function; fallback to property; lastly manual override.
-    let executablePath: string | undefined | null;
-    try {
-      if (typeof chromium.executablePath === 'function') {
-        executablePath = await chromium.executablePath();
-      } else if (typeof chromium.executablePath === 'string') {
-        executablePath = chromium.executablePath;
-      }
-    } catch (e) {
-      console.warn(
-        'chromium.executablePath() threw, will attempt manual/path fallback:',
-        e
-      );
-    }
-
-    if (!executablePath && manualPath) {
-      executablePath = manualPath;
-    }
+    // Recommended toggles per @sparticuz/chromium docs to reduce missing lib issues
+    // (setGraphicsMode false avoids GPU related shared object requirements)
+    // These properties exist on the default export; guard in case of shape differences.
+    const executablePath =
+      typeof chromium.executablePath === 'function'
+        ? await chromium.executablePath()
+        : chromium.executablePath || undefined;
 
     if (!executablePath) {
-      // Fail early with actionable message instead of obscure brotli/bin error later.
-      throw new Error(
-        'Chromium executable path could not be resolved. Ensure @sparticuz/chromium is bundled (do NOT externalize) and deployment completed. Optionally set CHROMIUM_PATH.'
-      );
+      throw new Error('Unable to resolve chromium executablePath');
     }
 
-    console.log(
-      'Launching puppeteer-core with executablePath:',
-      executablePath
-    );
+    console.log('Launching serverless chromium at path:', executablePath);
+
+    const viewport =
+      chromium.defaultViewport &&
+      typeof chromium.defaultViewport.width === 'number' &&
+      typeof chromium.defaultViewport.height === 'number'
+        ? chromium.defaultViewport
+        : { width: 1200, height: 1600 };
 
     return puppeteerCore.default.launch({
-      args: [...chromium.args, '--disable-dev-shm-usage'],
+      args: chromium.args,
       executablePath,
-      headless: true, // Always headless in serverless to minimize resources
-      defaultViewport: { width: 1200, height: 1600, deviceScaleFactor: 2 },
+      headless: true,
+      defaultViewport: viewport,
     });
   }
 
-  // Local development: use full puppeteer which downloads a Chrome binary automatically
+  // Local development: full puppeteer (downloads local Chrome)
   const puppeteer = await import('puppeteer');
   return puppeteer.default.launch({
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
     headless: true,
-    defaultViewport: { width: 1200, height: 1600, deviceScaleFactor: 2 },
+    defaultViewport: { width: 1200, height: 1600 },
   });
 }
 
@@ -116,17 +101,12 @@ export async function POST(request: NextRequest) {
       isServerless ? 'serverless' : 'local'
     );
 
-    // Launch Puppeteer browser (serverless-safe)
     browser = await launchBrowser();
 
     const page = await browser.newPage();
 
-    // Set viewport for consistent rendering
-    await page.setViewport({
-      width: 1200,
-      height: 1600,
-      deviceScaleFactor: 2, // High DPI for crisp text
-    });
+    // Optional explicit viewport (already set in launch for serverless)
+    await page.setViewport({ width: 1200, height: 1600, deviceScaleFactor: 2 });
 
     // Set content with full HTML structure
     await page.setContent(html, {
