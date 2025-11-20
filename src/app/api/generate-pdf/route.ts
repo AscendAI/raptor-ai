@@ -1,23 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
+import chromium from '@sparticuz/chromium';
+import puppeteerCore from 'puppeteer-core';
 
-// Node.js runtime required (not edge) because Puppeteer needs native binaries
-
+// Node.js runtime (not edge) required because Puppeteer needs native binaries
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
-export const maxDuration = 60; // Set max duration to 60 seconds for Vercel
+export const maxDuration = 60; // seconds
 
-// Minimal shape we rely on from @sparticuz/chromium
-type ChromiumLike = {
-  args: string[];
-  executablePath?: (() => Promise<string | null>) | string | null;
-  headless?: boolean;
-  defaultViewport?: { width: number; height: number } | null;
-};
-
-/**
- * Launch Puppeteer browser with appropriate configuration
- * Automatically detects serverless environment (Vercel, AWS Lambda)
- */
 async function launchBrowser() {
   const isServerless =
     !!process.env.VERCEL ||
@@ -25,44 +14,18 @@ async function launchBrowser() {
     !!process.env.AWS_REGION;
 
   if (isServerless) {
-    // Production/serverless: puppeteer-core + @sparticuz/chromium
-    const mod = (await import('@sparticuz/chromium')) as unknown as
-      | (ChromiumLike & { default?: ChromiumLike })
-      | { default: ChromiumLike };
-    const chromium: ChromiumLike =
-      (mod as { default?: ChromiumLike }).default ?? (mod as ChromiumLike);
-    const puppeteerCore = await import('puppeteer-core');
-
-    // Recommended toggles per @sparticuz/chromium docs to reduce missing lib issues
-    // (setGraphicsMode false avoids GPU related shared object requirements)
-    // These properties exist on the default export; guard in case of shape differences.
-    const executablePath =
-      typeof chromium.executablePath === 'function'
-        ? await chromium.executablePath()
-        : chromium.executablePath || undefined;
-
-    if (!executablePath) {
+    const executablePath = await chromium.executablePath();
+    if (!executablePath)
       throw new Error('Unable to resolve chromium executablePath');
-    }
-
-    console.log('Launching serverless chromium at path:', executablePath);
-
-    const viewport =
-      chromium.defaultViewport &&
-      typeof chromium.defaultViewport.width === 'number' &&
-      typeof chromium.defaultViewport.height === 'number'
-        ? chromium.defaultViewport
-        : { width: 1200, height: 1600 };
-
-    return puppeteerCore.default.launch({
-      args: chromium.args,
+    console.log('Serverless chromium path:', executablePath);
+    return puppeteerCore.launch({
+      args: [...chromium.args, '--no-sandbox', '--disable-setuid-sandbox'],
       executablePath,
       headless: true,
-      defaultViewport: viewport,
+      defaultViewport: { width: 1200, height: 1600 },
     });
   }
 
-  // Local development: full puppeteer (downloads local Chrome)
   const puppeteer = await import('puppeteer');
   return puppeteer.default.launch({
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
@@ -105,7 +68,7 @@ export async function POST(request: NextRequest) {
 
     const page = await browser.newPage();
 
-    // Optional explicit viewport (already set in launch for serverless)
+    // Explicit viewport (ensures consistent PDF layout in both envs)
     await page.setViewport({ width: 1200, height: 1600, deviceScaleFactor: 2 });
 
     // Set content with full HTML structure
