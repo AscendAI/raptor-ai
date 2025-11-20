@@ -3,7 +3,7 @@ import chromium from '@sparticuz/chromium';
 import puppeteerCore from 'puppeteer-core';
 
 // NOTE: @sparticuz/chromium version must be compatible with the Vercel/Lambda environment.
-// Currently using v131.0.1 with puppeteer-core v23.11.1 to avoid libnss3.so errors.
+// Currently using v126.0.0 with puppeteer-core v22.12.1 to avoid libnss3.so errors.
 
 // Node.js runtime (not edge) required because Puppeteer needs native binaries
 export const dynamic = 'force-dynamic';
@@ -27,10 +27,10 @@ async function launchBrowser() {
     console.log('Serverless chromium path:', executablePath);
 
     return puppeteerCore.launch({
-      args: chromium.args,
-      defaultViewport: { width: 1200, height: 1600 },
+      args: [...chromium.args, '--hide-scrollbars', '--disable-web-security'],
+      defaultViewport: chromium.defaultViewport,
       executablePath,
-      headless: true,
+      headless: chromium.headless,
     });
   }
 
