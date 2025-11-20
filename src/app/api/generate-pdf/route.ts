@@ -1,20 +1,12 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from 'next/server';
+import chromium from '@sparticuz/chromium-min';
+import puppeteerCore from 'puppeteer-core';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
-export const maxDuration = 60; // Set max duration to 60 seconds for Vercel
+export const maxDuration = 60; // seconds
 
-// Type definition for @sparticuz/chromium
-type ChromiumLike = {
-  args: string[];
-  executablePath?: (() => Promise<string | null>) | string | null;
-  headless?: boolean;
-};
-
-/**
- * Launch Puppeteer browser with appropriate configuration
- * Automatically detects serverless environment (Vercel, AWS Lambda)
- */
 async function launchBrowser() {
   const isServerless =
     !!process.env.VERCEL ||
@@ -22,31 +14,37 @@ async function launchBrowser() {
     !!process.env.AWS_REGION;
 
   if (isServerless) {
-    // Use puppeteer-core with @sparticuz/chromium for serverless
-    const mod = (await import('@sparticuz/chromium')) as unknown as
-      | (ChromiumLike & { default?: ChromiumLike })
-      | { default: ChromiumLike };
-    const chromium: ChromiumLike =
-      (mod as { default?: ChromiumLike }).default ?? (mod as ChromiumLike);
-    const puppeteerCore = await import('puppeteer-core');
+    const remotePack =
+      process.env.CHRONIUM_REMOTE_EXEC_PATH || // typo-safe
+      process.env.CHROMIUM_REMOTE_EXEC_PATH;
 
-    // Get executable path - handle both function and string types
-    const execMaybe =
-      typeof chromium.executablePath === 'function'
-        ? await chromium.executablePath()
-        : (chromium.executablePath ?? undefined);
-    const executablePath = execMaybe ?? undefined;
+    if (!remotePack) {
+      throw new Error(
+        'CHROMIUM_REMOTE_EXEC_PATH is not set. It must point to chromium-v141.0.0-pack.x64.tar'
+      );
+    }
 
-    console.log('Launching browser with executablePath:', executablePath);
+    // chromium-min runtime is fine, TS typings are annoying → cast to any
 
-    return puppeteerCore.default.launch({
-      args: [...chromium.args, '--disable-dev-shm-usage'],
+    const chr = chromium as any;
+
+    const executablePath: string = await chr.executablePath(remotePack);
+    if (!executablePath) {
+      throw new Error(
+        'chromium.executablePath() returned null. Check CHROMIUM_REMOTE_EXEC_PATH.'
+      );
+    }
+
+    return puppeteerCore.launch({
+      args: [...chr.args, '--disable-dev-shm-usage'],
       executablePath,
-      headless: true,
+      // these exist at runtime, but TS doesn’t know → from `chr` (any)
+      defaultViewport: chr.defaultViewport,
+      headless: chr.headless ?? 'shell',
     });
   }
 
-  // Use regular puppeteer for local development
+  // Local dev: full puppeteer with your local Chrome/Chromium
   const puppeteer = await import('puppeteer');
   return puppeteer.default.launch({
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
@@ -54,59 +52,40 @@ async function launchBrowser() {
   });
 }
 
-/**
- * Server-side PDF generation using Puppeteer
- * This generates pixel-perfect PDFs of the report template
- * Works in both development and production (Vercel) environments
- */
 export async function POST(request: NextRequest) {
-  let browser;
+  let browser: Awaited<ReturnType<typeof launchBrowser>> | null = null;
 
   try {
-    // Parse request body
     const { html, filename } = await request.json();
 
-    if (!html) {
+    if (!html || typeof html !== 'string') {
       return NextResponse.json(
         { error: 'HTML content is required' },
         { status: 400 }
       );
     }
 
-    // Determine environment
-    const isServerless =
-      !!process.env.VERCEL ||
-      !!process.env.AWS_LAMBDA_FUNCTION_VERSION ||
-      !!process.env.AWS_REGION;
+    const safeFilename = (filename || 'report.pdf').replace(/["\r\n]/g, '');
 
-    console.log(
-      'PDF Generation: Environment:',
-      isServerless ? 'serverless' : 'local'
-    );
-
-    // Launch Puppeteer browser
     browser = await launchBrowser();
-
     const page = await browser.newPage();
 
-    // Set viewport for consistent rendering
     await page.setViewport({
       width: 1200,
       height: 1600,
-      deviceScaleFactor: 2, // High DPI for crisp text
+      deviceScaleFactor: 2,
     });
 
-    // Set content with full HTML structure
     await page.setContent(html, {
-      waitUntil: 'networkidle0', // Wait for all resources to load
+      waitUntil: 'networkidle0',
       timeout: 30000,
     });
 
-    // Wait a bit for any animations to complete
+    // small delay for layout/animations to settle
     await new Promise((resolve) => setTimeout(resolve, 500));
 
-    // Generate PDF with high quality settings
-    const pdfBuffer = await page.pdf({
+    // Force into a Node Buffer so we control the type
+    const pdfUint8 = await page.pdf({
       format: 'A4',
       printBackground: true,
       margin: {
@@ -119,22 +98,23 @@ export async function POST(request: NextRequest) {
       displayHeaderFooter: false,
     });
 
-    // Close browser
-    await browser.close();
+    const pdfBuffer = Buffer.from(pdfUint8); // <– now clearly a Buffer
 
-    // Return PDF as response
-    return new NextResponse(Buffer.from(pdfBuffer), {
+    await browser.close();
+    browser = null;
+
+    // TS is picky about BodyInit; Buffer is valid at runtime → cast
+    return new NextResponse(pdfBuffer as any, {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="${filename || 'report.pdf'}"`,
+        'Content-Disposition': `attachment; filename="${safeFilename}"`,
         'Cache-Control': 'no-cache, no-store, must-revalidate',
       },
     });
   } catch (error) {
     console.error('Error generating PDF:', error);
 
-    // Clean up browser if it's still running
     if (browser) {
       try {
         await browser.close();

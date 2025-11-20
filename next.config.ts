@@ -17,6 +17,8 @@ const nextConfig: NextConfig = {
     // useCache: true,
     // cacheComponents: true,
   },
+  serverExternalPackages: ['puppeteer-core', '@sparticuz/chromium-min'],
+
   // Avoid externalizing puppeteer-core so that chromium helper libs are fully traced.
   // (We already keep @sparticuz/chromium bundled via static import.)
   // serverExternalPackages: [],
