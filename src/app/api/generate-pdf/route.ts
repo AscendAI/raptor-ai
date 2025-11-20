@@ -14,12 +14,26 @@ async function launchBrowser() {
     !!process.env.AWS_REGION;
 
   if (isServerless) {
+    // Set required environment variables for Vercel/Lambda
+    process.env.HOME = '/tmp';
+    process.env.FONTCONFIG_PATH = '/tmp';
+
     const executablePath = await chromium.executablePath();
     if (!executablePath)
       throw new Error('Unable to resolve chromium executablePath');
     console.log('Serverless chromium path:', executablePath);
+
     return puppeteerCore.launch({
-      args: [...chromium.args, '--no-sandbox', '--disable-setuid-sandbox'],
+      args: [
+        ...chromium.args,
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-gpu',
+        '--single-process',
+        '--no-zygote',
+        '--disable-software-rasterizer',
+      ],
       executablePath,
       headless: true,
       defaultViewport: { width: 1200, height: 1600 },

@@ -14,6 +14,7 @@ const nextConfig: NextConfig = {
     serverActions: {
       bodySizeLimit: '10mb',
     },
+    serverComponentsExternalPackages: ['@sparticuz/chromium', 'puppeteer-core'],
     // useCache: true,
     // cacheComponents: true,
   },
