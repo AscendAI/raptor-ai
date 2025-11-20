@@ -24,23 +24,29 @@ export const maxDuration = 60; // Vercel function timeout (60s max for Pro plan)
 The code automatically detects whether it's running in production or development:
 
 ```typescript
-const isProduction = process.env.NODE_ENV === 'production';
+const isServerless =
+  !!process.env.VERCEL ||
+  !!process.env.AWS_LAMBDA_FUNCTION_VERSION ||
+  !!process.env.AWS_REGION;
 ```
 
-- **Production (Vercel)**: Uses `@sparticuz/chromium` with optimized args
-- **Development**: Uses local Chrome/Chromium installation
+- **Serverless (Vercel/AWS)**: Uses `@sparticuz/chromium` with optimized args and `/tmp` directory
+- **Local Development**: Uses regular `puppeteer` with bundled Chrome
+
+**Vercel-Specific Fixes:**
+
+- Sets `process.env.HOME = '/tmp'` to ensure Chromium extracts to writable directory
+- Sets `process.env.FONTCONFIG_PATH = '/tmp'` for font configuration
+- Uses additional args: `--single-process`, `--no-zygote` for serverless
 
 ### 3. **Next.js Configuration** (`next.config.ts`)
 
-Excludes `@sparticuz/chromium` from webpack bundling:
+Externalizes packages to prevent bundling issues:
 
 ```typescript
-webpack: (config, { isServer }) => {
-  if (isServer) {
-    config.externals = [...(config.externals || []), '@sparticuz/chromium'];
-  }
-  return config;
-};
+experimental: {
+  serverComponentsExternalPackages: ['@sparticuz/chromium', 'puppeteer-core'],
+}
 ```
 
 ## ⚙️ Vercel Settings
