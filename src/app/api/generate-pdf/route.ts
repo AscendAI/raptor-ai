@@ -37,8 +37,10 @@ async function launchBrowser() {
         : (chromium.executablePath ?? undefined);
     const executablePath = execMaybe ?? undefined;
 
+    console.log('Launching browser with executablePath:', executablePath);
+
     return puppeteerCore.default.launch({
-      args: chromium.args,
+      args: [...chromium.args, '--disable-dev-shm-usage'],
       executablePath,
       headless: true,
     });

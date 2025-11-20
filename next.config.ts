@@ -17,6 +17,8 @@ const nextConfig: NextConfig = {
     // useCache: true,
     // cacheComponents: true,
   },
+  // Externalize packages that should not be bundled
+  serverExternalPackages: ['@sparticuz/chromium', 'puppeteer-core'],
 };
 
 export default nextConfig;
