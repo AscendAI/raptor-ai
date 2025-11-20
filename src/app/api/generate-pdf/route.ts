@@ -4,6 +4,13 @@ export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 export const maxDuration = 60; // Set max duration to 60 seconds for Vercel
 
+// Type definition for @sparticuz/chromium
+type ChromiumLike = {
+  args: string[];
+  executablePath?: (() => Promise<string | null>) | string | null;
+  headless?: boolean;
+};
+
 /**
  * Launch Puppeteer browser with appropriate configuration
  * Automatically detects serverless environment (Vercel, AWS Lambda)
@@ -16,31 +23,28 @@ async function launchBrowser() {
 
   if (isServerless) {
     // Use puppeteer-core with @sparticuz/chromium for serverless
-    const chromium = await import('@sparticuz/chromium');
+    const mod = (await import('@sparticuz/chromium')) as unknown as
+      | (ChromiumLike & { default?: ChromiumLike })
+      | { default: ChromiumLike };
+    const chromium: ChromiumLike =
+      (mod as { default?: ChromiumLike }).default ?? (mod as ChromiumLike);
     const puppeteerCore = await import('puppeteer-core');
 
-    // Set the correct path for chromium in Vercel
-    if (process.env.VERCEL) {
-      // Force chromium to use /tmp directory for extraction on Vercel
-      process.env.HOME = '/tmp';
-      process.env.FONTCONFIG_PATH = '/tmp';
-    }
-
-    // Get executable path - chromium will extract to /tmp automatically
-    const executablePath = await chromium.default.executablePath();
+    // Get executable path - handle both function and string types
+    const execMaybe =
+      typeof chromium.executablePath === 'function'
+        ? await chromium.executablePath()
+        : (chromium.executablePath ?? undefined);
+    const executablePath = execMaybe ?? undefined;
 
     return puppeteerCore.default.launch({
-      args: [
-        ...chromium.default.args,
-        '--disable-gpu',
-        '--single-process',
-        '--no-zygote',
-        '--no-sandbox',
-      ],
+      args: chromium.args,
       executablePath,
       headless: true,
     });
-  } // Use regular puppeteer for local development
+  }
+
+  // Use regular puppeteer for local development
   const puppeteer = await import('puppeteer');
   return puppeteer.default.launch({
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
