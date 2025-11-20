@@ -1,95 +1,114 @@
 import { NextRequest, NextResponse } from 'next/server';
-import chromium from '@sparticuz/chromium';
-import puppeteerCore from 'puppeteer-core';
+import chromium from '@sparticuz/chromium-min';
+import puppeteerCore, { Browser } from 'puppeteer-core';
 
-// NOTE: @sparticuz/chromium version must be compatible with the Vercel/Lambda environment.
-// Currently using v126.0.0 with puppeteer-core v22.12.1 to avoid libnss3.so errors.
-
-// Node.js runtime (not edge) required because Puppeteer needs native binaries
-export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 export const maxDuration = 60; // seconds
 
-async function launchBrowser() {
-  const isServerless =
-    !!process.env.VERCEL ||
-    !!process.env.AWS_LAMBDA_FUNCTION_VERSION ||
-    !!process.env.AWS_REGION;
+// Cached between invocations in a warm Lambda
+let cachedBrowser: Browser | null = null;
+let cachedExecutablePath: string | null = null;
 
-  if (isServerless) {
-    // Set required environment variables for Vercel/Lambda
-    process.env.HOME = '/tmp';
-    process.env.FONTCONFIG_PATH = '/tmp';
+const VIEWPORT = {
+  width: 1200,
+  height: 1600,
+  deviceScaleFactor: 2,
+};
 
-    const executablePath = await chromium.executablePath();
-    if (!executablePath)
-      throw new Error('Unable to resolve chromium executablePath');
-    console.log('Serverless chromium path:', executablePath);
+function isServerlessProd() {
+  return !!process.env.VERCEL || process.env.NODE_ENV === 'production';
+}
 
-    return puppeteerCore.launch({
-      args: [...chromium.args, '--hide-scrollbars', '--disable-web-security'],
-      defaultViewport: chromium.defaultViewport,
-      executablePath,
-      headless: true,
-    });
+async function getExecutablePath() {
+  if (cachedExecutablePath) return cachedExecutablePath;
+
+  // Prefer explicit env; else assume the pack is in /public of this app
+  const packUrl =
+    process.env.CHROMIUM_PACK_URL ||
+    (process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}/chromium-pack.tar`
+      : 'http://localhost:3000/chromium-pack.tar');
+
+  cachedExecutablePath = await chromium.executablePath(packUrl);
+  return cachedExecutablePath;
+}
+
+async function getBrowser(): Promise<Browser> {
+  if (cachedBrowser) {
+    try {
+      await cachedBrowser.version();
+      return cachedBrowser;
+    } catch {
+      cachedBrowser = null;
+    }
   }
 
+  if (isServerlessProd()) {
+    // use const assertion to satisfy eslint @typescript-eslint/prefer-as-const
+    const headless = 'shell' as const;
+
+    const browser = await puppeteerCore.launch({
+      args: puppeteerCore.defaultArgs({
+        args: chromium.args,
+        headless,
+      }),
+      defaultViewport: VIEWPORT,
+      executablePath: await getExecutablePath(),
+      headless,
+    });
+
+    cachedBrowser = browser;
+    return browser;
+  }
+
+  // Local dev: full Puppeteer with bundled Chrome
   const puppeteer = await import('puppeteer');
-  return puppeteer.default.launch({
-    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+  const browser = await puppeteer.default.launch({
     headless: true,
-    defaultViewport: { width: 1200, height: 1600 },
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    defaultViewport: VIEWPORT,
   });
+
+  cachedBrowser = browser;
+  return browser;
 }
 
 /**
- * Server-side PDF generation using Puppeteer
- * This generates pixel-perfect PDFs of the report template
- * Works in both development and production (Vercel) environments
+ * POST /api/pdf
+ * Body: { html: string, filename?: string }
  */
 export async function POST(request: NextRequest) {
-  let browser;
-
   try {
-    // Parse request body
     const { html, filename } = await request.json();
 
-    if (!html) {
+    if (!html || typeof html !== 'string') {
       return NextResponse.json(
         { error: 'HTML content is required' },
         { status: 400 }
       );
     }
 
-    // Determine environment
-    const isServerless =
-      !!process.env.VERCEL ||
-      !!process.env.AWS_LAMBDA_FUNCTION_VERSION ||
-      !!process.env.AWS_REGION;
+    const safeFilename =
+      typeof filename === 'string' && filename.trim()
+        ? filename.trim()
+        : 'report.pdf';
 
-    console.log(
-      'PDF Generation: Environment:',
-      isServerless ? 'serverless' : 'local'
-    );
-
-    browser = await launchBrowser();
-
+    const browser = await getBrowser();
     const page = await browser.newPage();
 
-    // Explicit viewport (ensures consistent PDF layout in both envs)
-    await page.setViewport({ width: 1200, height: 1600, deviceScaleFactor: 2 });
+    await page.setViewport(VIEWPORT);
 
-    // Set content with full HTML structure
     await page.setContent(html, {
-      waitUntil: 'networkidle0', // Wait for all resources to load
-      timeout: 30000,
+      waitUntil: 'networkidle0',
+      timeout: 30_000,
     });
 
-    // Wait a bit for any animations to complete
+    // Give layout/animations a moment to settle
     await new Promise((resolve) => setTimeout(resolve, 500));
 
-    // Generate PDF with high quality settings
-    const pdfBuffer = await page.pdf({
+    // Puppeteer returns a Uint8Array
+    const pdfBytes = await page.pdf({
       format: 'A4',
       printBackground: true,
       margin: {
@@ -102,29 +121,23 @@ export async function POST(request: NextRequest) {
       displayHeaderFooter: false,
     });
 
-    // Close browser
-    await browser.close();
+    await page.close();
 
-    // Return PDF as response
-    return new NextResponse(Buffer.from(pdfBuffer), {
+    // Wrap the bytes in a Blob (valid BodyInit)
+    // Create a new Uint8Array copy backed by a standard ArrayBuffer to satisfy BlobPart typing.
+    const uint8 = new Uint8Array(pdfBytes);
+    const pdfBlob = new Blob([uint8], { type: 'application/pdf' });
+
+    return new NextResponse(pdfBlob, {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="${filename || 'report.pdf'}"`,
+        'Content-Disposition': `attachment; filename="${safeFilename}"`,
         'Cache-Control': 'no-cache, no-store, must-revalidate',
       },
     });
   } catch (error) {
     console.error('Error generating PDF:', error);
-
-    // Clean up browser if it's still running
-    if (browser) {
-      try {
-        await browser.close();
-      } catch (closeError) {
-        console.error('Error closing browser:', closeError);
-      }
-    }
 
     return NextResponse.json(
       {
