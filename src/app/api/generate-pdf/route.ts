@@ -1,114 +1,112 @@
 import { NextRequest, NextResponse } from 'next/server';
-import chromium from '@sparticuz/chromium-min';
-import puppeteerCore, { Browser } from 'puppeteer-core';
 
-export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
-export const maxDuration = 60; // seconds
+export const runtime = 'nodejs';
+export const maxDuration = 60; // Set max duration to 60 seconds for Vercel
 
-// Cached between invocations in a warm Lambda
-let cachedBrowser: Browser | null = null;
-let cachedExecutablePath: string | null = null;
-
-const VIEWPORT = {
-  width: 1200,
-  height: 1600,
-  deviceScaleFactor: 2,
+// Type definition for @sparticuz/chromium
+type ChromiumLike = {
+  args: string[];
+  executablePath?: (() => Promise<string | null>) | string | null;
+  headless?: boolean;
 };
 
-function isServerlessProd() {
-  return !!process.env.VERCEL || process.env.NODE_ENV === 'production';
-}
+/**
+ * Launch Puppeteer browser with appropriate configuration
+ * Automatically detects serverless environment (Vercel, AWS Lambda)
+ */
+async function launchBrowser() {
+  const isServerless =
+    !!process.env.VERCEL ||
+    !!process.env.AWS_LAMBDA_FUNCTION_VERSION ||
+    !!process.env.AWS_REGION;
 
-async function getExecutablePath() {
-  if (cachedExecutablePath) return cachedExecutablePath;
+  if (isServerless) {
+    // Use puppeteer-core with @sparticuz/chromium for serverless
+    const mod = (await import('@sparticuz/chromium')) as unknown as
+      | (ChromiumLike & { default?: ChromiumLike })
+      | { default: ChromiumLike };
+    const chromium: ChromiumLike =
+      (mod as { default?: ChromiumLike }).default ?? (mod as ChromiumLike);
+    const puppeteerCore = await import('puppeteer-core');
 
-  // Prefer explicit env; else assume the pack is in /public of this app
-  const packUrl =
-    process.env.CHROMIUM_PACK_URL ||
-    (process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}/chromium-pack.tar`
-      : 'http://localhost:3000/chromium-pack.tar');
+    // Get executable path - handle both function and string types
+    const execMaybe =
+      typeof chromium.executablePath === 'function'
+        ? await chromium.executablePath()
+        : (chromium.executablePath ?? undefined);
+    const executablePath = execMaybe ?? undefined;
 
-  cachedExecutablePath = await chromium.executablePath(packUrl);
-  return cachedExecutablePath;
-}
+    console.log('Launching browser with executablePath:', executablePath);
 
-async function getBrowser(): Promise<Browser> {
-  if (cachedBrowser) {
-    try {
-      await cachedBrowser.version();
-      return cachedBrowser;
-    } catch {
-      cachedBrowser = null;
-    }
-  }
-
-  if (isServerlessProd()) {
-    // use const assertion to satisfy eslint @typescript-eslint/prefer-as-const
-    const headless = 'shell' as const;
-
-    const browser = await puppeteerCore.launch({
-      args: puppeteerCore.defaultArgs({
-        args: chromium.args,
-        headless,
-      }),
-      defaultViewport: VIEWPORT,
-      executablePath: await getExecutablePath(),
-      headless,
+    return puppeteerCore.default.launch({
+      args: [...chromium.args, '--disable-dev-shm-usage'],
+      executablePath,
+      headless: true,
     });
-
-    cachedBrowser = browser;
-    return browser;
   }
 
-  // Local dev: full Puppeteer with bundled Chrome
+  // Use regular puppeteer for local development
   const puppeteer = await import('puppeteer');
-  const browser = await puppeteer.default.launch({
-    headless: true,
+  return puppeteer.default.launch({
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
-    defaultViewport: VIEWPORT,
+    headless: true,
   });
-
-  cachedBrowser = browser;
-  return browser;
 }
 
 /**
- * POST /api/pdf
- * Body: { html: string, filename?: string }
+ * Server-side PDF generation using Puppeteer
+ * This generates pixel-perfect PDFs of the report template
+ * Works in both development and production (Vercel) environments
  */
 export async function POST(request: NextRequest) {
+  let browser;
+
   try {
+    // Parse request body
     const { html, filename } = await request.json();
 
-    if (!html || typeof html !== 'string') {
+    if (!html) {
       return NextResponse.json(
         { error: 'HTML content is required' },
         { status: 400 }
       );
     }
 
-    const safeFilename =
-      typeof filename === 'string' && filename.trim()
-        ? filename.trim()
-        : 'report.pdf';
+    // Determine environment
+    const isServerless =
+      !!process.env.VERCEL ||
+      !!process.env.AWS_LAMBDA_FUNCTION_VERSION ||
+      !!process.env.AWS_REGION;
 
-    const browser = await getBrowser();
+    console.log(
+      'PDF Generation: Environment:',
+      isServerless ? 'serverless' : 'local'
+    );
+
+    // Launch Puppeteer browser
+    browser = await launchBrowser();
+
     const page = await browser.newPage();
 
-    await page.setViewport(VIEWPORT);
-
-    await page.setContent(html, {
-      waitUntil: 'networkidle0',
-      timeout: 30_000,
+    // Set viewport for consistent rendering
+    await page.setViewport({
+      width: 1200,
+      height: 1600,
+      deviceScaleFactor: 2, // High DPI for crisp text
     });
 
-    // Give layout/animations a moment to settle
+    // Set content with full HTML structure
+    await page.setContent(html, {
+      waitUntil: 'networkidle0', // Wait for all resources to load
+      timeout: 30000,
+    });
+
+    // Wait a bit for any animations to complete
     await new Promise((resolve) => setTimeout(resolve, 500));
 
-    // Puppeteer returns a Uint8Array
-    const pdfBytes = await page.pdf({
+    // Generate PDF with high quality settings
+    const pdfBuffer = await page.pdf({
       format: 'A4',
       printBackground: true,
       margin: {
@@ -121,23 +119,29 @@ export async function POST(request: NextRequest) {
       displayHeaderFooter: false,
     });
 
-    await page.close();
+    // Close browser
+    await browser.close();
 
-    // Wrap the bytes in a Blob (valid BodyInit)
-    // Create a new Uint8Array copy backed by a standard ArrayBuffer to satisfy BlobPart typing.
-    const uint8 = new Uint8Array(pdfBytes);
-    const pdfBlob = new Blob([uint8], { type: 'application/pdf' });
-
-    return new NextResponse(pdfBlob, {
+    // Return PDF as response
+    return new NextResponse(Buffer.from(pdfBuffer), {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="${safeFilename}"`,
+        'Content-Disposition': `attachment; filename="${filename || 'report.pdf'}"`,
         'Cache-Control': 'no-cache, no-store, must-revalidate',
       },
     });
   } catch (error) {
     console.error('Error generating PDF:', error);
+
+    // Clean up browser if it's still running
+    if (browser) {
+      try {
+        await browser.close();
+      } catch (closeError) {
+        console.error('Error closing browser:', closeError);
+      }
+    }
 
     return NextResponse.json(
       {
