@@ -121,3 +121,57 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Print-specific styles for PDF export */
+@media print {
+  /* Hide elements marked with data-no-print */
+  [data-no-print='true'],
+  .no-print {
+    display: none !important;
+  }
+
+  /* Ensure colors are preserved in print */
+  * {
+    print-color-adjust: exact !important;
+    -webkit-print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  /* Page break controls */
+  .page-break {
+    page-break-before: always;
+    break-before: page;
+  }
+
+  .avoid-break {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Remove shadows and transitions for cleaner print */
+  * {
+    box-shadow: none !important;
+    transition: none !important;
+    animation: none !important;
+  }
+
+  /* Ensure proper sizing */
+  @page {
+    size: A4;
+    margin: 15mm;
+  }
+
+  /* Hide interactive elements in print */
+  button:not(.print-keep),
+  input:not(.print-keep),
+  textarea:not(.print-keep),
+  select:not(.print-keep) {
+    display: none !important;
+  }
+
+  /* Ensure proper text rendering */
+  body {
+    background: white !important;
+    color: black !important;
+  }
+}

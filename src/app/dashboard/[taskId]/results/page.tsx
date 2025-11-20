@@ -52,6 +52,7 @@ export default async function Page({ params }: PageProps) {
     >
       <ResultsClientWrapper
         taskId={taskId}
+        taskName={task?.name}
         comparison={comparison}
         files={result.data.files || []}
         insuranceData={result.data.insuranceData}

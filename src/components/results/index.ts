@@ -1,5 +1,4 @@
-export { ComparisonResults, default } from './comparison-results';
-export { MultiStructureComparisonResults } from './multi-structure-comparison-results';
+export { UnifiedComparisonResults } from './UnifiedComparisonResults';
 export type {
   ComparisonResult,
   ComparisonCheckpoint,
