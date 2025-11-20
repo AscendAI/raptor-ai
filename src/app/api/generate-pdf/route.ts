@@ -19,17 +19,28 @@ async function launchBrowser() {
     const chromium = await import('@sparticuz/chromium');
     const puppeteerCore = await import('puppeteer-core');
 
-    // Get executable path (it's a function in @sparticuz/chromium)
+    // Set the correct path for chromium in Vercel
+    if (process.env.VERCEL) {
+      // Force chromium to use /tmp directory for extraction on Vercel
+      process.env.HOME = '/tmp';
+      process.env.FONTCONFIG_PATH = '/tmp';
+    }
+
+    // Get executable path - chromium will extract to /tmp automatically
     const executablePath = await chromium.default.executablePath();
 
     return puppeteerCore.default.launch({
-      args: chromium.default.args,
+      args: [
+        ...chromium.default.args,
+        '--disable-gpu',
+        '--single-process',
+        '--no-zygote',
+        '--no-sandbox',
+      ],
       executablePath,
       headless: true,
     });
-  }
-
-  // Use regular puppeteer for local development
+  } // Use regular puppeteer for local development
   const puppeteer = await import('puppeteer');
   return puppeteer.default.launch({
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
