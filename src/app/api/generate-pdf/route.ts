@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// We purposely rely on the regular node runtime (not edge) because Puppeteer
+// requires native binaries.
+
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 export const maxDuration = 60; // Set max duration to 60 seconds for Vercel
 
-// Type definition for @sparticuz/chromium
+// Minimal shape we rely on from @sparticuz/chromium
 type ChromiumLike = {
   args: string[];
   executablePath?: (() => Promise<string | null>) | string | null;
@@ -22,35 +25,64 @@ async function launchBrowser() {
     !!process.env.AWS_REGION;
 
   if (isServerless) {
-    // Use puppeteer-core with @sparticuz/chromium for serverless
-    const mod = (await import('@sparticuz/chromium')) as unknown as
+    // Use puppeteer-core with @sparticuz/chromium for serverless (Vercel, AWS Lambda, etc.)
+    const chromiumMod = (await import('@sparticuz/chromium')) as unknown as
       | (ChromiumLike & { default?: ChromiumLike })
       | { default: ChromiumLike };
+    // Standardize default vs named export
     const chromium: ChromiumLike =
-      (mod as { default?: ChromiumLike }).default ?? (mod as ChromiumLike);
+      (chromiumMod as { default?: ChromiumLike }).default ??
+      (chromiumMod as ChromiumLike);
     const puppeteerCore = await import('puppeteer-core');
 
-    // Get executable path - handle both function and string types
-    const execMaybe =
-      typeof chromium.executablePath === 'function'
-        ? await chromium.executablePath()
-        : (chromium.executablePath ?? undefined);
-    const executablePath = execMaybe ?? undefined;
+    // Some environments may supply a manual override path (e.g. for debugging)
+    const manualPath = process.env.CHROMIUM_PATH;
 
-    console.log('Launching browser with executablePath:', executablePath);
+    // Resolve executable path. Newer versions expose a function; fallback to property; lastly manual override.
+    let executablePath: string | undefined | null;
+    try {
+      if (typeof chromium.executablePath === 'function') {
+        executablePath = await chromium.executablePath();
+      } else if (typeof chromium.executablePath === 'string') {
+        executablePath = chromium.executablePath;
+      }
+    } catch (e) {
+      console.warn(
+        'chromium.executablePath() threw, will attempt manual/path fallback:',
+        e
+      );
+    }
+
+    if (!executablePath && manualPath) {
+      executablePath = manualPath;
+    }
+
+    if (!executablePath) {
+      // Fail early with actionable message instead of obscure brotli/bin error later.
+      throw new Error(
+        'Chromium executable path could not be resolved. Ensure @sparticuz/chromium is bundled (do NOT externalize) and deployment completed. Optionally set CHROMIUM_PATH.'
+      );
+    }
+
+    console.log(
+      'Launching puppeteer-core with executablePath:',
+      executablePath
+    );
 
     return puppeteerCore.default.launch({
       args: [...chromium.args, '--disable-dev-shm-usage'],
       executablePath,
-      headless: true,
+      headless: true, // Always headless in serverless to minimize resources
+      defaultViewport: { width: 1200, height: 1600, deviceScaleFactor: 2 },
     });
   }
 
-  // Use regular puppeteer for local development
+  // Local development: use full puppeteer which downloads a Chrome binary automatically
   const puppeteer = await import('puppeteer');
   return puppeteer.default.launch({
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
     headless: true,
+    defaultViewport: { width: 1200, height: 1600, deviceScaleFactor: 2 },
   });
 }
 
@@ -84,7 +116,7 @@ export async function POST(request: NextRequest) {
       isServerless ? 'serverless' : 'local'
     );
 
-    // Launch Puppeteer browser
+    // Launch Puppeteer browser (serverless-safe)
     browser = await launchBrowser();
 
     const page = await browser.newPage();

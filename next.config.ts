@@ -17,8 +17,10 @@ const nextConfig: NextConfig = {
     // useCache: true,
     // cacheComponents: true,
   },
-  // Externalize packages that should not be bundled
-  serverExternalPackages: ['@sparticuz/chromium', 'puppeteer-core'],
+  // Externalize packages that should not be bundled. IMPORTANT: do NOT externalize
+  // '@sparticuz/chromium' so that its bundled chromium binary + brotli assets
+  // are included in the serverless function deployment on Vercel.
+  serverExternalPackages: ['puppeteer-core'],
 };
 
 export default nextConfig;
