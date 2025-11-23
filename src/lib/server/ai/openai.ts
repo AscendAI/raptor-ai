@@ -259,7 +259,7 @@ export async function analyseInsuranceReport(
       : createMultiStructureInsurancePrompt(structureCount);
 
   const response = await client.responses.create({
-    model: 'gpt-5-mini',
+    model: 'gpt-5.1',
     instructions: prompt,
     input: [
       {
@@ -527,7 +527,7 @@ export async function analyseComparison(
       : createMultiStructureComparisonPrompt(structureCount);
 
   const response = await client.responses.create({
-    model: 'gpt-5',
+    model: 'gpt-5.1',
     instructions: prompt,
     // reasoning: { effort: 'high' },
     input: [
