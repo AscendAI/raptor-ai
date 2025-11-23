@@ -179,7 +179,7 @@ Return only valid JSON.
 // Multi-structure insurance report extraction prompt
 function createMultiStructureInsurancePrompt(structureCount: number): string {
   return `You are given an insurance estimate document as images. 
-Extract the structured data for ${structureCount} roof structure(s) according to the following rules:
+Extract the structured data for UP TO ${structureCount} roof structure(s) according to the following rules:
 
 1. Top-level metadata:
    - claim_id → the Claim ID (e.g., "14-82V3-83D")
@@ -189,13 +189,19 @@ Extract the structured data for ${structureCount} roof structure(s) according to
 
 2. Roof sections to extract (naming rules):
    - Detect roof sections labeled numerically like "Roof1", "Roof2", "Roof3", etc.
-   - ALSO detect semantically named roof sections such as:
-       "Home / Main House", "Garage", "Shed / Barn / Outbuilding", "Porch / Patio / Carport", etc.
+   - ALSO detect semantically named roof sections. VALID patterns include:
+       * "Home", "Main House", "Dwelling"
+       * "Garage", "Detached Garage"
+       * "Shed", "Barn", "Outbuilding"
+       * "Porch", "Patio", "Carport"
+   - CRITICAL: Do NOT treat "Elevation" sections (e.g., "Left Elevation", "Right Elevation", "Front Elevation") as roof sections. Only extract sections that are clearly roof structures. If a section header contains "Elevation", SKIP IT.
+   - CRITICAL: Do NOT extract sections that are continuations of previous pages (e.g., "Roof 1 continued", "Home continued"). These are NOT new structures.
    - Use the section header text from the document EXACTLY as the section_name (preserve punctuation and slashes). 
      If the header includes a suffix like "- Roof" or "Roof:" (e.g., "Home / Main House - Roof"), remove the suffix and keep just the base name.
    - Extract line items for each roof section separately.
    - Order roofSections as they appear in the document. Assign roofNumber sequentially starting from 1.
    - If the document contains more than ${structureCount} roof sections, include the first ${structureCount} roof-relevant sections in reading order.
+   - If fewer than ${structureCount} valid roof structures are found, you MUST still return ${structureCount} entries in 'roofSections'. For missing structures, set 'section_name' to null and 'line_items' to [].
    - Skip any line item explicitly marked as **REVISED**.
    - For each valid line item, capture:
        * item_no → the line item number (integer)
@@ -216,7 +222,7 @@ Extract the structured data for ${structureCount} roof structure(s) according to
   "roofSections": [
     {
       "roofNumber": 1,
-      "section_name": "Home / Main House",
+      "section_name": "Home / Main House" | null,
       "line_items": [
         {
           "item_no": number,
@@ -228,16 +234,17 @@ Extract the structured data for ${structureCount} roof structure(s) according to
           "options_text": "string" | null
         }
       ]
-    }${structureCount > 1 ? ',\n    // ... repeat for additional sections such as "Garage", "Shed / Barn / Outbuilding", etc.' : ''}
+    }${structureCount > 1 ? ',\n    // ... repeat for additional sections. If missing, return { "roofNumber": N, "section_name": null, "line_items": [] }' : ''}
   ]
 }
 
 4. Important:
-   - Extract data for ${structureCount} roof section(s) as defined above.
+   - Extract data for UP TO ${structureCount} roof section(s) as defined above.
    - Do NOT include cost, depreciation, tax, or age/life fields.
    - If a field does not exist → set it to null (do not omit).
    - Ensure all numbers remain as numbers (not strings).
    - Skip all "REVISED" items completely.
+   - Ensure the output array "roofSections" has EXACTLY ${structureCount} items, even if some are empty placeholders.
 
 Return only valid JSON.`;
 }
