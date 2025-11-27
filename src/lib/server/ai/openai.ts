@@ -96,12 +96,17 @@ Important: Extract data for exactly ${structureCount} structure(s). Each structu
 
 export async function analyseRoofReport(
   roofReportImages: string[],
-  structureCount: number = 1
+  structureCount: number = 1,
+  specialInstructions?: string
 ) {
-  const prompt =
+  let prompt =
     structureCount === 1
       ? roofReportPrompt
       : createMultiStructureRoofPrompt(structureCount);
+
+  if (specialInstructions) {
+    prompt += `\n\nADDITIONAL USER INSTRUCTIONS:\n${specialInstructions}\n\nPlease incorporate these instructions while maintaining the required output format.`;
+  }
 
   const response = await client.responses.create({
     model: 'gpt-5-mini',
@@ -251,12 +256,17 @@ Return only valid JSON.`;
 
 export async function analyseInsuranceReport(
   insuranceReportImages: string[],
-  structureCount: number = 1
+  structureCount: number = 1,
+  specialInstructions?: string
 ) {
-  const prompt =
+  let prompt =
     structureCount === 1
       ? insuranceReportPrompt
       : createMultiStructureInsurancePrompt(structureCount);
+
+  if (specialInstructions) {
+    prompt += `\n\nADDITIONAL USER INSTRUCTIONS:\n${specialInstructions}\n\nPlease incorporate these instructions while maintaining the required output format.`;
+  }
 
   const response = await client.responses.create({
     model: 'gpt-5.1',

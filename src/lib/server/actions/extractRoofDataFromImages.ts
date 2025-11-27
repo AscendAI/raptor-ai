@@ -10,7 +10,8 @@ import { parseRoofReportData } from '@/lib/types/extraction';
 export async function extractRoofDataFromImages(
   roofReportImages: string[],
   taskId: string,
-  selectedPageIndices?: number[]
+  selectedPageIndices?: number[],
+  specialInstructions?: string
 ) {
   try {
     console.log('[extractRoofDataFromImages] Start extraction', {
@@ -38,12 +39,25 @@ export async function extractRoofDataFromImages(
     }
 
     const structureCount = task.structureCount || 1;
-    console.log('[extractRoofDataFromImages] Calling AI with images:', roofReportImages.length);
-    const roofAnalysisRaw = await analyseRoofReport(roofReportImages, structureCount);
-    console.log('[extractRoofDataFromImages] Raw AI response length:', roofAnalysisRaw?.length || 0);
+    console.log(
+      '[extractRoofDataFromImages] Calling AI with images:',
+      roofReportImages.length
+    );
+    const roofAnalysisRaw = await analyseRoofReport(
+      roofReportImages,
+      structureCount,
+      specialInstructions
+    );
+    console.log(
+      '[extractRoofDataFromImages] Raw AI response length:',
+      roofAnalysisRaw?.length || 0
+    );
 
     const roofResult = parseRoofReportData(roofAnalysisRaw);
-    console.log('[extractRoofDataFromImages] Parse success:', roofResult.success);
+    console.log(
+      '[extractRoofDataFromImages] Parse success:',
+      roofResult.success
+    );
     if (!roofResult.success) {
       console.log('[extractRoofDataFromImages] Parse error:', roofResult.error);
       return {
@@ -68,7 +82,10 @@ export async function extractRoofDataFromImages(
       rawText: roofResult.rawText,
     } as const;
   } catch (error) {
-    console.error('[extractRoofDataFromImages] Error extracting roof report data:', error);
+    console.error(
+      '[extractRoofDataFromImages] Error extracting roof report data:',
+      error
+    );
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error occurred',

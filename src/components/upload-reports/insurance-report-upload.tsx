@@ -45,6 +45,7 @@ export function InsuranceReportUpload({ taskId }: InsuranceReportUploadProps) {
   const [isUploaded, setIsUploaded] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewIndex, setPreviewIndex] = useState(0);
+  const [specialInstructions, setSpecialInstructions] = useState('');
 
   // Utility
   // sleep utility defined above;
@@ -168,7 +169,8 @@ export function InsuranceReportUpload({ taskId }: InsuranceReportUploadProps) {
       const extractionResult = await extractAndSaveInsuranceData(
         selectedImages,
         taskId,
-        insuranceFile
+        insuranceFile,
+        specialInstructions.trim() || undefined
       );
 
       if (!extractionResult.success || !extractionResult.data) {
@@ -350,6 +352,25 @@ export function InsuranceReportUpload({ taskId }: InsuranceReportUploadProps) {
             <p className="text-xs text-muted-foreground">
               {selectedPages.length} page(s) selected
             </p>
+          </div>
+        )}
+
+        {insuranceFile && isUploaded && (
+          <div className="space-y-2">
+            <label
+              htmlFor="special-instructions"
+              className="text-sm font-medium"
+            >
+              Special Instructions (Optional)
+            </label>
+            <textarea
+              id="special-instructions"
+              value={specialInstructions}
+              onChange={(e) => setSpecialInstructions(e.target.value)}
+              placeholder="Add any special context or instructions for the AI analysis (e.g., 'Focus on specific line items', 'Note revised entries', etc.)..."
+              className="w-full min-h-[80px] px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-primary resize-y"
+              disabled={isProcessing}
+            />
           </div>
         )}
 
