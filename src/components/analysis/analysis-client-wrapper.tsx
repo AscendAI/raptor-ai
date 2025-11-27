@@ -2,7 +2,13 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, BarChart3, CheckCircle, AlertCircle } from 'lucide-react';
@@ -78,10 +84,18 @@ export function AnalysisClientWrapper({ taskId }: AnalysisClientWrapperProps) {
       if (!roofData || !insuranceData) {
         if (!roofData) {
           setError('Roof data not found. Redirecting to roof upload...');
-          setTimeout(() => router.push(`/dashboard/${taskId}/roof-report-upload`), 2000);
+          setTimeout(
+            () => router.push(`/dashboard/${taskId}/roof-report-upload`),
+            2000
+          );
         } else if (!insuranceData) {
-          setError('Insurance data not found. Redirecting to insurance upload...');
-          setTimeout(() => router.push(`/dashboard/${taskId}/insurance-report-upload`), 2000);
+          setError(
+            'Insurance data not found. Redirecting to insurance upload...'
+          );
+          setTimeout(
+            () => router.push(`/dashboard/${taskId}/insurance-report-upload`),
+            2000
+          );
         }
         throw new Error(
           'Task is missing required roof or insurance data. Please complete the previous steps.'
@@ -92,13 +106,13 @@ export function AnalysisClientWrapper({ taskId }: AnalysisClientWrapperProps) {
       setCurrentStepIndex(0);
       updateStepStatus(0, 'running');
       const analysisPromise = completeAnalysisWorkflow(taskId);
-      await new Promise((resolve) => setTimeout(resolve, 10000));
+      await new Promise((resolve) => setTimeout(resolve, 5000));
       updateStepStatus(0, 'completed');
 
       // Step 2: Comparing
       setCurrentStepIndex(1);
       updateStepStatus(1, 'running');
-      await new Promise((resolve) => setTimeout(resolve, 12000));
+      await new Promise((resolve) => setTimeout(resolve, 5000));
       updateStepStatus(1, 'completed');
 
       // Step 3: Generating Analysis (wait for actual background analysis)
@@ -153,27 +167,43 @@ export function AnalysisClientWrapper({ taskId }: AnalysisClientWrapperProps) {
           Analysis Progress
         </CardTitle>
         <CardDescription>
-          Processing your roof and insurance reports to generate comprehensive analysis
+          Processing your roof and insurance reports to generate comprehensive
+          analysis
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="space-y-4">
           {steps.map((step, idx) => (
-            <div key={step.id} className="flex items-center gap-4 p-4 rounded-lg border">
+            <div
+              key={step.id}
+              className="flex items-center gap-4 p-4 rounded-lg border"
+            >
               <div className="flex-shrink-0">
-                {step.status === 'running' && <Loader2 className="h-5 w-5 animate-spin text-blue-500" />}
-                {step.status === 'completed' && <CheckCircle className="h-5 w-5 text-green-500" />}
-                {step.status === 'error' && <AlertCircle className="h-5 w-5 text-red-500" />}
-                {step.status === 'pending' && <div className="h-5 w-5 rounded-full border-2 border-gray-300" />}
+                {step.status === 'running' && (
+                  <Loader2 className="h-5 w-5 animate-spin text-blue-500" />
+                )}
+                {step.status === 'completed' && (
+                  <CheckCircle className="h-5 w-5 text-green-500" />
+                )}
+                {step.status === 'error' && (
+                  <AlertCircle className="h-5 w-5 text-red-500" />
+                )}
+                {step.status === 'pending' && (
+                  <div className="h-5 w-5 rounded-full border-2 border-gray-300" />
+                )}
               </div>
               <div className="flex-grow">
                 <div className="flex items-center gap-2">
                   <p className="font-medium">{step.title}</p>
                   {currentStepIndex === idx && (
-                    <Badge variant="outline" className="text-xs">Current</Badge>
+                    <Badge variant="outline" className="text-xs">
+                      Current
+                    </Badge>
                   )}
                 </div>
-                <p className="text-sm text-muted-foreground">{step.description}</p>
+                <p className="text-sm text-muted-foreground">
+                  {step.description}
+                </p>
               </div>
               <div className="ml-auto">
                 <Badge
@@ -181,8 +211,8 @@ export function AnalysisClientWrapper({ taskId }: AnalysisClientWrapperProps) {
                     step.status === 'completed'
                       ? 'default'
                       : step.status === 'error'
-                      ? 'destructive'
-                      : 'outline'
+                        ? 'destructive'
+                        : 'outline'
                   }
                 >
                   {step.status.charAt(0).toUpperCase() + step.status.slice(1)}
