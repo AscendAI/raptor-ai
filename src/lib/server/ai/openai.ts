@@ -328,7 +328,7 @@ Checklist (apply to EACH structure exactly as written below):
    - Warning: If insurance mentions hip/ridge "cut from 3-tab", set a WARNING; otherwise null.
 
 6. Ice and Water Shield in Valleys
-   - Roof SF = total valley length × 6 ft; compare vs insurance ice and water shield/barrier (SF). Pass if Roof ≤ Insurance; Failed if less; Missing if insurance item missing.
+   - Roof SF = total valley length × 3 ft; compare vs insurance ice and water shield/barrier (SF). Pass if Roof ≤ Insurance; Failed if less; Missing if insurance item missing.
 
 7. Step flashing
    - Present or not. If present: compare roof (total wall flashing + total step flashing) LF vs insurance step flashing (LF). Pass/Failed accordingly. If not present → Missing.
@@ -437,7 +437,7 @@ Checklist (single-structure):
    - Warning: If insurance mentions hip/ridge "cut from 3-tab", set a WARNING; otherwise null.
 
 6. Ice and Water Shield in Valleys
-   - Roof SF = total valley length × 6 ft; compare vs insurance ice and water shield/barrier (SF). Pass if Roof ≤ Insurance; Failed if less; Missing if insurance item missing.
+   - Roof SF = total valley length × 3 ft; compare vs insurance ice and water shield/barrier (SF). Pass if Roof ≤ Insurance; Failed if less; Missing if insurance item missing.
 
 7. Step flashing
    - Present or not. If present: compare roof (total wall flashing + total step flashing) LF vs insurance step flashing (LF). Pass/Failed accordingly. If not present → Missing.
