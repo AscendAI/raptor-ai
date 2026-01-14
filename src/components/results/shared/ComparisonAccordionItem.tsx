@@ -4,7 +4,8 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, Trash2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import {
   type ComparisonCheckpoint,
   statusConfig,
@@ -28,6 +29,7 @@ interface ComparisonAccordionItemProps {
   index: number;
   isEditable?: boolean;
   onChange?: (updated: ComparisonCheckpoint) => void;
+  onDelete?: () => void;
   variant?: 'default' | 'compact';
 }
 
@@ -207,10 +209,12 @@ function EditableContent({
   comparison,
   index,
   onChange,
+  onDelete,
 }: {
   comparison: ComparisonCheckpoint;
   index: number;
   onChange: (updated: ComparisonCheckpoint) => void;
+  onDelete?: () => void;
 }) {
   const handleFieldChange = (
     field: keyof ComparisonCheckpoint,
@@ -342,6 +346,21 @@ function EditableContent({
           className="bg-amber-50 border-amber-200 min-h-[60px]"
         />
       </div>
+
+      {/* Delete Button */}
+      {onDelete && (
+        <div className="pt-4 border-t">
+          <Button
+            type="button"
+            size="sm"
+            onClick={onDelete}
+            className="w-full bg-transparent hover:bg-red-50 text-red-600 hover:text-red-700 border-none hover:border-red-200 shadow-none hover:shadow-sm"
+          >
+            <Trash2 className="h-4 w-4 mr-2" />
+            Delete Checkpoint
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
@@ -351,6 +370,7 @@ export function ComparisonAccordionItem({
   index,
   isEditable = false,
   onChange,
+  onDelete,
   variant = 'default',
 }: ComparisonAccordionItemProps) {
   const config = statusConfig[comparison.status];
@@ -411,6 +431,7 @@ export function ComparisonAccordionItem({
               comparison={comparison}
               index={index}
               onChange={onChange}
+              onDelete={onDelete}
             />
           ) : (
             <ReadOnlyContent comparison={comparison} variant={variant} />
@@ -467,6 +488,7 @@ export function ComparisonAccordionItem({
             comparison={comparison}
             index={index}
             onChange={onChange}
+            onDelete={onDelete}
           />
         ) : (
           <ReadOnlyContent comparison={comparison} variant={variant} />

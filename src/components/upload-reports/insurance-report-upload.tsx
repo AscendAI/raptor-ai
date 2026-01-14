@@ -509,7 +509,9 @@ export function InsuranceReportUpload({ taskId }: InsuranceReportUploadProps) {
           </div>
         )}
 
-        {(isProcessing || isComplete) && (
+        {(isProcessing ||
+          isComplete ||
+          steps.some((s) => s.status === 'error')) && (
           <div className="space-y-4">
             <div className="space-y-3">
               {steps.map((step) => (

@@ -10,6 +10,7 @@ interface AddButtonProps {
   size?: 'sm' | 'default';
   fullWidth?: boolean;
   dashed?: boolean;
+  className?: string;
 }
 
 export function AddButton({
@@ -19,10 +20,11 @@ export function AddButton({
   size = 'default',
   fullWidth = false,
   dashed = false,
+  className = '',
 }: AddButtonProps) {
   const getVariantStyles = () => {
     const baseStyles = dashed ? 'border-dashed' : '';
-    
+
     switch (variant) {
       case 'primary':
         return `${baseStyles} ${dashed ? 'border-blue-300 text-blue-600 hover:bg-blue-50 hover:border-blue-400' : 'bg-blue-600 hover:bg-blue-700 text-white'}`;
@@ -41,7 +43,7 @@ export function AddButton({
       variant={dashed ? 'outline' : 'default'}
       size={size}
       onClick={onClick}
-      className={`${getVariantStyles()} ${fullWidth ? 'w-full' : ''} shadow-sm`}
+      className={`${getVariantStyles()} ${fullWidth ? 'w-full' : ''} shadow-sm ${className}`}
     >
       <Plus className="h-4 w-4 mr-2" />
       {children}

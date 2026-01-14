@@ -32,7 +32,12 @@ interface LineItemsSectionProps {
   onUpdateSection: (index: number, field: string, value: string) => void;
   onAddLineItem: (sectionIndex: number) => void;
   onRemoveLineItem: (sectionIndex: number, itemIndex: number) => void;
-  onUpdateLineItem: (sectionIndex: number, itemIndex: number, field: string, value: string | number | null) => void;
+  onUpdateLineItem: (
+    sectionIndex: number,
+    itemIndex: number,
+    field: string,
+    value: string | number | null
+  ) => void;
   title?: string;
   description?: string;
   variant?: 'default' | 'primary' | 'secondary' | 'success';
@@ -56,11 +61,6 @@ export function LineItemsSection({
       description={description}
       icon={<Plus className="h-5 w-5" />}
       variant={variant}
-      headerAction={
-        <AddButton onClick={onAddSection} size="sm">
-          Add Section
-        </AddButton>
-      }
     >
       <div className="space-y-8">
         {sections.map((section, sectionIndex) => (
@@ -69,14 +69,18 @@ export function LineItemsSection({
             className="bg-slate-50 border border-slate-200 rounded-xl p-6 hover:shadow-sm transition-shadow"
           >
             <DataRow
-              badge={<Badge variant="secondary">Section {sectionIndex + 1}</Badge>}
+              badge={
+                <Badge variant="secondary">Section {sectionIndex + 1}</Badge>
+              }
               onRemove={() => onRemoveSection(sectionIndex)}
               gridClassName="grid-cols-1"
             >
               <FormField
                 label="Section Name"
                 value={section.section_name}
-                onChange={(value) => onUpdateSection(sectionIndex, 'section_name', value)}
+                onChange={(value) =>
+                  onUpdateSection(sectionIndex, 'section_name', value)
+                }
                 placeholder="Enter section name"
                 className="col-span-4"
               />
@@ -91,14 +95,6 @@ export function LineItemsSection({
                   </div>
                   Line Items
                 </h4>
-                <AddButton
-                  onClick={() => onAddLineItem(sectionIndex)}
-                  size="sm"
-                  variant="secondary"
-                  dashed
-                >
-                  Add Item
-                </AddButton>
               </div>
 
               {section.line_items.map((item, itemIndex) => (
@@ -107,7 +103,9 @@ export function LineItemsSection({
                   className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm"
                 >
                   <DataRow
-                    badge={<Badge variant="outline">Item {itemIndex + 1}</Badge>}
+                    badge={
+                      <Badge variant="outline">Item {itemIndex + 1}</Badge>
+                    }
                     onRemove={() => onRemoveLineItem(sectionIndex, itemIndex)}
                     gridClassName="grid-cols-1"
                   >
@@ -115,14 +113,28 @@ export function LineItemsSection({
                       <FormField
                         label="Item No."
                         value={item.item_no.toString()}
-                        onChange={(value) => onUpdateLineItem(sectionIndex, itemIndex, 'item_no', Number(value) || 0)}
+                        onChange={(value) =>
+                          onUpdateLineItem(
+                            sectionIndex,
+                            itemIndex,
+                            'item_no',
+                            Number(value) || 0
+                          )
+                        }
                         placeholder="Item number"
                         type="number"
                       />
                       <FormField
                         label="Description"
                         value={item.description}
-                        onChange={(value) => onUpdateLineItem(sectionIndex, itemIndex, 'description', value)}
+                        onChange={(value) =>
+                          onUpdateLineItem(
+                            sectionIndex,
+                            itemIndex,
+                            'description',
+                            value
+                          )
+                        }
                         placeholder="Item description"
                       />
                     </div>
@@ -132,14 +144,28 @@ export function LineItemsSection({
                     <FormField
                       label="Quantity Value"
                       value={item.quantity.value?.toString() || ''}
-                      onChange={(value) => onUpdateLineItem(sectionIndex, itemIndex, 'quantity.value', Number(value) || null)}
+                      onChange={(value) =>
+                        onUpdateLineItem(
+                          sectionIndex,
+                          itemIndex,
+                          'quantity.value',
+                          Number(value) || null
+                        )
+                      }
                       placeholder="Quantity value"
                       type="number"
                     />
                     <FormField
                       label="Quantity Unit"
                       value={item.quantity.unit || ''}
-                      onChange={(value) => onUpdateLineItem(sectionIndex, itemIndex, 'quantity.unit', value)}
+                      onChange={(value) =>
+                        onUpdateLineItem(
+                          sectionIndex,
+                          itemIndex,
+                          'quantity.unit',
+                          value
+                        )
+                      }
                       placeholder="Unit (e.g., sq ft)"
                     />
                   </div>
@@ -148,7 +174,14 @@ export function LineItemsSection({
                     <FormField
                       label="Options Text"
                       value={item.options_text || ''}
-                      onChange={(value) => onUpdateLineItem(sectionIndex, itemIndex, 'options_text', value)}
+                      onChange={(value) =>
+                        onUpdateLineItem(
+                          sectionIndex,
+                          itemIndex,
+                          'options_text',
+                          value
+                        )
+                      }
                       placeholder="Additional options or notes"
                     />
                   </div>
@@ -163,6 +196,18 @@ export function LineItemsSection({
                   onAction={() => onAddLineItem(sectionIndex)}
                 />
               )}
+
+              {section.line_items.length > 0 && (
+                <AddButton
+                  onClick={() => onAddLineItem(sectionIndex)}
+                  size="sm"
+                  variant="secondary"
+                  dashed
+                  className="w-full"
+                >
+                  Add Item
+                </AddButton>
+              )}
             </div>
           </div>
         ))}
@@ -174,6 +219,12 @@ export function LineItemsSection({
             actionLabel="Add Section"
             onAction={onAddSection}
           />
+        )}
+
+        {sections.length > 0 && (
+          <AddButton onClick={onAddSection} size="sm" className="w-full">
+            Add Section
+          </AddButton>
         )}
       </div>
     </SectionCard>

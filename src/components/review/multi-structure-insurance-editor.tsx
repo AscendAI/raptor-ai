@@ -252,14 +252,6 @@ export function MultiStructureInsuranceEditor({
                 {data.roofSections.length !== 1 ? 's' : ''}
               </Badge>
             </div>
-            <Button
-              onClick={addRoofSection}
-              size="sm"
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Section
-            </Button>
           </CardTitle>
           <CardDescription className="text-slate-600">
             Manage line items for each roof section individually
@@ -354,15 +346,6 @@ export function MultiStructureInsuranceEditor({
                         <h4 className="text-md font-medium text-slate-700">
                           Line Items
                         </h4>
-                        <Button
-                          onClick={() => addLineItem(section.roofNumber)}
-                          size="sm"
-                          variant="outline"
-                          className="border-dashed border-blue-300 text-blue-600 hover:bg-blue-50 hover:border-blue-400"
-                        >
-                          <Plus className="h-4 w-4 mr-2" />
-                          Add Line Item
-                        </Button>
                       </div>
 
                       {section.line_items.length === 0 ? (
@@ -481,11 +464,36 @@ export function MultiStructureInsuranceEditor({
                           ))}
                         </div>
                       )}
+
+                      {section.line_items.length > 0 && (
+                        <Button
+                          onClick={() => addLineItem(section.roofNumber)}
+                          size="sm"
+                          variant="outline"
+                          className="w-full border-dashed border-blue-300 text-blue-600 hover:bg-blue-50 hover:border-blue-400"
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add Line Item
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </TabsContent>
               ))}
             </Tabs>
+          )}
+
+          {data.roofSections.length > 0 && (
+            <div className="mt-6 flex justify-center">
+              <Button
+                onClick={addRoofSection}
+                size="sm"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Section
+              </Button>
+            </div>
           )}
         </CardContent>
       </Card>
