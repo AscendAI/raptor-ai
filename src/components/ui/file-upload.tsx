@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Upload, X, File, CheckLine } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface FileUploadProps {
   onFileSelect: (file: File | null) => void;
@@ -52,6 +53,7 @@ export function FileUpload({
         const file = files[0];
         // Check if file type matches accept attribute
         if (accept && !file.type.includes('pdf') && accept.includes('.pdf')) {
+          toast.error('Invalid file type. Please upload a PDF file.');
           return; // Don't accept non-PDF files if PDF is required
         }
         onFileSelect(file);

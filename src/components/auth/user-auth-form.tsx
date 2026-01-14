@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { Icons } from '@/components/common/icons';
 import { Button } from '@/components/ui/button';
 import { authClient } from '@/lib/auth-client';
+import { toast } from 'sonner';
 
 export function UserAuthForm({
   className,
@@ -16,11 +17,17 @@ export function UserAuthForm({
 
   async function onGoogleSignIn() {
     setIsLoading(true);
-    const data = await authClient.signIn.social({
-      provider: "google",
-      callbackURL: "/dashboard"
-    });
-    setIsLoading(false);
+    try {
+      await authClient.signIn.social({
+        provider: 'google',
+        callbackURL: '/dashboard',
+      });
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to sign in with Google');
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
