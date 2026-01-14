@@ -87,6 +87,26 @@ export function UnifiedComparisonResults({
     });
   };
 
+  const handleDeleteSingleComparison = (index: number) => {
+    if (!isEditable || !onChange || !data.comparisons) return;
+
+    const newComparisons = data.comparisons.filter((_, i) => i !== index);
+
+    // Recalculate summary
+    const newSummary = {
+      pass: newComparisons.filter((c) => c.status === 'pass').length,
+      failed: newComparisons.filter((c) => c.status === 'failed').length,
+      missing: newComparisons.filter((c) => c.status === 'missing').length,
+      total: newComparisons.length,
+    };
+
+    onChange({
+      ...data,
+      comparisons: newComparisons,
+      summary: newSummary,
+    });
+  };
+
   const handleStructureChange = (
     structureNumber: number,
     comparisonIndex: number,
@@ -179,6 +199,50 @@ export function UnifiedComparisonResults({
     });
   };
 
+  const handleDeleteStructureComparison = (
+    structureNumber: number,
+    comparisonIndex: number
+  ) => {
+    if (!isEditable || !onChange || !data.structures) return;
+
+    const newStructures = data.structures.map((s) => {
+      if (s.structureNumber === structureNumber) {
+        const newComparisons = s.comparisons.filter(
+          (_, i) => i !== comparisonIndex
+        );
+
+        // Recalculate structure summary
+        const newSummary = {
+          pass: newComparisons.filter((c) => c.status === 'pass').length,
+          failed: newComparisons.filter((c) => c.status === 'failed').length,
+          missing: newComparisons.filter((c) => c.status === 'missing').length,
+          total: newComparisons.length,
+        };
+
+        return {
+          ...s,
+          comparisons: newComparisons,
+          summary: newSummary,
+        };
+      }
+      return s;
+    });
+
+    // Recalculate overall summary
+    const overallSummary = {
+      pass: newStructures.reduce((sum, s) => sum + s.summary.pass, 0),
+      failed: newStructures.reduce((sum, s) => sum + s.summary.failed, 0),
+      missing: newStructures.reduce((sum, s) => sum + s.summary.missing, 0),
+      total: newStructures.reduce((sum, s) => sum + s.summary.total, 0),
+    };
+
+    onChange({
+      ...data,
+      structures: newStructures,
+      summary: overallSummary,
+    });
+  };
+
   // Show error only if there are no comparisons at all
   if (
     !data.success &&
@@ -222,6 +286,11 @@ export function UnifiedComparisonResults({
               onChange={
                 isEditable
                   ? (updated) => handleSingleComparisonChange(index, updated)
+                  : undefined
+              }
+              onDelete={
+                isEditable
+                  ? () => handleDeleteSingleComparison(index)
                   : undefined
               }
               variant="compact"
@@ -291,6 +360,15 @@ export function UnifiedComparisonResults({
                                 structure.structureNumber,
                                 index,
                                 updated
+                              )
+                          : undefined
+                      }
+                      onDelete={
+                        isEditable
+                          ? () =>
+                              handleDeleteStructureComparison(
+                                structure.structureNumber,
+                                index
                               )
                           : undefined
                       }
