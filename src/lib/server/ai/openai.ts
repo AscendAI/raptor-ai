@@ -299,11 +299,16 @@ Normalization and parsing rules:
   * Step flashing LF: measurements.total_wall_flashing + measurements.total_step_flashing.
   * Recommended waste %: the waste_table row where recommended = true; use its waste_percent as a percentage number.
 - Insurance report sources:
+ Insurance report sources:
   * Squares/Surface area: Use line items with unit "SQ" for shingles/surface area. If only surface area in sqft exists, convert to SQ via /100.
   * Tear off SQ: Use line items that represent tear-off/removal quantities in SQ.
   * Drip Edge, Starter Strip, Hip/Ridge Cap, Ice and Water Shield, Step Flashing: use their LF/SF quantities from the Roof section.
-  * Felt/Underlayment: use felt/underlayment quantity (w/ or w/out felt); prefer SQ; if in sqft, convert to SQ.
-  * Waste %: If present, extract from options_text (e.g., "Auto Calculated Waste: X%") or description (use for notes only; checkpoint 2 compares squares).
+  * Waste factor basis (for checkpoint 2): Use the SHINGLE INSTALLATION quantity in SQ from ONE of these line items (in priority order):
+      1) "Laminated - comp. shingle rfg. - w/out felt" (or close match)
+      2) "3 tab - ... comp. shingle roofing - w/out felt" OR "3 tab - ... comp. shingle rfg. - w/ felt" (or close match)
+    If the chosen item's quantity is in sqft, convert to SQ via /100.
+    Do NOT use felt/underlayment quantities for checkpoint 2.
+  * Waste % (notes only): If the chosen shingle line item includes options_text mentioning auto waste (e.g., "Auto Calculated Waste: 13.4%"), extract the percent and include it in checkpoint 2 notes.
 - Missing numeric buckets: Treat any unavailable pitch bucket as 0 for pitch-based checks.
 
 Checklist (apply to EACH structure exactly as written below):
@@ -314,7 +319,8 @@ Checklist (apply to EACH structure exactly as written below):
 
 2. Check if proper waste factor is applied
   - Roof report value: squares at the recommended waste (use waste_table row where recommended=true → its "squares"; if only percent is present, compute squares = percent × roof 0% squares).
-  - Insurance report value: felt/underlayment quantity (w/ or w/out felt) in SQ (convert from sqft if needed). Use the felt line item tied to the shingle scope for this roof.
+  - Insurance report value: the SHINGLE INSTALLATION quantity in SQ from "Laminated - comp. shingle rfg. - w/out felt" OR from a "3 tab - ... comp. shingle ..." line item (w/out felt or w/ felt), whichever is available for this structure. Convert from sqft to SQ if needed.
+  - Notes requirement: If options_text for the chosen shingle item contains "Auto Calculated Waste: X%", include that exact waste percent as a note for this checkpoint.
   - Status: Pass if Insurance felt SQ ≥ Roof recommended waste SQ; Failed if less; Missing if unavailable.
 
 3. Drip Edge
@@ -411,8 +417,12 @@ Normalization and parsing rules:
   * Squares/Surface: use SQ line items; else derive from sqft / 100.
   * Tear off SQ: removal/tear-off line items in SQ.
   * Drip Edge/Starter/Ridge Cap/IWS/Step Flashing: use their LF/SF quantities in the Roof section.
-  * Felt/Underlayment: use felt/underlayment quantity (w/ or w/out felt), prefer SQ; if in sqft, convert to SQ.
-  * Waste %: parse from options_text (e.g., "Auto Calculated Waste: X%") or description when present (use only for notes; compare squares for checkpoint 2).
+  * Waste factor basis (for checkpoint 2): Use the SHINGLE INSTALLATION quantity in SQ from ONE of these line items (in priority order):
+      1) "Laminated - comp. shingle rfg. - w/out felt" (or close match)
+      2) "3 tab - ... comp. shingle roofing/rfg." (w/out felt or w/ felt) (or close match)
+    If the chosen item's quantity is in sqft, convert to SQ via /100.
+    Do NOT use felt/underlayment quantities for checkpoint 2.
+  * Waste % (notes only): parse from options_text tied to the chosen shingle line item (e.g., "Auto Calculated Waste: X%") or from the shingle line item's description when present.
 - Missing pitch buckets are treated as 0 for pitch-based checks.
 
 Checklist (single-structure):
@@ -423,8 +433,9 @@ Checklist (single-structure):
 
 2. Check if proper waste factor is applied
   - Roof report value: squares at the recommended waste (use waste_table row where recommended=true → its "squares"; if only percent is present, compute squares = percent × roof 0% squares).
-  - Insurance report value: felt/underlayment quantity (w/ or w/out felt) in SQ (convert from sqft if needed). Use the felt line item tied to the shingle scope for this roof.
-  - Status: Pass if Insurance felt SQ ≥ Roof recommended waste SQ; Failed if less; Missing if unavailable.
+  - Insurance report value: the SHINGLE INSTALLATION quantity in SQ from "Laminated - comp. shingle rfg. - w/out felt" OR from a "3 tab - ... comp. shingle ..." line item (w/out felt or w/ felt), whichever is available. Convert from sqft to SQ if needed.
+  - Notes requirement: If options_text for the chosen shingle item contains "Auto Calculated Waste: X%", include that exact waste percent as a note for this checkpoint.
+  - Status: Pass if Insurance shingle-install SQ ≥ Roof recommended waste SQ; Failed if less; Missing if unavailable.
 
 3. Drip Edge
    - Compare roof eaves + rakes (LF) vs insurance drip edge (LF). Pass if Roof ≤ Insurance; Failed if less; Missing if insurance item missing.
