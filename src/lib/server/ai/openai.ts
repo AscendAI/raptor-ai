@@ -136,9 +136,16 @@ Extract the structured data according to the following rules:
    - price_list → the "Price List" value (e.g., "ININ28_JUL24")
 
 2. Line items:
-   - Focus on all line items under the **Roof** section. 
-   - Stop extracting when the section changes (e.g., "Front Elevation", "Right Elevation", "Exterior").
-   - Skip any line item explicitly marked as **REVISED**.
+   - Focus on ALL roof-scope line items (the work that belongs to roofing), including pages/blocks headed "Revisions" or "continued" that are still clearly part of the Roof scope.
+   - Stop extracting only when the document clearly transitions into a NON-roof section (e.g., "Front Elevation", "Right Elevation", "Exterior").
+   - Skip a line item ONLY if that specific line item/row is explicitly marked as **REVISED**.
+   IMPORTANT: Do NOT skip roof line items merely because the PAGE/BLOCK header says "Revisions".
+   - Line item boundaries (CRITICAL):
+     * Each line item begins with an item number marker like "30." "32." "33." in the left margin.
+     * NEVER merge two different item numbers into one output entry, even if the descriptions look related.
+     * If you see item numbers 30 and 32 on the page, you MUST output TWO separate objects with item_no 30 and item_no 32 (even if 31 is missing).
+     * If a line item wraps onto additional lines without repeating the number (indented lines, or extra description text), treat those wrapped lines as part of the SAME item.
+     * Any new "NN." marker always starts a NEW line item.
    - For each valid line item, capture:
        * item_no → the line item number (integer)
        * description → full text of the description
@@ -200,14 +207,23 @@ Extract the structured data for UP TO ${structureCount} roof structure(s) accord
        * "Shed", "Barn", "Outbuilding"
        * "Porch", "Patio", "Carport"
    - CRITICAL: Do NOT treat "Elevation" sections (e.g., "Left Elevation", "Right Elevation", "Front Elevation") as roof sections. Only extract sections that are clearly roof structures. If a section header contains "Elevation", SKIP IT.
-   - CRITICAL: Do NOT extract sections that are continuations of previous pages (e.g., "Roof 1 continued", "Home continued"). These are NOT new structures.
+   - CRITICAL: Do NOT treat continuations as NEW structures (e.g., "Roof 1 continued", "Home continued").
+     Instead, CONTINUE extracting their line items and APPEND them to the most recent matching roof section.
+     If the page header is "Revisions" (or similar) but the line items are clearly roof-scope, append them to the most recent matching roof section.
    - Use the section header text from the document EXACTLY as the section_name (preserve punctuation and slashes). 
      If the header includes a suffix like "- Roof" or "Roof:" (e.g., "Home / Main House - Roof"), remove the suffix and keep just the base name.
    - Extract line items for each roof section separately.
    - Order roofSections as they appear in the document. Assign roofNumber sequentially starting from 1.
    - If the document contains more than ${structureCount} roof sections, include the first ${structureCount} roof-relevant sections in reading order.
    - If fewer than ${structureCount} valid roof structures are found, you MUST still return ${structureCount} entries in 'roofSections'. For missing structures, set 'section_name' to null and 'line_items' to [].
-   - Skip any line item explicitly marked as **REVISED**.
+   - Skip a line item ONLY if that specific line item/row is explicitly marked as **REVISED**.
+     IMPORTANT: Do NOT skip roof line items merely because the PAGE/BLOCK header says "Revisions".
+     - Line item boundaries (CRITICAL):
+       * Each line item begins with an item number marker like "30." "32." "33." in the left margin.
+       * NEVER merge two different item numbers into one output entry.
+       * If you see item numbers 30 and 32 on the page, you MUST output TWO separate objects with item_no 30 and item_no 32 (even if 31 is missing).
+       * If a line item wraps onto additional lines without repeating the number (indented lines, or extra description text), treat those wrapped lines as part of the SAME item.
+       * Any new "NN." marker always starts a NEW line item.
    - For each valid line item, capture:
        * item_no → the line item number (integer)
        * description → full text of the description
